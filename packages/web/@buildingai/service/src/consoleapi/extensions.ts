@@ -326,7 +326,9 @@ export function apiInstallExtension(
     version?: string,
 ): Promise<ExtensionFormData> {
     const data: ExtensionInstallRequest = version ? { version } : {};
-    return useConsolePost(`/extensions/install/${identifier}`, data);
+    return useConsolePost(`/extensions/install/${identifier}`, data, {
+        timeout: 5 * 60 * 1000,
+    });
 }
 
 /**
