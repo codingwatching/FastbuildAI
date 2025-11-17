@@ -88,9 +88,9 @@ export class AiMcpServerService extends BaseService<AiMcpServer> {
         // 如果更新了名称，检查新名称是否与其他服务冲突
         if (updateDto.name && updateDto.name !== mcpServer.name) {
             const existServer = await this.findOne({
-                where: { 
+                where: {
                     name: updateDto.name,
-                    id: Not(id)
+                    id: Not(id),
                 },
             });
 

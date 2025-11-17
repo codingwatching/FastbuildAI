@@ -58,7 +58,11 @@ export class ToolCallCommandHandler {
             const toolArgs = JSON.parse(toolCall.function.arguments || "{}");
             const startTime = Date.now();
 
-            // Call MCP tool
+            this.logger.debug(
+                `🔧 开始调用 MCP 工具: ${toolCall.function.name}, 参数: ${JSON.stringify(toolArgs).substring(0, 100)}`,
+            );
+
+            // Call MCP tool (with auto-reconnect built-in)
             const toolResult = await mcpServerUsed.mcpServer.callTool(
                 toolCall.function.name,
                 toolArgs,
@@ -67,7 +71,7 @@ export class ToolCallCommandHandler {
             const endTime = Date.now();
             const duration = endTime - startTime;
 
-            this.logger.log(`工具 ${toolCall.function.name} 执行完成，耗时 ${duration}ms`);
+            this.logger.log(`✅ 工具 ${toolCall.function.name} 执行完成，耗时 ${duration}ms`);
 
             const mcpToolCall: McpToolCall = {
                 id: toolCall.id,
@@ -82,10 +86,22 @@ export class ToolCallCommandHandler {
 
             return { toolResult, mcpToolCall };
         } catch (error) {
-            this.logger.error(`工具调用失败: ${error.message}`, error.stack);
+            const isConnectionError =
+                error.message?.includes("connect") ||
+                error.message?.includes("timeout") ||
+                error.message?.includes("ECONNREFUSED") ||
+                error.message?.includes("ENOTFOUND");
+
+            this.logger.error(
+                `❌ 工具调用失败 ${toolCall.function.name}: ${error.message}${isConnectionError ? " (连接错误)" : ""}`,
+                error.stack,
+            );
 
             const toolArgs = JSON.parse(toolCall.function.arguments || "{}");
-            const errorResult = { error: error.message };
+            const errorResult = {
+                error: error.message,
+                isConnectionError,
+            };
 
             const mcpToolCall: McpToolCall = {
                 id: toolCall.id,
