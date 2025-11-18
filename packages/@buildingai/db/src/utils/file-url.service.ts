@@ -99,11 +99,6 @@ export class FileUrlService {
             const config = await this.getStorageConfig();
             const baseDomain = this.getBaseDomain(config, requestDomain);
 
-            // 调试日志
-            this.logger.debug(
-                `FileUrlService.get: path=${path}, requestDomain=${requestDomain}, baseDomain=${baseDomain}`,
-            );
-
             // 根据不同的存储引擎处理路径
             switch (config.engine) {
                 case STORAGE_ENGINE.LOCAL:
