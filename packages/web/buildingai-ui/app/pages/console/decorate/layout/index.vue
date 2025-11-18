@@ -6,6 +6,12 @@ import { useLayoutStore } from "./stores/layout";
 const layoutStore = useLayoutStore();
 const { t } = useI18n();
 
+/** Get current domain */
+const currentDomain = ref("");
+onMounted(() => {
+    currentDomain.value = window.location.hostname;
+});
+
 /** 快速保存 */
 const { lockFn: quickSave, isLock: saving } = useLockFn(async () => {
     try {
@@ -52,7 +58,7 @@ onMounted(() => layoutStore.loadLayoutFromServer());
             <PropertyPanel />
 
             <!-- 右侧预览面板 -->
-            <SafariMockup :use-slot="true" url="www.buildingai.cc" :height="'100%'">
+            <SafariMockup :use-slot="true" :url="currentDomain" :height="'100%'">
                 <PreviewPanel />
             </SafariMockup>
         </div>
