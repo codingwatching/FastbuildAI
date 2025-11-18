@@ -85,13 +85,28 @@ onMounted(() => getPluginInfo());
             <div v-if="pluginInfo" class="p-1">
                 <div
                     class="bg-secondary rounded-lg p-3 transition-all"
-                    :class="collapsed ? 'flex items-center justify-center' : ''"
+                    :class="
+                        collapsed ? 'flex items-center justify-center bg-transparent! p-1!' : ''
+                    "
                 >
-                    <div v-if="collapsed" class="flex items-center justify-center">
+                    <div
+                        v-if="collapsed"
+                        class="group/logo relative flex items-center justify-center"
+                    >
+                        <UAvatar
+                            class="m-1 size-9 opacity-100 group-hover/logo:opacity-0"
+                            :src="pluginInfo.icon"
+                            :text="pluginInfo.author?.name"
+                            size="md"
+                        />
                         <UButton
                             color="primary"
+                            class="size-10 rounded-full"
                             icon="i-lucide-arrow-left"
                             variant="soft"
+                            :ui="{
+                                base: 'flex cursor-pointer absolute inset-0 z-1 justify-center items-center group-hover/logo:opacity-100 opacity-0',
+                            }"
                             :label="collapsed ? '' : $t('layouts.pluginSidebar')"
                             @click="handleBack"
                         >
@@ -115,30 +130,16 @@ onMounted(() => getPluginInfo());
                             />
                         </div>
                         <h3
-                            class="text-foreground truncate text-sm font-semibold"
+                            class="text-foreground mb-0.5! truncate text-sm font-semibold"
                             :title="pluginInfo.name"
                         >
-                            Title:{{ pluginInfo.name }}
+                            {{ pluginInfo.name }}
                         </h3>
                         <div
                             class="text-muted-foreground text-xs"
                             :title="`版本: ${pluginInfo.version}`"
                         >
-                            Version: v{{ pluginInfo.version }}
-                        </div>
-                        <div
-                            v-if="pluginInfo.author?.name"
-                            class="text-muted-foreground text-xs"
-                            :title="`作者: ${pluginInfo.author.name}`"
-                        >
-                            Author: {{ pluginInfo.author.name }}
-                        </div>
-                        <div
-                            v-if="pluginInfo.description"
-                            class="text-muted-foreground line-clamp-2 text-xs"
-                            :title="pluginInfo.description"
-                        >
-                            Description: {{ pluginInfo.description }}
+                            v{{ pluginInfo.version }}
                         </div>
                     </div>
                 </div>
@@ -203,9 +204,10 @@ onMounted(() => getPluginInfo());
                         <div class="bg-secondary rounded-lg p-2">
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2">
-                                    <UIcon
-                                        name="i-lucide-package"
-                                        class="text-accent-foreground size-4"
+                                    <UAvatar
+                                        :src="pluginInfo.icon"
+                                        :text="pluginInfo.author?.name"
+                                        size="xs"
                                     />
                                     <h3
                                         class="text-foreground truncate text-sm font-semibold"
@@ -221,21 +223,7 @@ onMounted(() => getPluginInfo());
                                     >
                                         v{{ pluginInfo.version }}
                                     </span>
-                                    <span
-                                        v-if="pluginInfo.author?.name"
-                                        class="text-muted-foreground text-xs"
-                                        :title="`作者: ${pluginInfo.author.name}`"
-                                    >
-                                        · {{ pluginInfo.author.name }}
-                                    </span>
                                 </div>
-                                <p
-                                    v-if="pluginInfo.description"
-                                    class="text-muted-foreground line-clamp-2 text-xs"
-                                    :title="pluginInfo.description"
-                                >
-                                    {{ pluginInfo.description }}
-                                </p>
                             </div>
                         </div>
                     </div>
