@@ -137,7 +137,6 @@ export class AiMcpServer extends BaseEntity {
         comment: "通信传输方式: sse 或 streamable-http",
     })
     communicationType: McpCommunicationType;
-    timeout: number;
 
     /**
      * 自定义请求头

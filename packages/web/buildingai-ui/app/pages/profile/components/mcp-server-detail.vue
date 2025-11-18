@@ -29,7 +29,6 @@ const state = shallowReactive({
         description: "",
         icon: "",
         type: "user" as "user" | "system",
-        timeout: 60,
         providerName: "",
         url: "",
         sortOrder: 0,
@@ -121,8 +120,8 @@ onMounted(async () => mcpServerId.value && (await fetchDetail()));
                         </h3>
                         <UBadge :color="state.formData.type === 'user' ? 'info' : 'primary'">{{
                             state.formData.type === "user"
-                                ? t("console-common.tab.custom")
-                                : t("console-common.tab.system")
+                                ? t("ai-mcp.frontend.detail.custom")
+                                : t("ai-mcp.frontend.detail.system")
                         }}</UBadge>
                     </div>
                 </div>
@@ -168,14 +167,6 @@ onMounted(async () => mcpServerId.value && (await fetchDetail()));
                             {{ state.formData.url }}
                         </div>
                     </UTooltip>
-                </div>
-                <div>
-                    <div class="text-muted-foreground text-sm">
-                        {{ t("ai-mcp.frontend.detail.timeout") }}
-                    </div>
-                    <div class="text-secondary-foreground mt-1 font-medium">
-                        {{ state.formData.timeout }} s
-                    </div>
                 </div>
                 <div v-if="!props.isSystemMcp">
                     <div class="text-muted-foreground text-sm">

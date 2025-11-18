@@ -525,7 +525,7 @@ definePageMeta({
                                 alt="chat-window-style-icon"
                                 class="bg-muted h-18 w-29 rounded-md border-2 border-transparent"
                                 :class="{
-                                    '!border-primary': option.value === chatWindowStyle,
+                                    'border-primary!': option.value === chatWindowStyle,
                                 }"
                             />
                             <div
@@ -563,7 +563,7 @@ definePageMeta({
                 <BdMarkdown
                     ref="codePreviewRef"
                     :content="sampleCode"
-                    class="mt-4 max-h-60 w-full !p-0"
+                    class="mt-4 max-h-60 w-full p-0!"
                 />
             </div>
 
@@ -588,7 +588,7 @@ definePageMeta({
                 <BdMarkdown
                     ref="mermaidPreviewRef"
                     :content="sampleMermaid"
-                    class="mt-4 w-full !p-0"
+                    class="mt-4 w-full p-0!"
                 />
             </div>
         </div>

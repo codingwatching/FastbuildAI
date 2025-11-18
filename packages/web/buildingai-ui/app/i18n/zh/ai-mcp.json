@@ -115,7 +115,9 @@
             "enabled": "启用",
             "disabled": "禁用",
             "tools": "工具列表",
-            "noDescription": "无描述"
+            "noDescription": "无描述",
+            "custom": "自定义",
+            "system": "系统"
         },
         "setMcp": "设置 MCP 工具",
         "tool": "工具",

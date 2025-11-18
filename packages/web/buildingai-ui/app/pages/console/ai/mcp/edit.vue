@@ -36,7 +36,6 @@ const formData = shallowReactive<CreateMcpServerRequest>({
     url: "",
     sortOrder: 0,
     communicationType: undefined,
-    timeout: 60,
     isQuickMenu: false,
     alias: "",
     providerUrl: "",
@@ -447,14 +446,6 @@ onMounted(async () => mcpServerId.value && (await fetchDetail()));
                                     v-model="formData.sortOrder"
                                     type="number"
                                     :placeholder="t('ai-mcp.backend.form.sortOrder')"
-                                    :ui="{ root: 'w-full' }"
-                                />
-                            </UFormField>
-                            <UFormField :label="t('ai-mcp.backend.form.timeOut')" name="timeout">
-                                <UInput
-                                    v-model="formData.timeout"
-                                    type="number"
-                                    :placeholder="t('ai-mcp.backend.form.timeOut')"
                                     :ui="{ root: 'w-full' }"
                                 />
                             </UFormField>

@@ -51,13 +51,6 @@ export class CreateAiMcpServerDto {
     icon?: string;
 
     /**
-     * 超时时间
-     */
-    @IsOptional()
-    @IsInt({ message: "超时时间必须是整数" })
-    timeout?: number;
-
-    /**
      * 服务类型
      */
     @IsOptional()

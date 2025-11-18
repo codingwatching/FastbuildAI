@@ -31,7 +31,6 @@ type DetailData = Pick<
     | "isDisabled"
     | "url"
     | "sortOrder"
-    | "timeout"
     | "type"
     | "tools"
     | "connectable"
@@ -49,7 +48,6 @@ const formData = shallowReactive<DetailData>({
     isDisabled: false,
     url: "",
     sortOrder: 0,
-    timeout: 60,
     type: "",
     tools: [],
     connectable: false,
@@ -194,14 +192,6 @@ onMounted(async () => mcpServerId.value && (await fetchDetail()));
                             {{ formData.url }}
                         </div>
                     </UTooltip>
-                </div>
-                <div>
-                    <div class="text-muted-foreground text-sm">
-                        {{ t("ai-mcp.backend.detail.timeout") }}
-                    </div>
-                    <div class="text-secondary-foreground mt-1 font-medium">
-                        {{ formData.timeout }} s
-                    </div>
                 </div>
 
                 <div>

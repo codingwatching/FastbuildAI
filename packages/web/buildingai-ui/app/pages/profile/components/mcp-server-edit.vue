@@ -33,7 +33,6 @@ const state = reactive({
         description: "",
         icon: "",
         url: "",
-        timeout: 60,
         communicationType: undefined,
         customHeaders: "",
     } as McpServerCreateParams,
@@ -179,7 +178,6 @@ const { lockFn: fetchDetail, isLock: detailLoading } = useLockFn(async () => {
             description: data.description || "",
             icon: data.icon || "",
             url: data.url || "",
-            timeout: data.timeout || 60,
             communicationType: data.communicationType,
         });
 
@@ -421,15 +419,6 @@ onMounted(async () => mcpServerId.value && (await fetchDetail()));
                                 v-model="state.formData.providerName"
                                 :disabled="state.isSystem"
                                 :placeholder="t('ai-mcp.backend.form.providerName')"
-                                :ui="{ root: 'w-full' }"
-                            />
-                        </UFormField>
-
-                        <UFormField :label="t('ai-mcp.backend.form.timeOut')" name="timeout">
-                            <UInput
-                                v-model="state.formData.timeout"
-                                type="number"
-                                :placeholder="t('ai-mcp.backend.form.timeOut')"
                                 :ui="{ root: 'w-full' }"
                             />
                         </UFormField>

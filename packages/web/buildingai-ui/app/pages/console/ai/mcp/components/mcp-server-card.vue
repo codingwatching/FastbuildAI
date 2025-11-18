@@ -121,7 +121,7 @@ onMounted(() => {
     >
         <div
             v-if="mcpServer.isQuickMenu"
-            class="bg-primary absolute top-3 -left-6 w-22 rotate-[-45deg] text-center text-xs font-bold text-white shadow-md"
+            class="bg-primary absolute top-3 -left-6 w-22 -rotate-45 text-center text-xs font-bold text-white shadow-md"
         >
             {{ t("ai-mcp.backend.quickMenu") }}
         </div>
