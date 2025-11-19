@@ -1,8 +1,4 @@
-import {
-    BaseService,
-    ExcludeFieldsResult,
-    FieldPath,
-} from "@buildingai/base/services/base.service";
+import { BaseService, ExcludeFieldsResult, FieldPath } from "@buildingai/base";
 import { BusinessCode } from "@buildingai/constants/shared/business-code.constant";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { Dict } from "@buildingai/db/entities/dict.entity";
