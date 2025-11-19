@@ -34,7 +34,7 @@ const { store } = useColorMode();
 const appConfig = useAppConfig() as any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const { locale, t, setLocale } = useI18n() as any;
-const router = useRouter();
+const { smartNavigate } = useSmartNavigate();
 const userStore = useUserStore();
 
 const languageCookie = useCookie<LanguageCode>("nuxt-ui-language");
@@ -55,7 +55,9 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     [
         {
             label: "profile",
-            onSelect: () => router.push(`/profile/${userStore.userInfo?.id}`),
+            onSelect: () => {
+                smartNavigate(`/profile/${userStore.userInfo?.id}`);
+            },
         },
     ],
     [
