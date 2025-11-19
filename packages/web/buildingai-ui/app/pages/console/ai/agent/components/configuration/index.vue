@@ -90,6 +90,9 @@ const { lockFn: handleUpdate, isLock } = useLockFn(async (flag = true) => {
     await apiUpdateAgentConfig(agentId as string, state);
     if (flag) {
         useMessage().success(t("common.message.updateSuccess"));
+        setTimeout(() => {
+            useRouter().push(useRoutePath("ai-agent:list"));
+        }, 1000);
     }
     refreshNuxtData(`agent-detail-${agentId as string}`);
 });
