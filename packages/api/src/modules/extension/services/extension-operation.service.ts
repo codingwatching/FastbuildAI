@@ -21,6 +21,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import AdmZip from "adm-zip";
 import * as fs from "fs-extra";
 import * as path from "path";
+import * as semver from "semver";
 import { v4 as uuidv4 } from "uuid";
 
 import { Pm2Service } from "../../pm2/services/pm2.service";
@@ -582,8 +583,27 @@ export class ExtensionOperationService {
         identifier: string,
         extensionMarketService: ExtensionMarketService,
     ): Promise<string | null> {
-        const versions = await extensionMarketService.getApplicationVersions(identifier);
-        return versions[0]?.version ?? null;
+        const versionsRaw = await extensionMarketService.getApplicationVersions(identifier);
+        if (!versionsRaw || versionsRaw.length === 0) {
+            return null;
+        }
+
+        // 1. Filter valid semver versions
+        const validVersions = versionsRaw.map((v) => v.version).filter((v) => semver.valid(v));
+
+        if (validVersions.length === 0) {
+            // Fallback to raw first item if no valid semver found
+            return versionsRaw[0].version;
+        }
+
+        // 2. Sort descending using semver
+        validVersions.sort((a, b) => semver.rcompare(a, b));
+
+        // 3. Prefer stable release (no prerelease tag)
+        const latestStable = validVersions.find((v) => !semver.prerelease(v));
+
+        // 4. Return latest stable or latest prerelease
+        return latestStable || validVersions[0];
     }
 
     /**
