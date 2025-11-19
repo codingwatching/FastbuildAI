@@ -12,7 +12,7 @@
         "menu": {
             "documents": "文档",
             "retrieval": "召回测试",
-            "members": "团队成员",
+            "members": "协作成员",
             "settings": "设置",
             "segments": "分段",
             "relatedApplications": "关联应用"
