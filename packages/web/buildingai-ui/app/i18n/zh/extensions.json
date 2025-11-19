@@ -118,6 +118,7 @@
         "enable": "启用",
         "disable": "禁用",
         "uninstall": "卸载",
+        "upgrade": "更新",
         "detail": "详情",
         "logs": "日志",
         "official": "官方",

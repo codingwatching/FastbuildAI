@@ -16,6 +16,7 @@ import {
     apiGetExtensionList,
     apiInstallExtension,
     apiUninstallExtension,
+    apiUpgradeExtension,
 } from "@buildingai/service/consoleapi/extensions";
 import type { TabsItem } from "@nuxt/ui";
 
@@ -85,6 +86,7 @@ const handleNavigate = (extension: ExtensionFormData) => {
 };
 
 const installingMap = reactive<Record<string, boolean>>({});
+const upgradingMap = reactive<Record<string, boolean>>({});
 
 const handleInstall = async (extension: ExtensionFormData) => {
     if (installingMap[extension.identifier]) {
@@ -101,6 +103,24 @@ const handleInstall = async (extension: ExtensionFormData) => {
         toast.error(t("console-common.messages.failed"));
     } finally {
         installingMap[extension.identifier] = false;
+    }
+};
+
+const handleUpgrade = async (extension: ExtensionFormData) => {
+    if (upgradingMap[extension.identifier]) {
+        return;
+    }
+
+    try {
+        upgradingMap[extension.identifier] = true;
+        await apiUpgradeExtension(extension.identifier);
+        await getLists();
+        toast.success(t("console-common.messages.success"));
+    } catch (error) {
+        console.error("更新插件失败:", error);
+        toast.error(t("console-common.messages.failed"));
+    } finally {
+        upgradingMap[extension.identifier] = false;
     }
 };
 
@@ -349,6 +369,16 @@ onMounted(() => getLists());
                                     :loading="installingMap[extension.identifier]"
                                     :label="$t('extensions.manage.install')"
                                     @click="handleInstall(extension)"
+                                />
+
+                                <UButton
+                                    v-if="!extension.isLocal"
+                                    color="primary"
+                                    variant="ghost"
+                                    size="sm"
+                                    :loading="upgradingMap[extension.identifier]"
+                                    :label="$t('extensions.manage.upgrade')"
+                                    @click="handleUpgrade(extension)"
                                 />
 
                                 <UDropdownMenu

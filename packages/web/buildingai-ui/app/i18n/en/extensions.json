@@ -118,6 +118,7 @@
         "enable": "Enable",
         "disable": "Disable",
         "uninstall": "Uninstall",
+        "upgrade": "Upgrade",
         "detail": "Details",
         "logs": "Logs",
         "official": "Official",

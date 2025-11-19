@@ -334,6 +334,22 @@ export function apiInstallExtension(
 }
 
 /**
+ * Upgrade extension
+ * @description Upgrades an extension to the latest version
+ * @param identifier Extension identifier
+ * @returns Promise with upgraded extension data
+ */
+export function apiUpgradeExtension(identifier: string): Promise<ExtensionFormData> {
+    return useConsolePost(
+        `/extensions/upgrade/${identifier}`,
+        {},
+        {
+            timeout: 300000,
+        },
+    );
+}
+
+/**
  * Uninstall extension
  * @description Uninstalls an extension by identifier
  * @param identifier Extension identifier
