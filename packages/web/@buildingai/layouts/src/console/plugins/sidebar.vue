@@ -57,8 +57,14 @@ const menuGroups = computed<NavigationMenuItem[][]>(() => {
 
 const pluginInfo = shallowRef<ExtensionFormData | null>(null);
 
+const router = useRouter();
+
 const handleBack = () => {
-    window.history.back();
+    if (import.meta.dev) {
+        router.push("/");
+    } else {
+        window.location.href = "/console/plugins/manage";
+    }
 };
 
 const getPluginInfo = async () => {
