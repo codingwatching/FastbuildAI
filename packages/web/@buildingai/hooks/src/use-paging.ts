@@ -24,7 +24,7 @@ export function usePaging<T = any>(options: Options) {
         needPolling: false,
     });
     // 请求分页接口
-    const getLists = () => {
+    const getLists = (options?: { append?: boolean }) => {
         paging.loading = true;
         return fetchFun({
             page: paging.page,
@@ -33,7 +33,11 @@ export function usePaging<T = any>(options: Options) {
         })
             .then((res: any) => {
                 paging.total = res?.total;
-                paging.items = res?.items;
+                if (options?.append) {
+                    paging.items = [...paging.items, ...res?.items];
+                } else {
+                    paging.items = res?.items;
+                }
                 paging.extend = res?.extend;
                 paging.needPolling = res?.needPolling || false;
                 return Promise.resolve(res);

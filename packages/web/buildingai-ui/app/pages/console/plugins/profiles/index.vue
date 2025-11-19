@@ -68,7 +68,6 @@ const { isLock: isSavingSecret, lockFn: saveSecret } = useLockFn(async () => {
         await saveSecretValue(editingSecretValue.value);
     } catch (error) {
         console.error("Failed to save secret:", error);
-        message.error(t("extensions.profiles.setSecretError"));
     }
 });
 

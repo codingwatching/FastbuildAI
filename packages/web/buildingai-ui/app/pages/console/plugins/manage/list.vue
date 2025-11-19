@@ -65,7 +65,16 @@ const { paging, getLists } = usePaging({
     params: searchForm,
 });
 
+const hasMore = computed(() => paging.items.length < paging.total);
+
+const loadMore = () => {
+    if (paging.loading) return;
+    paging.page++;
+    getLists({ append: true });
+};
+
 const handleSearch = useDebounceFn(() => {
+    paging.page = 1;
     getLists();
 }, 500);
 
@@ -77,6 +86,7 @@ const handleTabChange = (value: string | number) => {
     } else {
         searchForm.isInstalled = tabValue === "installed";
     }
+    paging.page = 1;
     getLists();
 };
 
@@ -96,6 +106,7 @@ const handleInstall = async (extension: ExtensionFormData) => {
     try {
         installingMap[extension.identifier] = true;
         await apiInstallExtension(extension.identifier);
+        paging.page = 1;
         await getLists();
         toast.success(t("console-common.messages.success"));
     } catch (error) {
@@ -114,6 +125,7 @@ const handleUpgrade = async (extension: ExtensionFormData) => {
     try {
         upgradingMap[extension.identifier] = true;
         await apiUpgradeExtension(extension.identifier);
+        paging.page = 1;
         await getLists();
         toast.success(t("console-common.messages.success"));
     } catch (error) {
@@ -127,6 +139,7 @@ const handleUpgrade = async (extension: ExtensionFormData) => {
 const { lockFn: handleUninstall } = useLockFn(async (extension: ExtensionFormData) => {
     try {
         await apiUninstallExtension(extension.identifier);
+        paging.page = 1;
         await getLists();
         toast.success(t("console-common.messages.success"));
     } catch (error) {
@@ -143,6 +156,7 @@ const { lockFn: handleUninstall } = useLockFn(async (extension: ExtensionFormDat
 const handleEnable = async (extension: ExtensionFormData) => {
     try {
         await apiEnableExtension(extension.id);
+        paging.page = 1;
         await getLists();
         toast.success(t("console-common.messages.success"));
     } catch (error) {
@@ -154,6 +168,7 @@ const handleEnable = async (extension: ExtensionFormData) => {
 const handleDisable = async (extension: ExtensionFormData) => {
     try {
         await apiDisableExtension(extension.id);
+        paging.page = 1;
         await getLists();
         toast.success(t("console-common.messages.success"));
     } catch (error) {
@@ -184,6 +199,7 @@ const handleLocal = async (extension: ExtensionFormData, flag: boolean) => {
     });
     const shouldRefresh = await instance.result;
     if (shouldRefresh) {
+        paging.page = 1;
         getLists();
     }
 };
@@ -252,212 +268,224 @@ onMounted(() => getLists());
 
         <div class="grid h-[calc(100vh-12rem)]">
             <BdScrollArea class="h-full" :shadow="false">
-                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    <!-- Extension Cards -->
+                <BdInfiniteScroll
+                    :loading="paging.loading"
+                    :has-more="hasMore"
+                    @load-more="loadMore"
+                >
                     <div
-                        v-for="extension in paging.items"
-                        :key="extension.id"
-                        class="bg-background border-muted relative h-[170px] overflow-hidden rounded-[6px] border border-solid transition duration-150 ease-out hover:shadow-[0_6px_8px_0_rgba(28,31,35,6%)]"
+                        class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                     >
-                        <div class="flex h-full w-full cursor-pointer flex-col gap-3.5 p-4">
-                            <!-- Top Section: Title and Avatar -->
-                            <div class="flex justify-between">
-                                <!-- Left Content -->
-                                <div class="flex w-[calc(100%-76px)] flex-col gap-1">
-                                    <!-- Title with Verification -->
-                                    <div class="flex items-center gap-1">
+                        <!-- Extension Cards -->
+                        <div
+                            v-for="extension in paging.items"
+                            :key="extension.id"
+                            class="bg-background border-muted relative h-[170px] overflow-hidden rounded-[6px] border border-solid transition duration-150 ease-out hover:shadow-[0_6px_8px_0_rgba(28,31,35,6%)]"
+                        >
+                            <div class="flex h-full w-full cursor-pointer flex-col gap-3.5 p-4">
+                                <!-- Top Section: Title and Avatar -->
+                                <div class="flex justify-between">
+                                    <!-- Left Content -->
+                                    <div class="flex w-[calc(100%-76px)] flex-col gap-1">
+                                        <!-- Title with Verification -->
+                                        <div class="flex items-center gap-1">
+                                            <span
+                                                class="text-foreground truncate text-[16px] leading-[22px] font-[500]"
+                                            >
+                                                {{ extension.name }}
+                                            </span>
+                                        </div>
+                                        <!-- Description -->
                                         <span
-                                            class="text-foreground truncate text-[16px] leading-[22px] font-[500]"
+                                            class="text-muted-foreground line-clamp-2 text-[14px] leading-[20px] font-normal wrap-break-word"
                                         >
-                                            {{ extension.name }}
+                                            {{ extension.description || "暂无描述" }}
                                         </span>
                                     </div>
-                                    <!-- Description -->
-                                    <span
-                                        class="text-muted-foreground line-clamp-2 text-[14px] leading-[20px] font-normal wrap-break-word"
+                                    <!-- Right Avatar -->
+                                    <div
+                                        class="ml-[12px] h-[64px] w-[64px] flex-none overflow-hidden rounded-[10px]"
                                     >
-                                        {{ extension.description || "暂无描述" }}
-                                    </span>
+                                        <NuxtImg
+                                            :src="extension.icon"
+                                            :alt="extension.name"
+                                            class="h-full w-full object-cover"
+                                            loading="lazy"
+                                        />
+                                    </div>
                                 </div>
-                                <!-- Right Avatar -->
-                                <div
-                                    class="ml-[12px] h-[64px] w-[64px] flex-none overflow-hidden rounded-[10px]"
-                                >
-                                    <NuxtImg
-                                        :src="extension.icon"
-                                        :alt="extension.name"
-                                        class="h-full w-full object-cover"
-                                        loading="lazy"
+
+                                <!-- Tag Section -->
+                                <div class="flex items-center gap-2">
+                                    <UBadge
+                                        v-if="extension.version"
+                                        color="neutral"
+                                        variant="soft"
+                                        :label="`v${extension.version}`"
+                                    />
+                                    <UBadge
+                                        v-if="extension.isInstalled"
+                                        :color="
+                                            extension.status === ExtensionStatus.ENABLED
+                                                ? 'success'
+                                                : 'neutral'
+                                        "
+                                        variant="soft"
+                                        :label="
+                                            extension.status === ExtensionStatus.ENABLED
+                                                ? t('extensions.manage.enable')
+                                                : t('extensions.manage.disable')
+                                        "
+                                    />
+                                    <UBadge
+                                        v-for="supportTerminal in extension.supportTerminal"
+                                        :color="
+                                            supportTerminal === ExtensionSupportTerminal.WEB
+                                                ? 'success'
+                                                : supportTerminal === ExtensionSupportTerminal.API
+                                                  ? 'info'
+                                                  : 'neutral'
+                                        "
+                                        variant="soft"
+                                        :label="getTerminalLabel(supportTerminal)"
                                     />
                                 </div>
-                            </div>
 
-                            <!-- Tag Section -->
-                            <div class="flex items-center gap-2">
-                                <UBadge
-                                    v-if="extension.version"
-                                    color="neutral"
-                                    variant="soft"
-                                    :label="`v${extension.version}`"
-                                />
-                                <UBadge
-                                    v-if="extension.isInstalled"
-                                    :color="
-                                        extension.status === ExtensionStatus.ENABLED
-                                            ? 'success'
-                                            : 'neutral'
-                                    "
-                                    variant="soft"
-                                    :label="
-                                        extension.status === ExtensionStatus.ENABLED
-                                            ? t('extensions.manage.enable')
-                                            : t('extensions.manage.disable')
-                                    "
-                                />
-                                <UBadge
-                                    v-for="supportTerminal in extension.supportTerminal"
-                                    :color="
-                                        supportTerminal === ExtensionSupportTerminal.WEB
-                                            ? 'success'
-                                            : supportTerminal === ExtensionSupportTerminal.API
-                                              ? 'info'
-                                              : 'neutral'
-                                    "
-                                    variant="soft"
-                                    :label="getTerminalLabel(supportTerminal)"
-                                />
-                            </div>
-
-                            <!-- User Info Section -->
-                            <div class="flex items-center gap-1 text-xs">
-                                <UAvatar
-                                    color="primary"
-                                    size="xs"
-                                    :src="extension.author?.avatar"
-                                    :ui="{ root: 'rounded-full bg-primary size-5' }"
-                                >
-                                    <UIcon name="i-lucide-user" class="size-3 text-white" />
-                                </UAvatar>
-                                <div class="text-nowrap">
-                                    {{ extension.author.name || "未知作者" }}
+                                <!-- User Info Section -->
+                                <div class="flex items-center gap-1 text-xs">
+                                    <UAvatar
+                                        color="primary"
+                                        size="xs"
+                                        :src="extension.author?.avatar"
+                                        :ui="{ root: 'rounded-full bg-primary size-5' }"
+                                    >
+                                        <UIcon name="i-lucide-user" class="size-3 text-white" />
+                                    </UAvatar>
+                                    <div class="text-nowrap">
+                                        {{ extension.author.name || "未知作者" }}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <!-- Bottom Actions -->
-                            <div class="bg-background absolute right-3 bottom-3 flex gap-2">
-                                <UTooltip
-                                    v-if="
-                                        extension.type === ExtensionType.APPLICATION &&
-                                        extension.isInstalled
-                                    "
-                                    :text="t('extensions.manage.manage')"
-                                >
+                                <!-- Bottom Actions -->
+                                <div class="bg-background absolute right-3 bottom-3 flex gap-2">
+                                    <UTooltip
+                                        v-if="
+                                            extension.type === ExtensionType.APPLICATION &&
+                                            extension.isInstalled
+                                        "
+                                        :text="t('extensions.manage.manage')"
+                                    >
+                                        <UButton
+                                            color="primary"
+                                            variant="ghost"
+                                            size="sm"
+                                            :label="t('extensions.manage.manage')"
+                                            @click="handleNavigate(extension)"
+                                        />
+                                    </UTooltip>
+
                                     <UButton
+                                        v-if="!extension.isInstalled"
                                         color="primary"
                                         variant="ghost"
                                         size="sm"
-                                        :label="t('extensions.manage.manage')"
-                                        @click="handleNavigate(extension)"
+                                        :loading="installingMap[extension.identifier]"
+                                        :label="$t('extensions.manage.install')"
+                                        @click="handleInstall(extension)"
                                     />
-                                </UTooltip>
 
-                                <UButton
-                                    v-if="!extension.isInstalled"
-                                    color="primary"
-                                    variant="ghost"
-                                    size="sm"
-                                    :loading="installingMap[extension.identifier]"
-                                    :label="$t('extensions.manage.install')"
-                                    @click="handleInstall(extension)"
-                                />
-
-                                <UButton
-                                    v-if="!extension.isLocal"
-                                    color="primary"
-                                    variant="ghost"
-                                    size="sm"
-                                    :loading="upgradingMap[extension.identifier]"
-                                    :label="$t('extensions.manage.upgrade')"
-                                    @click="handleUpgrade(extension)"
-                                />
-
-                                <UDropdownMenu
-                                    v-else
-                                    :items="[
-                                        [
-                                            {
-                                                label: t('extensions.manage.detail'),
-                                                icon: 'i-lucide-info',
-                                                onSelect: () => handleDetailExtension(extension),
-                                            },
-                                            {
-                                                label: t('extensions.manage.logs'),
-                                                icon: 'i-lucide-file-text',
-                                                onSelect: () => handleChangelogExtension(extension),
-                                            },
-                                        ],
-                                        [
-                                            {
-                                                label:
-                                                    extension.status === ExtensionStatus.ENABLED
-                                                        ? t('extensions.manage.disable')
-                                                        : t('extensions.manage.enable'),
-                                                icon:
-                                                    extension.status === ExtensionStatus.ENABLED
-                                                        ? 'i-lucide-power-off'
-                                                        : 'i-lucide-power',
-                                                color:
-                                                    extension.status === ExtensionStatus.ENABLED
-                                                        ? 'warning'
-                                                        : 'success',
-                                                onSelect: () => {
-                                                    if (
-                                                        extension.status === ExtensionStatus.ENABLED
-                                                    ) {
-                                                        handleDisable(extension);
-                                                    } else {
-                                                        handleEnable(extension);
-                                                    }
-                                                },
-                                            },
-                                        ],
-                                        [
-                                            extension.isLocal
-                                                ? {
-                                                      label: t('console-common.edit'),
-                                                      icon: 'i-lucide-pen-line',
-                                                      onSelect: () => handleLocal(extension, true),
-                                                  }
-                                                : undefined,
-                                            {
-                                                label: t('extensions.manage.uninstall'),
-                                                icon: 'i-lucide-trash-2',
-                                                color: 'error',
-                                                onSelect: () => {
-                                                    // if (extension.isLocal) {
-                                                    //     handleDelete(extension);
-                                                    // } else {
-                                                    //     handleUninstall(extension);
-                                                    // }
-                                                    handleUninstall(extension);
-                                                },
-                                            },
-                                        ].filter((item) => item !== undefined),
-                                    ]"
-                                    :content="{ align: 'end', side: 'bottom', sideOffset: 4 }"
-                                    :ui="{ content: 'w-32' }"
-                                >
                                     <UButton
-                                        icon="i-lucide-ellipsis-vertical"
-                                        color="neutral"
+                                        v-if="!extension.isLocal"
+                                        color="primary"
                                         variant="ghost"
                                         size="sm"
+                                        :loading="upgradingMap[extension.identifier]"
+                                        :label="$t('extensions.manage.upgrade')"
+                                        @click="handleUpgrade(extension)"
                                     />
-                                </UDropdownMenu>
+
+                                    <UDropdownMenu
+                                        v-else
+                                        :items="[
+                                            [
+                                                {
+                                                    label: t('extensions.manage.detail'),
+                                                    icon: 'i-lucide-info',
+                                                    onSelect: () =>
+                                                        handleDetailExtension(extension),
+                                                },
+                                                {
+                                                    label: t('extensions.manage.logs'),
+                                                    icon: 'i-lucide-file-text',
+                                                    onSelect: () =>
+                                                        handleChangelogExtension(extension),
+                                                },
+                                            ],
+                                            [
+                                                {
+                                                    label:
+                                                        extension.status === ExtensionStatus.ENABLED
+                                                            ? t('extensions.manage.disable')
+                                                            : t('extensions.manage.enable'),
+                                                    icon:
+                                                        extension.status === ExtensionStatus.ENABLED
+                                                            ? 'i-lucide-power-off'
+                                                            : 'i-lucide-power',
+                                                    color:
+                                                        extension.status === ExtensionStatus.ENABLED
+                                                            ? 'warning'
+                                                            : 'success',
+                                                    onSelect: () => {
+                                                        if (
+                                                            extension.status ===
+                                                            ExtensionStatus.ENABLED
+                                                        ) {
+                                                            handleDisable(extension);
+                                                        } else {
+                                                            handleEnable(extension);
+                                                        }
+                                                    },
+                                                },
+                                            ],
+                                            [
+                                                extension.isLocal
+                                                    ? {
+                                                          label: t('console-common.edit'),
+                                                          icon: 'i-lucide-pen-line',
+                                                          onSelect: () =>
+                                                              handleLocal(extension, true),
+                                                      }
+                                                    : undefined,
+                                                {
+                                                    label: t('extensions.manage.uninstall'),
+                                                    icon: 'i-lucide-trash-2',
+                                                    color: 'error',
+                                                    onSelect: () => {
+                                                        // if (extension.isLocal) {
+                                                        //     handleDelete(extension);
+                                                        // } else {
+                                                        //     handleUninstall(extension);
+                                                        // }
+                                                        handleUninstall(extension);
+                                                    },
+                                                },
+                                            ].filter((item) => item !== undefined),
+                                        ]"
+                                        :content="{ align: 'end', side: 'bottom', sideOffset: 4 }"
+                                        :ui="{ content: 'w-32' }"
+                                    >
+                                        <UButton
+                                            icon="i-lucide-ellipsis-vertical"
+                                            color="neutral"
+                                            variant="ghost"
+                                            size="sm"
+                                        />
+                                    </UDropdownMenu>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </BdInfiniteScroll>
             </BdScrollArea>
         </div>
     </div>
