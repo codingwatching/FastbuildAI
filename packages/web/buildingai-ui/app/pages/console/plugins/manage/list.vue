@@ -57,7 +57,7 @@ const getTerminalLabel = (terminalType: number): string => {
         [ExtensionSupportTerminal.MP]: t("extensions.modal.terminalTypes.mp"),
         [ExtensionSupportTerminal.API]: t("extensions.modal.terminalTypes.api"),
     };
-    return terminalMap[terminalType] || "未知";
+    return terminalMap[terminalType] || t("extensions.manage.unknown");
 };
 
 const { paging, getLists } = usePaging({
@@ -247,19 +247,28 @@ onMounted(() => getLists());
                         <USelect
                             v-model="searchForm.type"
                             :items="[
-                                { label: '全部', value: undefined },
-                                { label: '应用插件', value: ExtensionType.APPLICATION },
-                                { label: '功能插件', value: ExtensionType.FUNCTIONAL },
+                                {
+                                    label: t('extensions.manage.filters.allTypes'),
+                                    value: undefined,
+                                },
+                                {
+                                    label: t('extensions.modal.extensionTypes.application'),
+                                    value: ExtensionType.APPLICATION,
+                                },
+                                {
+                                    label: t('extensions.modal.extensionTypes.function'),
+                                    value: ExtensionType.FUNCTIONAL,
+                                },
                             ]"
                             class="block w-auto"
-                            placeholder="请选择插件类型"
+                            :placeholder="t('extensions.manage.selectType')"
                         />
                         <UButton
                             icon="i-lucide-plus"
                             color="primary"
                             @click="handleLocal({} as ExtensionFormData, false)"
                         >
-                            新增插件
+                            {{ t("extensions.manage.add") }}
                         </UButton>
                     </div>
                 </div>
@@ -271,6 +280,8 @@ onMounted(() => getLists());
                 <BdInfiniteScroll
                     :loading="paging.loading"
                     :has-more="hasMore"
+                    :loading-text="t('extensions.manage.loadingText')"
+                    :no-more-text="paging.page !== 1 ? t('extensions.manage.noMoreText') : ' '"
                     @load-more="loadMore"
                 >
                     <div
@@ -299,7 +310,10 @@ onMounted(() => getLists());
                                         <span
                                             class="text-muted-foreground line-clamp-2 text-[14px] leading-[20px] font-normal wrap-break-word"
                                         >
-                                            {{ extension.description || "暂无描述" }}
+                                            {{
+                                                extension.description ||
+                                                t("extensions.manage.noDescription")
+                                            }}
                                         </span>
                                     </div>
                                     <!-- Right Avatar -->
@@ -362,7 +376,10 @@ onMounted(() => getLists());
                                         <UIcon name="i-lucide-user" class="size-3 text-white" />
                                     </UAvatar>
                                     <div class="text-nowrap">
-                                        {{ extension.author.name || "未知作者" }}
+                                        {{
+                                            extension.author.name ||
+                                            t("extensions.manage.unknownAuthor")
+                                        }}
                                     </div>
                                 </div>
 

@@ -142,7 +142,7 @@ onUnmounted(() => {
         <div ref="loadingRef" class="flex h-8 w-full items-center justify-center">
             <!-- Loading state -->
             <div
-                v-if="props.loading && props.hasMore"
+                v-if="props.loading"
                 class="flex items-center justify-center gap-1"
             >
                 <UIcon
