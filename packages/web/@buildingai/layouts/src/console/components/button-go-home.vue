@@ -1,13 +1,9 @@
 <script setup lang="ts">
-const router = useRouter();
-
-function reloadPage() {
-    router.push("/");
-}
+import SmartLink from "../../web/components/smart-link.vue";
 </script>
 
 <template>
-    <div @click="reloadPage">
+    <SmartLink to="/">
         <UTooltip :text="$t('layouts.goHome')" :delay-duration="0">
             <UButton
                 data-sidebar="trigger"
@@ -20,5 +16,5 @@ function reloadPage() {
                 <span>{{ $t("common.goHomeText") }}</span>
             </UButton>
         </UTooltip>
-    </div>
+    </SmartLink>
 </template>
