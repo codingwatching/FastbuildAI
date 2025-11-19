@@ -112,6 +112,13 @@
             "allCategories": "All Categories",
             "allTypes": "All Types"
         },
+        "add": "Add Extension",
+        "selectType": "Select plugin type",
+        "noDescription": "No description available",
+        "unknownAuthor": "Unknown author",
+        "loadingText": "Loading...",
+        "noMoreText": "No more data",
+        "unknown": "Unknown",
         "manage": "App Management",
         "more": "More",
         "install": "Install",

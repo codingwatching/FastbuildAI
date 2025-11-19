@@ -76,7 +76,10 @@ onMounted(() => getPlatformInfo());
 
 <template>
     <div class="extension-profiles-container pb-8">
-        <template v-if="hasValidPlatformInfo">
+        <div v-if="detailLoading" class="flex h-60 items-center justify-center">
+            <UIcon name="i-ph-spinner-gap-bold" class="size-8 animate-spin text-primary" />
+        </div>
+        <template v-else-if="hasValidPlatformInfo">
             <div class="space-y-4">
                 <h3 class="text-lg font-semibold">
                     {{ t("extensions.profiles.platformInfo") }}

@@ -112,6 +112,13 @@
             "allCategories": "全カテゴリ",
             "allTypes": "全タイプ"
         },
+        "add": "プラグイン追加",
+        "selectType": "プラグインタイプを選択",
+        "noDescription": "説明はありません",
+        "unknownAuthor": "作者不明",
+        "loadingText": "読み込み中...",
+        "noMoreText": "これ以上データはありません",
+        "unknown": "不明",
         "manage": "アプリ管理",
         "more": "詳細",
         "install": "インストール",
