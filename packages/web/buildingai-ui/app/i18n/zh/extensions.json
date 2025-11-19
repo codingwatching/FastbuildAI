@@ -112,6 +112,13 @@
             "allCategories": "全部分类",
             "allTypes": "全部类型"
         },
+        "add": "新增插件",
+        "selectType": "请选择插件类型",
+        "noDescription": "暂无描述",
+        "unknownAuthor": "未知作者",
+        "loadingText": "加载中...",
+        "noMoreText": "没有更多数据",
+        "unknown": "未知",
         "manage": "应用管理",
         "more": "更多",
         "install": "安装",
