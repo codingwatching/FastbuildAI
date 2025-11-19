@@ -1,4 +1,4 @@
-import { getProvider } from "@buildingai/ai-sdk/utils/get-provider";
+import { getProvider } from "@buildingai/ai-sdk";
 import { BaseService } from "@buildingai/base";
 import { PowerDeductionOptions } from "@buildingai/core/modules/billing/types";
 import { SecretService } from "@buildingai/core/modules/secret/services/secret.service";

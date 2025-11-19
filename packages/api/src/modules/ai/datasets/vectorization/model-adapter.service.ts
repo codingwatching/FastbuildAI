@@ -80,8 +80,7 @@ export class ModelAdapterService {
      */
     async createGenerator(modelConfig: ModelConfig): Promise<any> {
         try {
-            const { embeddingGenerator } = await import("@buildingai/ai-sdk/core/embedding");
-            const { getProvider } = await import("@buildingai/ai-sdk/utils/get-provider");
+            const { embeddingGenerator, getProvider } = await import("@buildingai/ai-sdk");
 
             const adapter = getProvider(modelConfig.provider, {
                 apiKey: modelConfig.apiConfig.apiKey,

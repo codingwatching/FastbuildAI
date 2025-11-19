@@ -1,7 +1,7 @@
-/**
- * AI 接口定义模块导出
- */
-
-export * from "./adapter";
-export * from "./model-features";
-export * from "./model-type";
+export type { Adapter, RerankParams } from "./adapter";
+export {
+    getAllModelFeatures,
+    getModelFeaturesWithDescriptions,
+    type ModelFeatureType,
+} from "./model-features";
+export { getAllModelTypes, getModelTypesWithDescriptions, type ModelType } from "./model-type";

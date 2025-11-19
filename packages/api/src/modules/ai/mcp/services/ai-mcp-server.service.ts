@@ -1,5 +1,5 @@
 import { McpServerHttp } from "@buildingai/ai-sdk";
-import { McpServerSSE } from "@buildingai/ai-sdk/utils/mcp/sse";
+import { McpServerSSE } from "@buildingai/ai-sdk";
 import { BaseService, PaginationResult } from "@buildingai/base";
 import { AI_MCP_IS_QUICK_MENU } from "@buildingai/constants";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";

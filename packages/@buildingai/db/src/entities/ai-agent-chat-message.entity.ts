@@ -1,4 +1,4 @@
-import { MCPTool } from "@buildingai/ai-sdk/utils/mcp/type";
+import { MCPTool } from "@buildingai/ai-sdk";
 import type {
     AIRawResponse,
     MessageMetadata,

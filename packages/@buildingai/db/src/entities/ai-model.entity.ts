@@ -1,5 +1,4 @@
-import type { ModelType } from "@buildingai/ai-sdk";
-import { ModelFeatureType } from "@buildingai/ai-sdk/interfaces/model-features";
+import type { ModelFeatureType, ModelType } from "@buildingai/ai-sdk";
 
 import { AppEntity } from "../decorators/app-entity.decorator";
 import { Column, Index, JoinColumn, ManyToOne, type Relation } from "../typeorm";

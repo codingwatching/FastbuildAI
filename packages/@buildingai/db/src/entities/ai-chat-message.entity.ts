@@ -1,4 +1,4 @@
-import { MCPTool } from "@buildingai/ai-sdk/utils/mcp/type";
+import { MCPTool } from "@buildingai/ai-sdk";
 import type { Attachment, MessageContent } from "@buildingai/types/ai/message-content.interface";
 
 import { AppEntity } from "../decorators/app-entity.decorator";

@@ -1,6 +1,4 @@
-import { McpServerSSE } from "@buildingai/ai-sdk/utils/mcp/sse";
-import { MCPTool } from "@buildingai/ai-sdk/utils/mcp/type";
-import { convertMCPToolsToOpenAI } from "@buildingai/ai-sdk/utils/mcp/util";
+import { convertMCPToolsToOpenAI, McpServerSSE, type MCPTool } from "@buildingai/ai-sdk";
 import { AiMcpServer } from "@buildingai/db/entities/ai-mcp-server.entity";
 import { AiMcpServerService } from "@modules/ai/mcp/services/ai-mcp-server.service";
 import { Injectable, Logger } from "@nestjs/common";

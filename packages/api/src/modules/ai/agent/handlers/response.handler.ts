@@ -1,6 +1,4 @@
-import { ChatCompletionStream } from "@buildingai/ai-sdk/core/generator/text";
-import { McpServerSSE } from "@buildingai/ai-sdk/utils/mcp/sse";
-import { MCPTool } from "@buildingai/ai-sdk/utils/mcp/type";
+import { ChatCompletionStream, McpServerSSE, type MCPTool } from "@buildingai/ai-sdk";
 import { Agent } from "@buildingai/db/entities/ai-agent.entity";
 import { AgentChatRecord } from "@buildingai/db/entities/ai-agent-chat-record.entity";
 import { AiMcpServer } from "@buildingai/db/entities/ai-mcp-server.entity";

@@ -1,5 +1,4 @@
-import { McpServerSSE } from "@buildingai/ai-sdk/utils/mcp/sse";
-import { MCPTool } from "@buildingai/ai-sdk/utils/mcp/type";
+import { McpServerSSE, type MCPTool } from "@buildingai/ai-sdk";
 import { McpToolCall } from "@buildingai/db/entities/ai-agent-chat-message.entity";
 import { AiMcpServer } from "@buildingai/db/entities/ai-mcp-server.entity";
 import { Injectable, Logger } from "@nestjs/common";

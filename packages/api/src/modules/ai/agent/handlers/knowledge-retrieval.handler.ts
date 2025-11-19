@@ -1,5 +1,4 @@
-import { TextGenerator } from "@buildingai/ai-sdk/core/generator/text";
-import { getProvider } from "@buildingai/ai-sdk/utils/get-provider";
+import { getProvider, TextGenerator } from "@buildingai/ai-sdk";
 import { SecretService } from "@buildingai/core/modules/secret/services/secret.service";
 import { Agent } from "@buildingai/db/entities/ai-agent.entity";
 import { AgentReferenceSources } from "@buildingai/types/ai/agent-config.interface";

@@ -1,5 +1,4 @@
-import { McpServerHttp } from "@buildingai/ai-sdk/utils/mcp/http";
-import { McpServerSSE } from "@buildingai/ai-sdk/utils/mcp/sse";
+import { McpServerHttp, McpServerSSE } from "@buildingai/ai-sdk";
 import { BaseService } from "@buildingai/base";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import {

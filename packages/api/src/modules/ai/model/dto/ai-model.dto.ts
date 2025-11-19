@@ -1,5 +1,4 @@
-import { type ModelType } from "@buildingai/ai-sdk";
-import { ModelFeatureType } from "@buildingai/ai-sdk/interfaces/model-features";
+import type { ModelFeatureType, ModelType } from "@buildingai/ai-sdk";
 import { isEnabled } from "@buildingai/utils/is";
 import { PartialType } from "@nestjs/mapped-types";
 import { Transform, Type } from "class-transformer";

@@ -1,6 +1,5 @@
 import { getProvider, McpServerHttp, TextGenerator } from "@buildingai/ai-sdk";
-import { McpServerSSE } from "@buildingai/ai-sdk/utils/mcp/sse";
-import { MCPTool } from "@buildingai/ai-sdk/utils/mcp/type";
+import { McpServerSSE, type MCPTool } from "@buildingai/ai-sdk";
 import { SecretService } from "@buildingai/core/modules/secret/services/secret.service";
 import { AiMcpServer } from "@buildingai/db/entities/ai-mcp-server.entity";
 import { AiModel } from "@buildingai/db/entities/ai-model.entity";

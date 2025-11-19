@@ -6,16 +6,16 @@ import {
     deepseek,
     google,
     hunyuan,
+    moonshot,
     ollama,
     openai,
+    siliconflow,
+    tongyi,
     volcengine,
+    wenxin,
     x,
     zhipuai,
 } from "../providers";
-import { moonshot } from "../providers/moonshot";
-import { siliconflow } from "../providers/siliconflow";
-import { tongyi } from "../providers/tongyi";
-import { wenxin } from "../providers/wenxin";
 
 /**
  * 适配器提供者类型，键为提供者名称，值为对应的适配器工厂函数
@@ -28,18 +28,18 @@ type ProviderMap = {
  * 支持的适配器提供者映射
  */
 const providers: ProviderMap = {
-    openai,
     deepseek,
-    tongyi,
+    google,
+    hunyuan,
     moonshot,
-    wenxin,
     ollama,
+    openai,
     siliconflow,
+    tongyi,
+    volcengine,
+    wenxin,
     x,
     zhipuai,
-    volcengine,
-    hunyuan,
-    google,
 };
 
 /**
