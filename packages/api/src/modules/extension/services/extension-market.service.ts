@@ -16,6 +16,7 @@ import { Injectable, Logger } from "@nestjs/common";
 export class ExtensionMarketService {
     private readonly logger = new Logger(ExtensionMarketService.name);
     private readonly httpClient: HttpClientInstance;
+    private platformSecret: string | null = null;
 
     constructor(
         private readonly dictService: DictService,
@@ -38,16 +39,17 @@ export class ExtensionMarketService {
 
         // 添加请求拦截器,动态获取平台密钥
         this.httpClient.interceptors.request.use(async (config) => {
-            const platformSecret = await this.dictService.get<string | null>(
-                DICT_KEYS.PLATFORM_SECRET,
-                null,
-                DICT_GROUP_KEYS.APPLICATION,
-            );
+            // 如果内存中没有，尝试从数据库加载一次
+            if (!this.platformSecret) {
+                this.platformSecret = await this.dictService.get<string | null>(
+                    DICT_KEYS.PLATFORM_SECRET,
+                    null,
+                    DICT_GROUP_KEYS.APPLICATION,
+                );
+            }
 
-            // 如果存在平台密钥，则添加到请求头中
-            // 如果不存在，允许请求继续，由 API 端决定是否允许访问
-            if (platformSecret) {
-                config.headers["X-API-Key"] = platformSecret;
+            if (this.platformSecret) {
+                config.headers["X-API-Key"] = this.platformSecret;
             }
 
             return config;
@@ -58,13 +60,19 @@ export class ExtensionMarketService {
      * Get platform info
      */
     async getPlatformInfo(platformSecret?: string): Promise<PlatformInfo | null> {
+        const originalSecret = this.platformSecret;
+
         try {
             if (platformSecret) {
-                this.httpClient.defaults.headers["X-API-Key"] = platformSecret;
+                this.platformSecret = platformSecret;
             }
+
             const response = await this.httpClient.get("/getPlatform");
             return response.data;
         } catch (error) {
+            if (platformSecret) {
+                this.platformSecret = originalSecret;
+            }
             const errorMessage = createHttpErrorMessage(error);
             this.logger.error(`Failed to get platform info: ${errorMessage}`, error);
             return null;
