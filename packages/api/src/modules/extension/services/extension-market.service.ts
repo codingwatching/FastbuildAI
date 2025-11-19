@@ -8,6 +8,7 @@ import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { createHttpClient, createHttpErrorMessage, HttpClientInstance } from "@buildingai/utils";
 import { Injectable, Logger } from "@nestjs/common";
+import * as semver from "semver";
 
 /**
  * Extension market service
@@ -190,6 +191,12 @@ export class ExtensionMarketService {
 
         const installedIdentifiers = new Set(installedExtensions.map((ext) => ext.identifier));
 
+        // Create a map for quick lookup of market versions
+        const marketVersionMap = new Map(
+            extensionList.map((item) => [item.identifier, item.version]),
+        );
+
+        // Map uninstalled market extensions
         const marketExtensions = extensionList
             .filter((item) => !installedIdentifiers.has(item.identifier))
             .map((item) => ({
@@ -211,14 +218,36 @@ export class ExtensionMarketService {
                 createdAt: new Date(item.createdAt),
                 updatedAt: new Date(item.updatedAt),
                 purchasedAt: new Date(item.purchasedAt),
+                latestVersion: item.version,
+                hasUpdate: false,
             }));
 
-        const mergedList = installedExtensions
-            .map((ext) => ({
+        // Map installed extensions with update check
+        const installedExtensionsList = installedExtensions.map((ext) => {
+            let hasUpdate = false;
+            let latestVersion: string | null = null;
+
+            // Only check updates for non-local extensions
+            if (!ext.isLocal) {
+                const marketVersion = marketVersionMap.get(ext.identifier);
+                if (marketVersion) {
+                    latestVersion = marketVersion;
+                    // Use semver to compare versions
+                    if (semver.valid(marketVersion) && semver.valid(ext.version)) {
+                        hasUpdate = semver.gt(marketVersion, ext.version);
+                    }
+                }
+            }
+
+            return {
                 ...ext,
                 isInstalled: true,
-            }))
-            .concat(marketExtensions);
+                latestVersion,
+                hasUpdate,
+            };
+        });
+
+        const mergedList = installedExtensionsList.concat(marketExtensions);
 
         return mergedList;
     }
