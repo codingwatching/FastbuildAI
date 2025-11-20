@@ -93,7 +93,11 @@ const resetForm = () => {
     message.info(t("extensions.develop.messages.formReset"));
 };
 
-const checkIdentifierUniqueness = async (identifier: string) => {
+/**
+ * Check if the extension identifier is unique
+ * Debounced to avoid excessive API calls during user input
+ */
+const checkIdentifierUniqueness = useDebounceFn(async (identifier: string) => {
     try {
         const { exists } = await apiCheckExtensionIdentifier(
             identifier,
@@ -111,7 +115,7 @@ const checkIdentifierUniqueness = async (identifier: string) => {
         message.error(t("extensions.develop.messages.checkIdentifierError"));
         return false;
     }
-};
+}, 500);
 
 const { isLock, lockFn: submitForm } = useLockFn(async () => {
     try {
