@@ -160,6 +160,20 @@ export class SecretTemplateService extends BaseService<SecretTemplate> {
     }
 
     /**
+     * Get all templates (including enabled and disabled)
+     * @returns All template list
+     */
+    async getAllTemplates(): Promise<SecretTemplate[]> {
+        return await super.findAll({
+            relations: ["Secrets"],
+            order: {
+                sortOrder: "DESC",
+                createdAt: "DESC",
+            },
+        });
+    }
+
+    /**
      * Set template enabled status
      * @param id Template ID
      * @param isEnabled Whether enabled

@@ -75,6 +75,19 @@ export class SecretTemplateWebController extends BaseController {
     }
 
     /**
+     * 获取全部模板（不分页，包括启用和禁用的）
+     */
+    @Get("all")
+    @BuildFileUrl(["**.icon"])
+    @Permissions({
+        code: "all",
+        name: "查看密钥模板",
+    })
+    async getAllTemplates() {
+        return await this.SecretTemplateService.getAllTemplates();
+    }
+
+    /**
      * 获取单个密钥模板详情
      */
     @Get(":id")

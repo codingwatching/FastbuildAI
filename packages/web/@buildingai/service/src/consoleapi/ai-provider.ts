@@ -167,7 +167,7 @@ export interface AiModelQueryRequest extends BaseQueryParams {
     /** Model capability filter */
     capability?: string;
     /** Model type filter */
-    modelType?: string[];
+    modelType?: string;
 }
 
 /**
@@ -210,6 +210,8 @@ export interface ModelConfigItem extends BaseConfigItem {
  * @description Interface for AI model information with all properties
  */
 export interface AiModelInfo extends BaseModel {
+    /** Model features */
+    features?: string[];
     /** Model configuration */
     modelConfig: ModelConfigItem[];
     /** Model type */
