@@ -113,8 +113,14 @@ export class QuerySecretDto extends PaginationDto {
     /**
      * 所属模板ID
      */
-    @IsUUID("4", { message: "模板ID必须是有效的UUID" })
     @IsOptional()
+    @Transform(({ value }) => {
+        if (value === "all" || value === null || value === undefined) {
+            return undefined;
+        }
+        return value;
+    })
+    @IsUUID("4", { message: "模板ID必须是有效的UUID" })
     templateId?: string;
 
     /**
