@@ -14,10 +14,6 @@ import { BaseEntity } from "./base";
 @AppEntity({
     name: "ai_models",
     comment: "AI模型配置",
-    orderBy: {
-        sort: "DESC",
-        createdAt: "DESC",
-    },
 })
 @Index(["providerId", "model"])
 export class AiModel extends BaseEntity {
@@ -121,19 +117,9 @@ export class AiModel extends BaseEntity {
     @Column({
         type: "integer",
         default: 0,
-        comment: "排序权重，数字越小越靠前",
+        comment: "排序权重，数字越大越靠前",
     })
     sortOrder: number;
-
-    /**
-     * 排序字段
-     */
-    @Column({
-        type: "integer",
-        default: 0,
-        comment: "排序，数字越大越靠前",
-    })
-    sort: number;
 
     /**
      * 模型计费规则

@@ -125,7 +125,7 @@ export class AiModelService extends BaseService<AiModel> {
             const models = await this.findAll({
                 where: { isActive: true },
                 order: {
-                    sort: "DESC",
+                    sortOrder: "DESC",
                     createdAt: "DESC",
                 },
                 excludeFields,
@@ -170,7 +170,7 @@ export class AiModelService extends BaseService<AiModel> {
             const models = await this.findAll({
                 where: whereConditions.length > 1 ? whereConditions : where,
                 order: {
-                    sort: "DESC",
+                    sortOrder: "DESC",
                     createdAt: "DESC",
                 },
                 excludeFields,
@@ -193,7 +193,7 @@ export class AiModelService extends BaseService<AiModel> {
 
     /**
      * 批量排序AI模型
-     * @description 根据提供的ID数组顺序更新模型的sort字段
+     * @description 根据提供的ID数组顺序更新模型的sortOrder字段
      * @param dto 批量排序DTO，包含排序后的模型ID数组
      * @returns 更新结果
      */
@@ -214,11 +214,11 @@ export class AiModelService extends BaseService<AiModel> {
                 throw HttpErrorFactory.business("部分模型ID不存在");
             }
 
-            // 根据数组顺序计算 sort（后端按 DESC 排序，所以第一个元素需要最大的 sort）
-            // 第一个元素 sort = length - 1，最后一个元素 sort = 0
+            // 根据数组顺序计算 sortOrder（后端按 DESC 排序，所以第一个元素需要最大的 sortOrder）
+            // 第一个元素 sortOrder = length - 1，最后一个元素 sortOrder = 0
             const updatePromises = sort.map((id, index) => {
-                const sortValue = sort.length - 1 - index;
-                return this.updateById(id, { sort: sortValue } as UpdateAiModelDto);
+                const sortOrderValue = sort.length - 1 - index;
+                return this.updateById(id, { sortOrder: sortOrderValue } as UpdateAiModelDto);
             });
 
             await Promise.all(updatePromises);

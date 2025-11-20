@@ -167,10 +167,6 @@ const { lockFn: handleBatchDelete } = useLockFn(async () => {
     }
 });
 
-/**
- * 拖拽排序后的处理
- * @description 根据新的顺序更新模型的排序
- */
 const { lockFn: handleDragEnd, isLock: isDragging } = useLockFn(async () => {
     if (models.value.length === 0) return;
 
@@ -179,21 +175,15 @@ const { lockFn: handleDragEnd, isLock: isDragging } = useLockFn(async () => {
         const sortedIds = models.value.map((model) => model.id as string);
 
         await apiBatchSortAiModel(sortedIds);
-        toast.success(t("console-common.updateSuccess"));
         // 刷新列表以获取最新的排序
         await getLists();
     } catch (error) {
         console.error("更新排序失败:", error);
-        toast.error(t("console-common.updateFailed"));
         // 如果更新失败，重新加载列表恢复原顺序
         await getLists();
     }
 });
 
-/**
- * 可拖拽的模型列表
- * @description 用于双向绑定 Draggable 组件
- */
 const draggableModels = computed({
     get: () => models.value,
     set: (newOrder: AiModelInfo[]) => {

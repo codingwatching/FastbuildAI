@@ -49,7 +49,7 @@ export class AiProviderWebController extends BaseController {
 
             providers.forEach((p) =>
                 p.models?.sort(
-                    (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+                    (a, b) => b.sortOrder - a.sortOrder || b.createdAt.getTime() - a.createdAt.getTime(),
                 ),
             );
 
@@ -120,7 +120,7 @@ export class AiProviderWebController extends BaseController {
             }
 
             provider.models?.sort(
-                (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+                (a, b) => b.sortOrder - a.sortOrder || b.createdAt.getTime() - a.createdAt.getTime(),
             );
 
             return provider;
@@ -148,7 +148,7 @@ export class AiProviderWebController extends BaseController {
             }
 
             result.models?.sort(
-                (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+                (a, b) => b.sortOrder - a.sortOrder || b.createdAt.getTime() - a.createdAt.getTime(),
             );
 
             return result;

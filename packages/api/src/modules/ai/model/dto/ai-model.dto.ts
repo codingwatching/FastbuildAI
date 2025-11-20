@@ -136,15 +136,6 @@ export class CreateAiModelDto {
     @Type(() => Number)
     @Transform(({ value }) => (value !== undefined ? value : 0))
     sortOrder?: number;
-
-    /**
-     * 排序字段
-     */
-    @IsInt({ message: "排序必须是整数" })
-    @IsOptional()
-    @Type(() => Number)
-    @Transform(({ value }) => (value !== undefined ? value : 0))
-    sort?: number;
 }
 
 /**

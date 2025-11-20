@@ -122,7 +122,8 @@ export class AiProviderService extends BaseService<AiProvider> {
 
             providers.forEach((p) =>
                 p.models?.sort(
-                    (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+                    (a, b) =>
+                        b.sortOrder - a.sortOrder || b.createdAt.getTime() - a.createdAt.getTime(),
                 ),
             );
 
@@ -154,7 +155,8 @@ export class AiProviderService extends BaseService<AiProvider> {
             }
 
             provider.models?.sort(
-                (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+                (a, b) =>
+                    b.sortOrder - a.sortOrder || b.createdAt.getTime() - a.createdAt.getTime(),
             );
 
             return provider;
@@ -192,7 +194,8 @@ export class AiProviderService extends BaseService<AiProvider> {
 
         providers.forEach((p) =>
             p.models?.sort(
-                (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+                (a, b) =>
+                    b.sortOrder - a.sortOrder || b.createdAt.getTime() - a.createdAt.getTime(),
             ),
         );
 
@@ -214,7 +217,7 @@ export class AiProviderService extends BaseService<AiProvider> {
 
         // 对模型列表排序
         result?.models?.sort(
-            (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+            (a, b) => b.sortOrder - a.sortOrder || b.createdAt.getTime() - a.createdAt.getTime(),
         );
 
         return result;
