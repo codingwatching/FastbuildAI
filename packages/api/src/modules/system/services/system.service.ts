@@ -1,7 +1,7 @@
 import { AppConfig } from "@buildingai/config/app.config";
 import { BooleanNumber, UserCreateSource, UserTerminal } from "@buildingai/constants";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { User } from "@buildingai/db/entities/user.entity";
+import { User } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";

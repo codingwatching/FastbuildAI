@@ -1,15 +1,17 @@
 import { AppConfig } from "@buildingai/config/app.config";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { Menu } from "@buildingai/db/entities/menu.entity";
-import { MenuSeeder } from "@buildingai/db/seeds/runtime-seeders/menu.seeder";
-import { PermissionSeeder } from "@buildingai/db/seeds/runtime-seeders/permission.seeder";
-import { SeedRunner } from "@buildingai/db/seeds/seed-runner";
-import { AiModelSeeder } from "@buildingai/db/seeds/seeders/ai-model.seeder";
-import { AiProviderSeeder } from "@buildingai/db/seeds/seeders/ai-provider.seeder";
-import { ExtensionSeeder } from "@buildingai/db/seeds/seeders/extension.seeder";
-import { PageSeeder } from "@buildingai/db/seeds/seeders/page.seeder";
-import { PayConfigSeeder } from "@buildingai/db/seeds/seeders/payconfig.seeder";
-import { SecretTemplateSeeder } from "@buildingai/db/seeds/seeders/secret-template.seeder";
+import { Menu } from "@buildingai/db/entities";
+import {
+    AiModelSeeder,
+    AiProviderSeeder,
+    ExtensionSeeder,
+    MenuSeeder,
+    PageSeeder,
+    PayConfigSeeder,
+    PermissionSeeder,
+    SecretTemplateSeeder,
+    SeedRunner,
+} from "@buildingai/db/seeds";
 import { DataSource, Repository } from "@buildingai/db/typeorm";
 import { DictService } from "@buildingai/dict";
 import { TerminalLogger } from "@buildingai/logger";

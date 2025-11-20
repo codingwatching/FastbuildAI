@@ -1,7 +1,7 @@
 import { BaseService } from "@buildingai/base";
 import { AppConfig } from "@buildingai/config/app.config";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { Dict } from "@buildingai/db/entities/dict.entity";
+import { Dict } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { DictService } from "@buildingai/dict";
 import { Injectable } from "@nestjs/common";

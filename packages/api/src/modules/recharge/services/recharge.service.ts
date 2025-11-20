@@ -3,11 +3,11 @@ import { PayConfigPayType, PayConfigType } from "@buildingai/constants/shared/pa
 import { BooleanNumber } from "@buildingai/constants/shared/status-codes.constant";
 import { type UserTerminalType } from "@buildingai/constants/shared/status-codes.constant";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { Dict } from "@buildingai/db/entities/dict.entity";
-import { Payconfig } from "@buildingai/db/entities/payconfig.entity";
-import { Recharge } from "@buildingai/db/entities/recharge.entity";
-import { RechargeOrder } from "@buildingai/db/entities/recharge-order.entity";
-import { User } from "@buildingai/db/entities/user.entity";
+import { User } from "@buildingai/db/entities";
+import { Payconfig } from "@buildingai/db/entities";
+import { Dict } from "@buildingai/db/entities";
+import { RechargeOrder } from "@buildingai/db/entities";
+import { Recharge } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { DictService } from "@buildingai/dict";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";

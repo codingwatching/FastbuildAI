@@ -1,12 +1,8 @@
 import { McpServerHttp, McpServerSSE } from "@buildingai/ai-sdk";
 import { BaseService } from "@buildingai/base";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import {
-    AiMcpServer,
-    McpCommunicationType,
-    McpServerType,
-} from "@buildingai/db/entities/ai-mcp-server.entity";
-import { AiUserMcpServer } from "@buildingai/db/entities/ai-user-mcp-server.entity";
+import { AiMcpServer, McpCommunicationType, McpServerType } from "@buildingai/db/entities";
+import { AiUserMcpServer } from "@buildingai/db/entities";
 import { Not, Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import {

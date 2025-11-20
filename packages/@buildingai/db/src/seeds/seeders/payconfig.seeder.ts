@@ -4,9 +4,9 @@ import {
     PayVersion,
 } from "@buildingai/constants/shared/payconfig.constant";
 import { BooleanNumber } from "@buildingai/constants/shared/status-codes.constant";
-import { Payconfig } from "@buildingai/db/entities/payconfig.entity";
 
 import { DataSource } from "../../typeorm";
+import { Payconfig } from "./../../entities/payconfig.entity";
 import { BaseSeeder } from "./base.seeder";
 
 /**

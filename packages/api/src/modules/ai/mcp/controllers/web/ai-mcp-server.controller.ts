@@ -1,7 +1,7 @@
 import { AI_MCP_IS_QUICK_MENU } from "@buildingai/constants";
-import { McpCommunicationType, McpServerType } from "@buildingai/db/entities/ai-mcp-server.entity";
-import { AiMcpServer } from "@buildingai/db/entities/ai-mcp-server.entity";
-import { type UserPlayground } from "@buildingai/db/interfaces/context.interface";
+import { type UserPlayground } from "@buildingai/db";
+import { McpCommunicationType, McpServerType } from "@buildingai/db/entities";
+import { AiMcpServer } from "@buildingai/db/entities";
 import { Like } from "@buildingai/db/typeorm";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Playground } from "@buildingai/decorators/playground.decorator";

@@ -1,9 +1,9 @@
 import { ACCOUNT_LOG_SOURCE_VALUE } from "@buildingai/constants/shared/account-log.constants";
-import { User } from "@buildingai/db/entities/user.entity";
 
 import { AppEntity } from "../decorators/app-entity.decorator";
 import { Column, Index, JoinColumn, ManyToOne } from "../typeorm";
 import { BaseEntity } from "./base";
+import { User } from "./user.entity";
 
 export type AccountLogSourceInfo = {
     type: ACCOUNT_LOG_SOURCE_VALUE;

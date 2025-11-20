@@ -1,7 +1,7 @@
 import { BaseController } from "@buildingai/base";
 import { type BooleanNumberType } from "@buildingai/constants";
 import { LOGIN_TYPE } from "@buildingai/constants";
-import { type UserPlayground } from "@buildingai/db/interfaces/context.interface";
+import { type UserPlayground } from "@buildingai/db";
 import { In } from "@buildingai/db/typeorm";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Playground } from "@buildingai/decorators/playground.decorator";

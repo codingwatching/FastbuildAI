@@ -1,5 +1,5 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { Dict } from "@buildingai/db/entities/dict.entity";
+import { Dict } from "@buildingai/db/entities";
 import { DictCacheService } from "@buildingai/dict";
 import { DictService } from "@buildingai/dict";
 import { WxOaConfigConsoleController } from "@modules/channel/controller/console/wxoaconfig.controller";

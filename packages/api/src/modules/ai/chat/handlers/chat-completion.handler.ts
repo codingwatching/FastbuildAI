@@ -1,8 +1,8 @@
 import { getProvider, McpServerHttp, TextGenerator } from "@buildingai/ai-sdk";
 import { McpServerSSE, type MCPTool } from "@buildingai/ai-sdk";
 import { SecretService } from "@buildingai/core/modules/secret/services/secret.service";
-import { AiMcpServer } from "@buildingai/db/entities/ai-mcp-server.entity";
-import { AiModel } from "@buildingai/db/entities/ai-model.entity";
+import { AiModel } from "@buildingai/db/entities";
+import { AiMcpServer } from "@buildingai/db/entities";
 import { getProviderSecret } from "@buildingai/utils";
 import { Injectable, Logger } from "@nestjs/common";
 import type { Response } from "express";

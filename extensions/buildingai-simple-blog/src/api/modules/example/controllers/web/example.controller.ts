@@ -1,6 +1,6 @@
 import { ExtensionWebController } from "@buildingai/core/decorators";
+import type { UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import type { UserPlayground } from "@buildingai/db/interfaces/context.interface";
 import { Repository } from "@buildingai/db/typeorm";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { HttpErrorFactory } from "@buildingai/errors";

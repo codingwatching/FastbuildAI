@@ -1,6 +1,6 @@
 import { UploadModule as CoreUploadModule } from "@buildingai/core/modules/upload/upload.module";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { File } from "@buildingai/db/entities/file.entity";
+import { File } from "@buildingai/db/entities";
 import { Module } from "@nestjs/common";
 import { MulterModule } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";

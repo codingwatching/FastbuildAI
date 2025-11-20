@@ -1,5 +1,5 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { Dict } from "@buildingai/db/entities/dict.entity";
+import { Dict } from "@buildingai/db/entities";
 import { DictService } from "@buildingai/dict";
 import { ChatConfigService } from "@modules/ai/chat/services/chat-config.service";
 import { AgentDecorateConsoleController } from "@modules/config/controllers/console/agent-decorate.controller";

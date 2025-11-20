@@ -6,9 +6,9 @@ import {
 import { PayConfigPayType } from "@buildingai/constants/shared/payconfig.constant";
 import { AppBillingService } from "@buildingai/core/modules/billing/app-billing.service";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { Payconfig } from "@buildingai/db/entities/payconfig.entity";
-import { RechargeOrder } from "@buildingai/db/entities/recharge-order.entity";
-import { User } from "@buildingai/db/entities/user.entity";
+import { User } from "@buildingai/db/entities";
+import { Payconfig } from "@buildingai/db/entities";
+import { RechargeOrder } from "@buildingai/db/entities";
 import { HttpErrorFactory } from "@buildingai/errors";
 import {
     WechatPayNotifyAnalysisParams,

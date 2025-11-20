@@ -1,5 +1,5 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { User } from "@buildingai/db/entities/user.entity";
+import { User } from "@buildingai/db/entities";
 import { PublicUserService } from "@buildingai/extension-sdk/services/user.service";
 import { Module } from "@nestjs/common";
 

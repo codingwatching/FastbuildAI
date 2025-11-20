@@ -5,10 +5,10 @@ import {
     ACCOUNT_LOG_SOURCE,
     ACCOUNT_LOG_TYPE_DESCRIPTION,
 } from "@buildingai/constants/shared/account-log.constants";
+import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { AccountLog } from "@buildingai/db/entities/account-log.entity";
-import { Agent } from "@buildingai/db/entities/ai-agent.entity";
-import { type UserPlayground } from "@buildingai/db/interfaces/context.interface";
+import { Agent } from "@buildingai/db/entities";
+import { AccountLog } from "@buildingai/db/entities";
 import { In, IsNull, Like, Not, Repository } from "@buildingai/db/typeorm";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Playground } from "@buildingai/decorators/playground.decorator";

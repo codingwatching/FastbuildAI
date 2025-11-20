@@ -1,4 +1,4 @@
-import type { FileType } from "@buildingai/db/entities/file.entity";
+import type { FileType } from "@buildingai/db/entities";
 import * as path from "path";
 import { v4 as uuidv4 } from "uuid";
 

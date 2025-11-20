@@ -1,6 +1,5 @@
-import { DecoratePageEntity } from "@buildingai/db/entities/decorate-page.entity";
-
 import { DataSource } from "../../typeorm";
+import { DecoratePageEntity } from "./../../entities/decorate-page.entity";
 import { BaseSeeder } from "./base.seeder";
 
 /**

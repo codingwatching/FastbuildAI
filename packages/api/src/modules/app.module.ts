@@ -8,7 +8,7 @@ import {
 import { getExtensionSchemaName } from "@buildingai/core/modules/extension/utils/extension.utils";
 import { SecretModule } from "@buildingai/core/modules/secret/secret.module";
 import { UploadModule as CoreUploadModule } from "@buildingai/core/modules/upload/upload.module";
-import { FileUrlModule } from "@buildingai/db/file-url.module";
+import { FileUrlModule } from "@buildingai/db";
 import { DataSource } from "@buildingai/db/typeorm";
 import { DictModule } from "@buildingai/dict";
 import { TerminalLogger } from "@buildingai/logger";

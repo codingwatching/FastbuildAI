@@ -1,5 +1,5 @@
 import { BaseController } from "@buildingai/base";
-import { type UserPlayground } from "@buildingai/db/interfaces/context.interface";
+import { type UserPlayground } from "@buildingai/db";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
 import { WechatPayNotifyParams } from "@buildingai/wechat-sdk/interfaces/pay";

@@ -7,8 +7,8 @@ import {
     getExtensionNameFromConfig,
 } from "@buildingai/core/modules/extension/utils/extension.utils";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { AccountLog } from "@buildingai/db/entities/account-log.entity";
-import { User } from "@buildingai/db/entities/user.entity";
+import { User } from "@buildingai/db/entities";
+import { AccountLog } from "@buildingai/db/entities";
 import { EntityManager, Repository } from "@buildingai/db/typeorm";
 import { Injectable, Logger } from "@nestjs/common";
 

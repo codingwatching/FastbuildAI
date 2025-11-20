@@ -1,5 +1,5 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { Payconfig } from "@buildingai/db/entities/payconfig.entity";
+import { Payconfig } from "@buildingai/db/entities";
 import { PayconfigService } from "@modules/system/services/payconfig.service";
 import { Module } from "@nestjs/common";
 

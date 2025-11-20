@@ -16,9 +16,9 @@ import {
     BooleanNumber,
     type BooleanNumberType,
 } from "@buildingai/constants/shared/status-codes.constant";
-import { AppEntity } from "@buildingai/db/decorators/app-entity.decorator";
 
 import { Column } from "../typeorm";
+import { AppEntity } from "./../decorators/app-entity.decorator";
 import { BaseEntity } from "./base";
 
 @AppEntity({ name: "payconfig", comment: "支付配置" })

@@ -1,7 +1,7 @@
 import { BaseService, FieldFilterOptions } from "@buildingai/base";
 import { AI_DEFAULT_MODEL } from "@buildingai/constants";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { AiModel } from "@buildingai/db/entities/ai-model.entity";
+import { AiModel } from "@buildingai/db/entities";
 import { FindOptionsWhere, In, Like, Repository } from "@buildingai/db/typeorm";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";

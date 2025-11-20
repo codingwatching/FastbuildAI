@@ -8,10 +8,10 @@ import {
     ACTION,
 } from "@buildingai/constants/shared/account-log.constants";
 import { AppBillingService } from "@buildingai/core/modules/billing/app-billing.service";
+import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { Role } from "@buildingai/db/entities/role.entity";
-import { User } from "@buildingai/db/entities/user.entity";
-import { type UserPlayground } from "@buildingai/db/interfaces/context.interface";
+import { User } from "@buildingai/db/entities";
+import { Role } from "@buildingai/db/entities";
 import { Between, DeepPartial, In, Like, Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { generateNo } from "@buildingai/utils";

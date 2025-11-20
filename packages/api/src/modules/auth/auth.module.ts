@@ -1,8 +1,5 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { Permission } from "@buildingai/db/entities/permission.entity";
-import { Role } from "@buildingai/db/entities/role.entity";
-import { User } from "@buildingai/db/entities/user.entity";
-import { UserToken } from "@buildingai/db/entities/user-token.entity";
+import { Permission, Role, User, UserToken } from "@buildingai/db/entities";
 import { AuthService } from "@common/modules/auth/services/auth.service";
 import { RolePermissionService } from "@common/modules/auth/services/role-permission.service";
 import { UserTokenService } from "@common/modules/auth/services/user-token.service";

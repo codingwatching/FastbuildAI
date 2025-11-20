@@ -1,6 +1,6 @@
 import { getProvider, TextGenerator } from "@buildingai/ai-sdk";
 import { SecretService } from "@buildingai/core/modules/secret/services/secret.service";
-import { Agent } from "@buildingai/db/entities/ai-agent.entity";
+import { Agent } from "@buildingai/db/entities";
 import { ChatMessage, MessageMetadata } from "@buildingai/types/ai/agent-config.interface";
 import { getProviderSecret } from "@buildingai/utils";
 import { extractTextFromMessageContent } from "@buildingai/utils";

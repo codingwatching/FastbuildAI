@@ -12,8 +12,8 @@ import { ExtensionConfigService } from "@buildingai/core/modules/extension/servi
 import { ExtensionSchemaService } from "@buildingai/core/modules/extension/services/extension-schema.service";
 import { getExtensionSchemaName } from "@buildingai/core/modules/extension/utils/extension.utils";
 import { FileUploadService } from "@buildingai/core/modules/upload/services/file-upload.service";
-import { SeedRunner } from "@buildingai/db/seeds/seed-runner";
-import { BaseSeeder } from "@buildingai/db/seeds/seeders/base.seeder";
+import { BaseSeeder } from "@buildingai/db";
+import { SeedRunner } from "@buildingai/db/seeds";
 import { DataSource } from "@buildingai/db/typeorm";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";

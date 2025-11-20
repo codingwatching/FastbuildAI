@@ -1,17 +1,17 @@
 import { BaseService } from "@buildingai/base";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { AccountLog } from "@buildingai/db/entities/account-log.entity";
-import { Agent } from "@buildingai/db/entities/ai-agent.entity";
-import { AgentChatMessage } from "@buildingai/db/entities/ai-agent-chat-message.entity";
-import { AgentChatRecord } from "@buildingai/db/entities/ai-agent-chat-record.entity";
-import { AiChatMessage } from "@buildingai/db/entities/ai-chat-message.entity";
-import { AiChatRecord } from "@buildingai/db/entities/ai-chat-record.entity";
-import { AiModel } from "@buildingai/db/entities/ai-model.entity";
-import { AiProvider } from "@buildingai/db/entities/ai-provider.entity";
-import { Analyse, AnalyseActionType } from "@buildingai/db/entities/analyse.entity";
-import { Extension } from "@buildingai/db/entities/extension.entity";
-import { RechargeOrder } from "@buildingai/db/entities/recharge-order.entity";
-import { User } from "@buildingai/db/entities/user.entity";
+import { User } from "@buildingai/db/entities";
+import { AiModel } from "@buildingai/db/entities";
+import { AiProvider } from "@buildingai/db/entities";
+import { Agent } from "@buildingai/db/entities";
+import { AgentChatMessage } from "@buildingai/db/entities";
+import { AgentChatRecord } from "@buildingai/db/entities";
+import { AiChatMessage } from "@buildingai/db/entities";
+import { AiChatRecord } from "@buildingai/db/entities";
+import { AccountLog } from "@buildingai/db/entities";
+import { Analyse, AnalyseActionType } from "@buildingai/db/entities";
+import { Extension } from "@buildingai/db/entities";
+import { RechargeOrder } from "@buildingai/db/entities";
 import { MoreThanOrEqual, Repository } from "@buildingai/db/typeorm";
 import {
     ChatStats,

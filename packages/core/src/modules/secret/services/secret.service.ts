@@ -1,8 +1,8 @@
 import { BaseService, ExcludeFieldsResult, FieldPath } from "@buildingai/base";
 import { BooleanNumber, type BooleanNumberType } from "@buildingai/constants";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { type KeyFieldValue, Secret } from "@buildingai/db/entities/secret.entity";
-import { SecretTemplate } from "@buildingai/db/entities/secret-template.entity";
+import { SecretTemplate } from "@buildingai/db/entities";
+import { type KeyFieldValue, Secret } from "@buildingai/db/entities";
 import { Like, Raw, Repository } from "@buildingai/db/typeorm";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import { HttpErrorFactory } from "@buildingai/errors";

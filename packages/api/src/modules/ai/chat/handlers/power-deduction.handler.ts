@@ -4,8 +4,8 @@ import {
 } from "@buildingai/constants/shared/account-log.constants";
 import { AppBillingService } from "@buildingai/core/modules/billing/app-billing.service";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { AiModel } from "@buildingai/db/entities/ai-model.entity";
-import { User } from "@buildingai/db/entities/user.entity";
+import { User } from "@buildingai/db/entities";
+import { AiModel } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { Injectable, Logger } from "@nestjs/common";
 

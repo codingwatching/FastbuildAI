@@ -7,7 +7,7 @@ import {
 } from "@buildingai/core/modules/extension/utils/extension.utils";
 import { UploadModule } from "@buildingai/core/modules/upload/upload.module";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { Extension } from "@buildingai/db/entities/extension.entity";
+import { Extension } from "@buildingai/db/entities";
 import { DataSource } from "@buildingai/db/typeorm";
 import { TerminalLogger } from "@buildingai/logger";
 import { DynamicModule, Module, OnModuleInit } from "@nestjs/common";

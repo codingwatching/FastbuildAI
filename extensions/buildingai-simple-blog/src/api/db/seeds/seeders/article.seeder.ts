@@ -1,5 +1,5 @@
-import { User } from "@buildingai/db/entities/user.entity";
-import { BaseSeeder } from "@buildingai/db/seeds/seeders/base.seeder";
+import { BaseSeeder } from "@buildingai/db";
+import { User } from "@buildingai/db/entities";
 import { DataSource } from "@buildingai/db/typeorm";
 import * as path from "path";
 

@@ -1,18 +1,20 @@
 import { SecretService } from "@buildingai/core/modules/secret/services/secret.service";
 import { SecretTemplateService } from "@buildingai/core/modules/secret/services/secret-template.service";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { AccountLog } from "@buildingai/db/entities/account-log.entity";
-import { AiChatMessage } from "@buildingai/db/entities/ai-chat-message.entity";
-import { AiChatRecord } from "@buildingai/db/entities/ai-chat-record.entity";
-import { AiMcpServer } from "@buildingai/db/entities/ai-mcp-server.entity";
-import { AiMcpTool } from "@buildingai/db/entities/ai-mcp-tool.entity";
-import { AiModel } from "@buildingai/db/entities/ai-model.entity";
-import { AiProvider } from "@buildingai/db/entities/ai-provider.entity";
-import { AiUserMcpServer } from "@buildingai/db/entities/ai-user-mcp-server.entity";
-import { Dict } from "@buildingai/db/entities/dict.entity";
-import { Secret } from "@buildingai/db/entities/secret.entity";
-import { SecretTemplate } from "@buildingai/db/entities/secret-template.entity";
-import { User } from "@buildingai/db/entities/user.entity";
+import { User } from "@buildingai/db/entities";
+import { AiModel } from "@buildingai/db/entities";
+import { AiProvider } from "@buildingai/db/entities";
+import { SecretTemplate } from "@buildingai/db/entities";
+import { Dict } from "@buildingai/db/entities";
+import {
+    AccountLog,
+    AiChatMessage,
+    AiChatRecord,
+    AiMcpServer,
+    AiMcpTool,
+    AiUserMcpServer,
+    Secret,
+} from "@buildingai/db/entities";
 import { Module } from "@nestjs/common";
 
 import { AiMcpServerService } from "../mcp/services/ai-mcp-server.service";

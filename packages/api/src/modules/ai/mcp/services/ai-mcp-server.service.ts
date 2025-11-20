@@ -3,12 +3,8 @@ import { McpServerSSE } from "@buildingai/ai-sdk";
 import { BaseService, PaginationResult } from "@buildingai/base";
 import { AI_MCP_IS_QUICK_MENU } from "@buildingai/constants";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import {
-    AiMcpServer,
-    McpCommunicationType,
-    McpServerType,
-} from "@buildingai/db/entities/ai-mcp-server.entity";
-import { AiUserMcpServer } from "@buildingai/db/entities/ai-user-mcp-server.entity";
+import { AiMcpServer, McpCommunicationType, McpServerType } from "@buildingai/db/entities";
+import { AiUserMcpServer } from "@buildingai/db/entities";
 import { Like, Not, Repository } from "@buildingai/db/typeorm";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";

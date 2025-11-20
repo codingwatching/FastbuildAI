@@ -1,5 +1,5 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { File } from "@buildingai/db/entities/file.entity";
+import { File } from "@buildingai/db/entities";
 import { Module } from "@nestjs/common";
 
 import { FileStorageService } from "./services/file-storage.service";

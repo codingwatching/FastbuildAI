@@ -6,7 +6,7 @@ import {
     type ExtensionTypeType,
 } from "@buildingai/constants/shared/extension.constant";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { Extension } from "@buildingai/db/entities/extension.entity";
+import { Extension } from "@buildingai/db/entities";
 import { FindOptionsWhere, ILike, In, Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { buildWhere } from "@buildingai/utils/helper";

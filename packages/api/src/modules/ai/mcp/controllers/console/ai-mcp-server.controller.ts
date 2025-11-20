@@ -1,7 +1,7 @@
 import { BaseController } from "@buildingai/base";
 import { AI_MCP_IS_QUICK_MENU } from "@buildingai/constants";
-import { AiMcpServer, McpCommunicationType } from "@buildingai/db/entities/ai-mcp-server.entity";
-import { type UserPlayground } from "@buildingai/db/interfaces/context.interface";
+import { type UserPlayground } from "@buildingai/db";
+import { AiMcpServer, McpCommunicationType } from "@buildingai/db/entities";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { DictService } from "@buildingai/dict";

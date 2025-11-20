@@ -1,4 +1,4 @@
-import { AnnotationReviewStatus } from "@buildingai/db/entities/ai-agent-annotation.entity";
+import { AnnotationReviewStatus } from "@buildingai/db/entities";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import {
     IsBoolean,

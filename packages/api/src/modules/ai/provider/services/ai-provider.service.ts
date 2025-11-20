@@ -1,6 +1,6 @@
 import { BaseService, FieldFilterOptions } from "@buildingai/base";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { AiProvider } from "@buildingai/db/entities/ai-provider.entity";
+import { AiProvider } from "@buildingai/db/entities";
 import { Like, Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { CreateAiProviderDto, UpdateAiProviderDto } from "@modules/ai/provider/dto/ai-provider.dto";

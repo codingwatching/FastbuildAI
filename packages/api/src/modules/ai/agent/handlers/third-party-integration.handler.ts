@@ -1,5 +1,5 @@
-import { Agent } from "@buildingai/db/entities/ai-agent.entity";
-import { AgentChatRecord } from "@buildingai/db/entities/ai-agent-chat-record.entity";
+import { Agent } from "@buildingai/db/entities";
+import { AgentChatRecord } from "@buildingai/db/entities";
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 
 import { AgentChatDto } from "../dto/agent";

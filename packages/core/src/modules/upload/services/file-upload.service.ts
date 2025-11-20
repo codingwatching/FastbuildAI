@@ -1,9 +1,9 @@
 import { BaseService } from "@buildingai/base";
 import { BusinessCode } from "@buildingai/constants/shared/business-code.constant";
+import { FileUrlService } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { File } from "@buildingai/db/entities/file.entity";
+import { File } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
-import { FileUrlService } from "@buildingai/db/utils/file-url.service";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { Injectable } from "@nestjs/common";
 import type { Request } from "express";

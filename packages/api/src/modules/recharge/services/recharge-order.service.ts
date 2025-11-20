@@ -5,10 +5,10 @@ import {
 } from "@buildingai/constants/shared/account-log.constants";
 import { AppBillingService } from "@buildingai/core/modules/billing/app-billing.service";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { Payconfig } from "@buildingai/db/entities/payconfig.entity";
-import { RechargeOrder } from "@buildingai/db/entities/recharge-order.entity";
-import { RefundLog } from "@buildingai/db/entities/refund-log.entity";
-import { User } from "@buildingai/db/entities/user.entity";
+import { User } from "@buildingai/db/entities";
+import { Payconfig } from "@buildingai/db/entities";
+import { RechargeOrder } from "@buildingai/db/entities";
+import { RefundLog } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { REFUND_ORDER_FROM } from "@common/modules/refund/constants/refund.constants";

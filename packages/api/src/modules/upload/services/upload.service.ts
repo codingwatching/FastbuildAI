@@ -4,7 +4,7 @@ import {
     type UploadFileResult,
 } from "@buildingai/core/modules/upload/services/file-upload.service";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { File } from "@buildingai/db/entities/file.entity";
+import { File } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { RemoteUploadDto } from "@modules/upload/dto/remote-upload.dto";
 import { Injectable } from "@nestjs/common";

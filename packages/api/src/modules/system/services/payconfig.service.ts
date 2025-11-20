@@ -5,7 +5,7 @@ import {
     type BooleanNumberType,
 } from "@buildingai/constants/shared/status-codes.constant";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { Payconfig } from "@buildingai/db/entities/payconfig.entity";
+import { Payconfig } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { PAY_EVENTS } from "@common/modules/pay/constants/pay-events.contant";

@@ -1,12 +1,14 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { Agent } from "@buildingai/db/entities/ai-agent.entity";
-import { AgentAnnotation } from "@buildingai/db/entities/ai-agent-annotation.entity";
-import { AgentChatMessage } from "@buildingai/db/entities/ai-agent-chat-message.entity";
-import { AgentChatRecord } from "@buildingai/db/entities/ai-agent-chat-record.entity";
-import { AiModel } from "@buildingai/db/entities/ai-model.entity";
-import { AiProvider } from "@buildingai/db/entities/ai-provider.entity";
-import { Tag } from "@buildingai/db/entities/tag.entity";
-import { User } from "@buildingai/db/entities/user.entity";
+import {
+    Agent,
+    AgentAnnotation,
+    AgentChatMessage,
+    AgentChatRecord,
+    AiModel,
+    AiProvider,
+    Tag,
+    User,
+} from "@buildingai/db/entities";
 import { Module } from "@nestjs/common";
 
 import { AiAgentConsoleController } from "./controllers/console/ai-agent.controller";

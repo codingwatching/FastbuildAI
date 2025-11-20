@@ -1,5 +1,5 @@
 import { BooleanNumber, type BooleanNumberType } from "@buildingai/constants";
-import { KeyFieldValue } from "@buildingai/db/entities/secret.entity";
+import { KeyFieldValue } from "@buildingai/db/entities";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import { PartialType } from "@nestjs/mapped-types";
 import { Transform, Type } from "class-transformer";

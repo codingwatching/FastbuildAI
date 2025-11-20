@@ -1,7 +1,7 @@
 import { ACTION } from "@buildingai/constants/shared/account-log.constants";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { AccountLog } from "@buildingai/db/entities/account-log.entity";
-import { User } from "@buildingai/db/entities/user.entity";
+import { User } from "@buildingai/db/entities";
+import { AccountLog } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { generateNo } from "@buildingai/utils";
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";

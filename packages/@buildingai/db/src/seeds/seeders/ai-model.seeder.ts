@@ -1,8 +1,8 @@
 import { ModelFeatureType, ModelType } from "@buildingai/ai-sdk";
-import { AiModel } from "@buildingai/db/entities/ai-model.entity";
-import { AiProvider } from "@buildingai/db/entities/ai-provider.entity";
 
 import { DataSource } from "../../typeorm";
+import { AiModel } from "./../../entities/ai-model.entity";
+import { AiProvider } from "./../../entities/ai-provider.entity";
 import { BaseSeeder } from "./base.seeder";
 
 /**

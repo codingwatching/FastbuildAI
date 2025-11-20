@@ -1,4 +1,4 @@
-import { BaseSeeder } from "@buildingai/db/seeds/seeders/base.seeder";
+import { BaseSeeder } from "@buildingai/db";
 import { DataSource } from "@buildingai/db/typeorm";
 import * as path from "path";
 

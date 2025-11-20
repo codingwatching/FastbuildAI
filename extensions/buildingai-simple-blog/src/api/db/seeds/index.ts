@@ -1,4 +1,4 @@
-import { BaseSeeder } from "@buildingai/db/seeds/seeders/base.seeder";
+import { BaseSeeder } from "@buildingai/db";
 
 import { ArticleSeeder } from "./seeders/article.seeder";
 import { CategorySeeder } from "./seeders/category.seeder";

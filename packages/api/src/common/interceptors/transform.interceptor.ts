@@ -1,6 +1,6 @@
 import { BusinessCode } from "@buildingai/constants/shared/business-code.constant";
 import { Response } from "@buildingai/core/interfaces/response.interface";
-import { FileUrlService } from "@buildingai/db/utils/file-url.service";
+import { FileUrlService } from "@buildingai/db";
 import {
     FILE_URL_METADATA_KEY,
     FileUrlConfig,

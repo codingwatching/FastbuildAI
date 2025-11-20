@@ -15,10 +15,25 @@
             "import": "./dist/index.js",
             "types": "./dist/index.d.ts"
         },
-        "./*": {
-            "types": "./dist/*.d.ts",
-            "import": "./dist/*.js",
-            "require": "./dist/*.js"
+        "./entities": {
+            "types": "./dist/entities/index.d.ts",
+            "import": "./dist/entities/index.js",
+            "require": "./dist/entities/index.js"
+        },
+        "./seeds": {
+            "types": "./dist/seeds/index.d.ts",
+            "import": "./dist/seeds/index.js",
+            "require": "./dist/seeds/index.js"
+        },
+        "./@nestjs/typeorm": {
+            "types": "./dist/@nestjs/typeorm.d.ts",
+            "import": "./dist/@nestjs/typeorm.js",
+            "require": "./dist/@nestjs/typeorm.js"
+        },
+        "./typeorm": {
+            "types": "./dist/typeorm.d.ts",
+            "import": "./dist/typeorm.js",
+            "require": "./dist/typeorm.js"
         }
     },
     "scripts": {

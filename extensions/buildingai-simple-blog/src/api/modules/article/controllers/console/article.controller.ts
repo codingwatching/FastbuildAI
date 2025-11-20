@@ -1,6 +1,6 @@
 import { BaseController } from "@buildingai/base";
 import { ExtensionConsoleController } from "@buildingai/core/decorators/extension-controller.decorator";
-import { type UserPlayground } from "@buildingai/db/interfaces/context.interface";
+import { type UserPlayground } from "@buildingai/db";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { UUIDValidationPipe } from "@buildingai/pipe/param-validate.pipe";
 import { Body, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";

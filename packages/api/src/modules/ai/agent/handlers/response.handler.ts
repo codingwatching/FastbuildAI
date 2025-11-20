@@ -1,8 +1,8 @@
 import { ChatCompletionStream, McpServerSSE, type MCPTool } from "@buildingai/ai-sdk";
-import { Agent } from "@buildingai/db/entities/ai-agent.entity";
-import { AgentChatRecord } from "@buildingai/db/entities/ai-agent-chat-record.entity";
-import { AiMcpServer } from "@buildingai/db/entities/ai-mcp-server.entity";
-import { type UserPlayground } from "@buildingai/db/interfaces/context.interface";
+import { type UserPlayground } from "@buildingai/db";
+import { Agent } from "@buildingai/db/entities";
+import { AgentChatRecord } from "@buildingai/db/entities";
+import { AiMcpServer } from "@buildingai/db/entities";
 import {
     AIRawResponse,
     ChatMessage,

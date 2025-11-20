@@ -2,7 +2,7 @@ import { BaseService } from "@buildingai/base";
 import { BooleanNumber, type BooleanNumberType } from "@buildingai/constants";
 import { BusinessCode } from "@buildingai/constants/shared/business-code.constant";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { SecretTemplate, type TemplateField } from "@buildingai/db/entities/secret-template.entity";
+import { SecretTemplate, type TemplateField } from "@buildingai/db/entities";
 import { Like, Repository } from "@buildingai/db/typeorm";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import { HttpErrorFactory } from "@buildingai/errors";
