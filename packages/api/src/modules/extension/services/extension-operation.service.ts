@@ -11,6 +11,7 @@ import { ExtensionsService } from "@buildingai/core/modules/extension/services/e
 import { ExtensionConfigService } from "@buildingai/core/modules/extension/services/extension-config.service";
 import { ExtensionSchemaService } from "@buildingai/core/modules/extension/services/extension-schema.service";
 import { getExtensionSchemaName } from "@buildingai/core/modules/extension/utils/extension.utils";
+import { FileUploadService } from "@buildingai/core/modules/upload/services/file-upload.service";
 import { SeedRunner } from "@buildingai/db/seeds/seed-runner";
 import { BaseSeeder } from "@buildingai/db/seeds/seeders/base.seeder";
 import { DataSource } from "@buildingai/db/typeorm";
@@ -52,6 +53,7 @@ export class ExtensionOperationService {
         private readonly extensionSchemaService: ExtensionSchemaService,
         private readonly pm2Service: Pm2Service,
         private readonly dataSource: DataSource,
+        private readonly fileUploadService: FileUploadService,
     ) {
         // 初始化临时目录路径
         this.rootDir = path.join(process.cwd(), "..", "..");
@@ -115,13 +117,16 @@ export class ExtensionOperationService {
         // 4. Remove extension from extensions.json
         await this.extensionConfigService.removeExtension(identifier);
 
-        // 5. Drop extension database schema (if exists)
+        // 5. Delete file records associated with this extension
+        await this.deleteExtensionFiles(identifier);
+
+        // 6. Drop extension database schema (if exists)
         await this.dropExtensionSchemaWrapper(identifier);
 
-        // 6. Delete extension from database
+        // 7. Delete extension from database
         await this.extensionsService.delete(extension.id);
 
-        // 7. Schedule PM2 restart after response is sent
+        // 8. Schedule PM2 restart after response is sent
         this.scheduleRestart();
 
         this.logger.log(`Extension uninstalled successfully: ${identifier}`);
@@ -683,6 +688,38 @@ export class ExtensionOperationService {
             const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(
                 `Failed to drop extension schema: ${errorMessage}. Manual cleanup may be required.`,
+            );
+            // Don't throw error - continue with uninstall
+        }
+    }
+
+    /**
+     * Delete file records associated with extension
+     * @param identifier Extension identifier
+     * @private
+     */
+    private async deleteExtensionFiles(identifier: string): Promise<void> {
+        try {
+            this.logger.log(`Deleting file records for extension: ${identifier}`);
+
+            const files = await this.fileUploadService.findAll({
+                where: { extensionIdentifier: identifier },
+            });
+
+            if (files.length === 0) {
+                this.logger.log(`No file records found for extension: ${identifier}`);
+                return;
+            }
+
+            // Batch delete database records (physical files will be removed with extension directory)
+            const fileIds = files.map((file) => file.id);
+            const deletedCount = await this.fileUploadService.deleteMany(fileIds);
+
+            this.logger.log(`Deleted ${deletedCount} file record(s) for extension: ${identifier}`);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(
+                `Failed to delete file records: ${errorMessage}. Manual cleanup may be required.`,
             );
             // Don't throw error - continue with uninstall
         }
