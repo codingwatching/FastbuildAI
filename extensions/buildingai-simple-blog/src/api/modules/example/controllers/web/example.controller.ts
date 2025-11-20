@@ -4,7 +4,7 @@ import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { Repository } from "@buildingai/db/typeorm";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { HttpErrorFactory } from "@buildingai/errors";
-import { ExtensionBillingService } from "@buildingai/extension-sdk/modules/billing/extension-billing.service";
+import { ExtensionBillingService } from "@buildingai/extension-sdk";
 import { Get } from "@nestjs/common";
 
 import { Example } from "../../../../db/entities/example.entity";

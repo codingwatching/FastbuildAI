@@ -1,5 +1,5 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { ExtensionBillingModule } from "@buildingai/extension-sdk/modules/billing/extension-billing.module";
+import { ExtensionBillingModule } from "@buildingai/extension-sdk";
 import { Module } from "@nestjs/common";
 
 import { Example } from "../../db/entities/example.entity";

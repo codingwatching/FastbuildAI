@@ -3,7 +3,7 @@ import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import type { FindOptionsWhere } from "@buildingai/db/typeorm";
 import { In, Like, Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
-import { PublicUserService } from "@buildingai/extension-sdk/services/user.service";
+import { PublicUserService } from "@buildingai/extension-sdk";
 import { buildWhere } from "@buildingai/utils";
 import { Injectable } from "@nestjs/common";
 

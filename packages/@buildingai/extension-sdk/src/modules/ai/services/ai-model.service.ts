@@ -1,15 +1,11 @@
 import { getProvider } from "@buildingai/ai-sdk";
 import { BaseService } from "@buildingai/base";
-import { PowerDeductionOptions } from "@buildingai/core/modules/billing/types";
 import { SecretService } from "@buildingai/core/modules/secret/services/secret.service";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { AiModel, Secret } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { getProviderSecret } from "@buildingai/utils";
 import { Injectable, Logger } from "@nestjs/common";
-
-export interface ExtensionPowerDeductionOptions
-    extends Omit<PowerDeductionOptions, "source" | "accountType"> {}
 
 /**
  * Public AI Model Service
