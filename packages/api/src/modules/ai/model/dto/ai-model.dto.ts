@@ -136,6 +136,15 @@ export class CreateAiModelDto {
     @Type(() => Number)
     @Transform(({ value }) => (value !== undefined ? value : 0))
     sortOrder?: number;
+
+    /**
+     * 排序字段
+     */
+    @IsInt({ message: "排序必须是整数" })
+    @IsOptional()
+    @Type(() => Number)
+    @Transform(({ value }) => (value !== undefined ? value : 0))
+    sort?: number;
 }
 
 /**
@@ -216,4 +225,19 @@ export class BatchUpdateAiModelDto {
     @IsOptional()
     @IsBoolean({ message: "skipErrors必须是布尔值" })
     skipErrors?: boolean = false;
+}
+
+/**
+ * 批量排序AI模型DTO
+ */
+export class BatchSortAiModelDto {
+    /**
+     * 排序后的模型ID数组
+     * 数组顺序即为排序后的顺序，第一个元素排在最前面
+     */
+    @IsArray({ message: "模型ID列表必须是数组" })
+    @ArrayMinSize(1, { message: "模型ID列表至少需要包含一个ID" })
+    @IsString({ each: true, message: "模型ID必须是字符串" })
+    @IsNotEmpty({ each: true, message: "模型ID不能为空" })
+    sort: string[];
 }

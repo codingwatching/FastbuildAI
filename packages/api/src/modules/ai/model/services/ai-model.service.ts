@@ -7,6 +7,7 @@ import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { buildWhere } from "@buildingai/utils";
 import {
+    BatchSortAiModelDto,
     CreateAiModelDto,
     QueryAiModelDto,
     UpdateAiModelDto,
@@ -124,7 +125,7 @@ export class AiModelService extends BaseService<AiModel> {
             const models = await this.findAll({
                 where: { isActive: true },
                 order: {
-                    sortOrder: "ASC",
+                    sort: "DESC",
                     createdAt: "DESC",
                 },
                 excludeFields,
@@ -169,7 +170,7 @@ export class AiModelService extends BaseService<AiModel> {
             const models = await this.findAll({
                 where: whereConditions.length > 1 ? whereConditions : where,
                 order: {
-                    sortOrder: "DESC",
+                    sort: "DESC",
                     createdAt: "DESC",
                 },
                 excludeFields,
@@ -187,6 +188,43 @@ export class AiModelService extends BaseService<AiModel> {
         } catch (error) {
             this.logger.error(`查询AI模型列表失败: ${error.message}`, error.stack);
             throw HttpErrorFactory.internal("查询AI模型列表失败");
+        }
+    }
+
+    /**
+     * 批量排序AI模型
+     * @description 根据提供的ID数组顺序更新模型的sort字段
+     * @param dto 批量排序DTO，包含排序后的模型ID数组
+     * @returns 更新结果
+     */
+    async batchSortModels(dto: BatchSortAiModelDto): Promise<void> {
+        const { sort } = dto;
+
+        if (!sort || sort.length === 0) {
+            throw HttpErrorFactory.paramError("排序数组不能为空");
+        }
+
+        try {
+            // 验证所有模型ID是否存在
+            const models = await this.findAll({
+                where: { id: In(sort) },
+            });
+
+            if (models.length !== sort.length) {
+                throw HttpErrorFactory.business("部分模型ID不存在");
+            }
+
+            // 根据数组顺序计算 sort（后端按 DESC 排序，所以第一个元素需要最大的 sort）
+            // 第一个元素 sort = length - 1，最后一个元素 sort = 0
+            const updatePromises = sort.map((id, index) => {
+                const sortValue = sort.length - 1 - index;
+                return this.updateById(id, { sort: sortValue } as UpdateAiModelDto);
+            });
+
+            await Promise.all(updatePromises);
+        } catch (error) {
+            this.logger.error(`批量排序AI模型失败: ${error.message}`, error.stack);
+            throw HttpErrorFactory.badRequest("批量排序AI模型失败");
         }
     }
 }

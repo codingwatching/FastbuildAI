@@ -47,6 +47,12 @@ export class AiProviderWebController extends BaseController {
                 excludeFields: ["apiKey"],
             });
 
+            providers.forEach((p) =>
+                p.models?.sort(
+                    (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+                ),
+            );
+
             // 先过滤掉没有模型的供应商
             const validProviders = providers.filter(
                 (provider) => provider.models && provider.models.length > 0,
@@ -113,6 +119,10 @@ export class AiProviderWebController extends BaseController {
                 throw new Error(`供应商 ${id} 不存在`);
             }
 
+            provider.models?.sort(
+                (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+            );
+
             return provider;
         } catch (error) {
             this.logger.error(`获取供应商信息失败: ${error.message}`, error.stack);
@@ -136,6 +146,10 @@ export class AiProviderWebController extends BaseController {
             if (!result) {
                 throw new Error(`供应商 ${provider} 不存在`);
             }
+
+            result.models?.sort(
+                (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+            );
 
             return result;
         } catch (error) {
