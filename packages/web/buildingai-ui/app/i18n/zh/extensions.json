@@ -112,8 +112,8 @@
             "allCategories": "全部分类",
             "allTypes": "全部类型"
         },
-        "add": "新增插件",
-        "selectType": "请选择插件类型",
+        "add": "新增应用",
+        "selectType": "请选择应用类型",
         "noDescription": "暂无描述",
         "unknownAuthor": "未知作者",
         "loadingText": "加载中...",

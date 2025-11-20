@@ -62,5 +62,5 @@ export const ACCOUNT_LOG_TYPE_DESCRIPTION = {
     [ACCOUNT_LOG_TYPE.CHAT_DEC]: "基本对话",
     [ACCOUNT_LOG_TYPE.AGENT_CHAT_DEC]: "智能体对话",
     [ACCOUNT_LOG_TYPE.AGENT_GUEST_CHAT_DEC]: "链接分享智能体对话",
-    [ACCOUNT_LOG_TYPE.PLUGIN_DEC]: "插件消耗",
+    [ACCOUNT_LOG_TYPE.PLUGIN_DEC]: "应用消耗",
 } as const;
