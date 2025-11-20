@@ -104,6 +104,10 @@
                 "isActiveDisabled": "Model disabled",
                 "deleteTitle": "Delete Model",
                 "deleteMsg": "Delete selected models? This cannot be undone."
+            },
+            "modelTypeFilter": "Filter by Model Type",
+            "modelTypes": {
+                "all": "All"
             }
         },
         "modelConfig": {

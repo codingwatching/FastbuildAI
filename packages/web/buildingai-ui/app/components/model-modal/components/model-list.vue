@@ -5,7 +5,8 @@ import {
     apiGetAiModelList,
     apiSetAiModelIsActive,
 } from "@buildingai/service/consoleapi/ai-model";
-import type { AiModelInfo } from "@buildingai/service/consoleapi/ai-provider";
+import type { AiModelInfo, ModelType } from "@buildingai/service/consoleapi/ai-provider";
+import { apiGetAiProviderModelTypes } from "@buildingai/service/consoleapi/ai-provider";
 import type { AiModel, AiProvider } from "@buildingai/service/webapi/ai-conversation";
 
 const ModelModal = defineAsyncComponent(() => import("./model-form-modal.vue"));
@@ -25,9 +26,33 @@ const overlay = useOverlay();
 const { hasAccessByCodes } = useAccessControl();
 
 const models = shallowRef<AiModelInfo[]>([]);
-const search = shallowRef("");
+const searchForm = reactive({
+    modelType: "all",
+    search: "",
+});
 const selectedModels = ref<Set<string>>(new Set());
 const selectedModelsData = ref<Set<AiModelInfo>>(new Set());
+
+const modelTypeOptions = shallowRef<{ label: string; value: string }[]>([]);
+
+const getModelTypes = async () => {
+    try {
+        const data = await apiGetAiProviderModelTypes();
+        modelTypeOptions.value = [
+            { label: t("ai-provider.backend.model.modelTypes.all"), value: "all" },
+            ...data.map((type: ModelType) => ({
+                label: type.label,
+                value: type.value,
+            })),
+        ];
+    } catch (error) {
+        console.error("获取模型类型列表失败:", error);
+    }
+};
+
+onMounted(() => {
+    getModelTypes();
+});
 
 const { lockFn: getLists, isLock: loading } = useLockFn(async () => {
     if (!props.provider?.id) return;
@@ -36,7 +61,8 @@ const { lockFn: getLists, isLock: loading } = useLockFn(async () => {
         const result = await apiGetAiModelList({
             providerId: props.provider.id,
             isActive: undefined,
-            keyword: search.value?.trim() || undefined,
+            keyword: searchForm.search?.trim() || undefined,
+            modelType: searchForm.modelType === "all" ? undefined : searchForm.modelType,
         });
         models.value = result || [];
     } catch (error) {
@@ -48,7 +74,7 @@ const { lockFn: handleToggleActive } = useLockFn(async (modelId: string, isActiv
     try {
         await apiSetAiModelIsActive(modelId, isActive);
 
-        const model = models.value.find((m) => m.id === modelId);
+        const model = models.value.find((m: AiModelInfo) => m.id === modelId);
         if (model) {
             model.isActive = isActive;
         }
@@ -101,7 +127,7 @@ const handleBatchEdit = async () => {
 
 const { lockFn: handleBatchIsActiveChange } = useLockFn(async (isActive: boolean) => {
     if (selectedModels.value.size === 0) return;
-    const selectedIds = Array.from(selectedModels.value);
+    const selectedIds = Array.from(selectedModels.value) as string[];
     try {
         await apiBatchSetAiModelIsActive(selectedIds, isActive);
         toast.success(
@@ -119,7 +145,7 @@ const { lockFn: handleBatchIsActiveChange } = useLockFn(async (isActive: boolean
 
 const { lockFn: handleBatchDelete } = useLockFn(async () => {
     if (selectedModels.value.size === 0) return;
-    const selectedIds = Array.from(selectedModels.value);
+    const selectedIds = Array.from(selectedModels.value) as string[];
 
     try {
         await useModal({
@@ -199,7 +225,7 @@ const toggleSelectAll = () => {
         const newSelectedModels = new Set<string>();
         const newSelectedModelsData = new Set<AiModelInfo>();
 
-        models.value.forEach((model) => {
+        models.value.forEach((model: AiModelInfo) => {
             if (model.id) {
                 newSelectedModels.add(model.id as string);
                 newSelectedModelsData.add(model);
@@ -239,7 +265,7 @@ const triggerSearch = useDebounceFn(() => {
 }, 300);
 
 watch(
-    () => search.value,
+    () => searchForm,
     () => triggerSearch(),
 );
 </script>
@@ -248,7 +274,7 @@ watch(
     <div class="w-full space-y-2 px-5">
         <div class="mb-4 pl-2">
             <UInput
-                v-model="search"
+                v-model="searchForm.search"
                 variant="soft"
                 :placeholder="t('ai-provider.backend.model.searchPlaceholder')"
                 :ui="{ root: 'w-full', base: 'bg-accent' }"
@@ -271,6 +297,18 @@ watch(
                 </h3>
             </div>
             <div class="flex items-center gap-2">
+                <USelect
+                    v-model="searchForm.modelType"
+                    :items="modelTypeOptions"
+                    label-key="label"
+                    value-key="value"
+                    :placeholder="t('ai-provider.backend.model.modelTypeFilter')"
+                    size="sm"
+                    class="w-30"
+                    @change="getLists"
+                >
+                </USelect>
+
                 <UDropdownMenu
                     v-if="
                         hasAccessByCodes(['ai-models:delete']) ||
@@ -310,7 +348,10 @@ watch(
             </div>
         </div>
 
-        <div v-if="loading && search.trim() === '' && models.length === 0" class="space-y-3">
+        <div
+            v-if="loading && searchForm.search.trim() === '' && models.length === 0"
+            class="space-y-3"
+        >
             <div
                 v-for="i in 10"
                 :key="i"
@@ -370,6 +411,34 @@ watch(
                                     size="xs"
                                 >
                                     {{ tag }}
+                                </UBadge>
+
+                                <UBadge
+                                    v-if="model.features?.includes('vision')"
+                                    variant="soft"
+                                    color="info"
+                                    size="xs"
+                                >
+                                    <UIcon name="i-lucide-image-play" class="mr-1" size="xs" />
+                                    {{ $t("common.ai.vision") }}
+                                </UBadge>
+                                <UBadge
+                                    v-if="model.features?.includes('video')"
+                                    variant="soft"
+                                    color="warning"
+                                    size="xs"
+                                >
+                                    <UIcon name="i-lucide-video" class="mr-1" size="xs" />
+                                    {{ $t("common.ai.video") }}
+                                </UBadge>
+                                <UBadge
+                                    v-if="model.features?.includes('audio')"
+                                    variant="soft"
+                                    color="success"
+                                    size="xs"
+                                >
+                                    <UIcon name="i-lucide-audio-lines" class="mr-1" size="xs" />
+                                    {{ $t("common.ai.audio") }}
                                 </UBadge>
                             </div>
                         </div>

@@ -104,6 +104,10 @@
                 "isActiveDisabled": "モデルを無効化しました",
                 "deleteTitle": "モデル削除",
                 "deleteMsg": "選択したモデルを削除しますか？この操作は元に戻せません。"
+            },
+            "modelTypeFilter": "モデルタイプでフィルター",
+            "modelTypes": {
+                "all": "すべて"
             }
         },
         "modelConfig": {

@@ -111,6 +111,10 @@
                 "isActiveDisabled": "模型已禁用",
                 "deleteTitle": "删除模型",
                 "deleteMsg": "确定要删除选中的模型吗？此操作不可恢复。"
+            },
+            "modelTypeFilter": "筛选模型类型",
+            "modelTypes": {
+                "all": "全部"
             }
         },
 
