@@ -110,7 +110,7 @@ export class AiProviderService extends BaseService<AiProvider> {
         }
 
         try {
-            return await this.findAll({
+            const providers = await this.findAll({
                 where: whereConditions.length > 1 ? whereConditions : where,
                 relations: ["models"],
                 order: {
@@ -119,6 +119,14 @@ export class AiProviderService extends BaseService<AiProvider> {
                 },
                 excludeFields,
             });
+
+            providers.forEach((p) =>
+                p.models?.sort(
+                    (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+                ),
+            );
+
+            return providers;
         } catch (error) {
             this.logger.error(`查询AI供应商列表失败: ${error.message}`, error.stack);
             throw HttpErrorFactory.internal("查询AI供应商列表失败");
@@ -144,6 +152,10 @@ export class AiProviderService extends BaseService<AiProvider> {
             if (!provider) {
                 throw HttpErrorFactory.notFound("供应商不存在");
             }
+
+            provider.models?.sort(
+                (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+            );
 
             return provider;
         } catch (error) {
@@ -171,11 +183,20 @@ export class AiProviderService extends BaseService<AiProvider> {
      * 获取所有启用的供应商
      */
     async getActiveProviders(excludeFields: string[] = ["apiKey"]): Promise<Partial<AiProvider>[]> {
-        return this.findAll({
+        const providers = await this.findAll({
             where: { isActive: true },
+            relations: ["models"],
             order: { sortOrder: "ASC", createdAt: "DESC" },
             excludeFields,
         });
+
+        providers.forEach((p) =>
+            p.models?.sort(
+                (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+            ),
+        );
+
+        return providers;
     }
 
     /**
@@ -185,9 +206,17 @@ export class AiProviderService extends BaseService<AiProvider> {
         provider: string,
         excludeFields: string[] = ["apiKey"],
     ): Promise<Partial<AiProvider> | null> {
-        return this.findOne({
+        const result = await this.findOne({
             where: { provider, isActive: true },
+            relations: ["models"],
             excludeFields,
         });
+
+        // 对模型列表排序
+        result?.models?.sort(
+            (a, b) => b.sort - a.sort || b.createdAt.getTime() - a.createdAt.getTime(),
+        );
+
+        return result;
     }
 }

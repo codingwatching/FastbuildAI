@@ -168,6 +168,8 @@ export interface AiModelQueryRequest extends BaseQueryParams {
     capability?: string;
     /** Model type filter */
     modelType?: string;
+    /** Search keyword (name or description) */
+    keyword?: string;
 }
 
 /**

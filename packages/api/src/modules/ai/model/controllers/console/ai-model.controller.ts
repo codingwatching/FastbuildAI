@@ -11,6 +11,7 @@ import { HttpErrorFactory } from "@buildingai/errors";
 import { ConsoleController } from "@common/decorators/controller.decorator";
 import { Permissions } from "@common/decorators/permissions.decorator";
 import {
+    BatchSortAiModelDto,
     BatchUpdateAiModelDto,
     CreateAiModelDto,
     QueryAiModelDto,
@@ -445,5 +446,18 @@ export class AiModelConsoleController extends BaseController {
     async setDefault(@Param("id") id: string) {
         await this.dictService.set(AI_DEFAULT_MODEL, id);
         return { message: "Default model set successfully" };
+    }
+
+    /**
+     * 批量排序AI模型
+     */
+    @Patch("batch/sort")
+    @Permissions({
+        code: "batch-sort",
+        name: "批量排序AI模型",
+    })
+    async batchSort(@Body() dto: BatchSortAiModelDto) {
+        await this.aiModelService.batchSortModels(dto);
+        return { message: "模型排序更新成功" };
     }
 }
