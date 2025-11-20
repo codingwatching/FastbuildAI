@@ -451,54 +451,63 @@ export class ExtensionOperationService {
         requestedVersion: string | undefined,
         extensionMarketService: ExtensionMarketService,
     ) {
-        const extensionInfo = await extensionMarketService.getApplicationDetail(identifier);
-        const targetVersion =
-            requestedVersion ??
-            (await this.resolveLatestVersion(identifier, extensionMarketService));
+        this.logger.log(`Starting install extension: ${identifier}`);
 
-        if (!targetVersion) {
-            throw HttpErrorFactory.badRequest(
-                `No available version found for extension: ${identifier}`,
+        try {
+            const extensionInfo = await extensionMarketService.getApplicationDetail(identifier);
+            const targetVersion =
+                requestedVersion ??
+                (await this.resolveLatestVersion(identifier, extensionMarketService));
+
+            if (!targetVersion) {
+                throw HttpErrorFactory.badRequest(
+                    `No available version found for extension: ${identifier}`,
+                );
+            }
+
+            const { url } = await extensionMarketService.downloadApplication(
+                identifier,
+                targetVersion,
+                ExtensionDownload.INSTALL,
             );
+            await this.download(url, identifier, ExtensionDownload.INSTALL, targetVersion);
+
+            const extension = await this.extensionsService.create({
+                name: extensionInfo.name,
+                identifier: extensionInfo.identifier,
+                version: targetVersion,
+                description: extensionInfo.description,
+                icon: extensionInfo.icon,
+                type: extensionInfo.type as ExtensionTypeType,
+                supportTerminal: extensionInfo.supportTerminal as ExtensionSupportTerminalType[],
+                author: extensionInfo.author,
+                documentation: extensionInfo.content,
+                status: ExtensionStatus.ENABLED,
+                isLocal: false,
+            });
+
+            // Update extensions.json to enable the new extension
+            await this.updateExtensionsConfigWrapper(extensionInfo, targetVersion);
+
+            // Copy web assets to public directory
+            await this.copyWebAssets(identifier);
+
+            // Install dependencies before restarting
+            await this.installDependencies();
+
+            // Synchronize extension tables and execute seeds BEFORE restart
+            await this.synchronizeExtensionTablesAndSeeds(identifier);
+
+            // Schedule PM2 restart after response is sent
+            this.scheduleRestart();
+
+            this.logger.log(`Extension installed successfully: ${identifier}@${targetVersion}`);
+            return extension;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to install extension: ${errorMessage}`);
+            throw error;
         }
-
-        const { url } = await extensionMarketService.downloadApplication(
-            identifier,
-            targetVersion,
-            ExtensionDownload.INSTALL,
-        );
-        await this.download(url, identifier, ExtensionDownload.INSTALL, targetVersion);
-
-        const extension = await this.extensionsService.create({
-            name: extensionInfo.name,
-            identifier: extensionInfo.identifier,
-            version: targetVersion,
-            description: extensionInfo.description,
-            icon: extensionInfo.icon,
-            type: extensionInfo.type as ExtensionTypeType,
-            supportTerminal: extensionInfo.supportTerminal as ExtensionSupportTerminalType[],
-            author: extensionInfo.author,
-            documentation: extensionInfo.content,
-            status: ExtensionStatus.ENABLED,
-            isLocal: false,
-        });
-
-        // Update extensions.json to enable the new extension
-        await this.updateExtensionsConfigWrapper(extensionInfo, targetVersion);
-
-        // Copy web assets to public directory
-        await this.copyWebAssets(identifier);
-
-        // Install dependencies before restarting
-        await this.installDependencies();
-
-        // Synchronize extension tables and execute seeds BEFORE restart
-        await this.synchronizeExtensionTablesAndSeeds(identifier);
-
-        // Schedule PM2 restart after response is sent
-        this.scheduleRestart();
-
-        return extension;
     }
 
     /**
