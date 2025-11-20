@@ -376,6 +376,7 @@ const openAnnotationModal = (annotationId: string, messageId: string | null = nu
 
     modal.open({
         agentId: agent.value?.id as string,
+        hiddenStatus: true,
         annotationId,
         messageId,
         isPublic: true,
