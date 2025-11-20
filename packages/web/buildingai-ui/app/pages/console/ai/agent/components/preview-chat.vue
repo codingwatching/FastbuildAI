@@ -172,6 +172,7 @@ const openAnnotationModal = (annotationId: string, messageId: string | null = nu
         agentId: agentId.value as string,
         annotationId: annotationId,
         messageId: messageId,
+        hiddenStatus: true,
     });
 };
 
