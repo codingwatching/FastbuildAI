@@ -66,6 +66,8 @@ const {
     clearFiles,
 } = usePromptFiles();
 
+const canSubmit = computed(() => inputValue.value.trim().length > 0 || files.value.length > 0);
+
 function handleFocus() {
     uTextareaRefs.value?.textareaRef?.focus();
     if (!userStore.isAgreed && props.needAuth) {
@@ -81,6 +83,10 @@ function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
 
+        if (!canSubmit.value) {
+            return;
+        }
+
         if (props.isLoading) {
             emits("stop");
         } else {
@@ -93,11 +99,8 @@ function handleSubmit() {
     if (props.isLoading) {
         emits("stop");
     } else {
-        if (!inputValue.value.trim() && files.value.length === 0) return;
+        if (!canSubmit.value) return;
         emits("submit", inputValue.value);
-        // Clear file list after submission
-        clearFiles();
-        filesList.value = [];
     }
 }
 
@@ -291,19 +294,19 @@ onMounted(() =>
                         :text="
                             isLoading
                                 ? t('common.chat.messages.stopGeneration')
-                                : !inputValue?.length
+                                : !canSubmit
                                   ? t('common.chat.messages.enterQuestion')
                                   : t('common.chat.messages.sendMessage')
                         "
                         :delay-duration="0"
                         :arrow="true"
-                        :disabled="isLoading || !!inputValue?.length"
+                        :disabled="isLoading || canSubmit"
                     >
                         <UButton
                             :icon="isLoading ? 'i-lucide-square' : 'i-lucide-arrow-up'"
                             class="rounded-full font-bold"
                             size="lg"
-                            :disabled="!isLoading && !inputValue?.length"
+                            :disabled="!isLoading && !canSubmit"
                             :color="isLoading ? 'error' : 'primary'"
                             @click.stop="handleSubmit"
                         />
