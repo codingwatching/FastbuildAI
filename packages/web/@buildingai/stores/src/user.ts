@@ -36,7 +36,7 @@ const userStore = defineStore("auth", () => {
     /** Login timestamp */
     const loginTimeStamp = shallowRef<number>(LOGIN_TIME_STAMP);
     /** Privacy agreement acceptance status */
-    const isAgreed = shallowRef<boolean>(true);
+    const isAgreed = shallowRef<boolean>(false);
 
     /** Check if user is logged in */
     const isLogin = computed(() => {

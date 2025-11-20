@@ -55,6 +55,13 @@
     "messages": {
         "agreementRequired": "Please agree to terms",
         "agreementTitle": "Reminder",
+        "agreementModal": {
+            "title": "Terms & Privacy",
+            "prefix": "Signing up or logging in means you agree to {{appName}}'s ",
+            "confirm": "Agree",
+            "cancel": "Disagree",
+            "appNameFallback": "this service"
+        },
         "registerFailed": "Sign up failed",
         "loginFailed": "Login failed"
     },

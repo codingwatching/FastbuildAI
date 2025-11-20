@@ -62,6 +62,13 @@
     "messages": {
         "agreementRequired": "请先同意隐私协议和服务条款",
         "agreementTitle": "温馨提示",
+        "agreementModal": {
+            "title": "服务协议及隐私保护",
+            "prefix": "确认即表示你已阅读并同意{appName}的",
+            "confirm": "同意",
+            "cancel": "不同意",
+            "appNameFallback": "本服务"
+        },
         "registerFailed": "注册失败",
         "loginFailed": "登录失败"
     },

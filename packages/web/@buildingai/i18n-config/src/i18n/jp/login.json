@@ -55,6 +55,14 @@
     "messages": {
         "agreementRequired": "利用規約とプライバシーポリシーに同意してください",
         "agreementTitle": "ご注意",
+        "agreementModal": {
+            "title": "利用規約とプライバシー保護",
+            "description": "ログインを続行すると、{{appName}}の「利用規約」と「プライバシーポリシー」に同意したものとみなされます。",
+            "prefix": "登録またはログインすると、{{appName}}の",
+            "confirm": "同意する",
+            "cancel": "同意しない",
+            "appNameFallback": "本サービス"
+        },
         "registerFailed": "登録に失敗しました",
         "loginFailed": "ログインに失敗しました"
     },
