@@ -44,7 +44,6 @@ packages/**/dist
 *.tsbuildinfo
 _temp_get_languages.*
 build.tsbuildinfo
-tsconfig.tsbuildinfo
 
 
 # Debug

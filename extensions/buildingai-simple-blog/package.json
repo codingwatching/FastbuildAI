@@ -22,7 +22,7 @@
         "./*": "./*"
     },
     "scripts": {
-        "clean": "rimraf build .output tsconfig.tsbuildinfo",
+        "build:clean": "rimraf build .output build/build.tsbuildinfo",
         "dev:web": "cross-env NUXT_BUILD_SSR=false NUXT_BUILD_ENV=development nuxt dev --no-clear --dotenv ../../.env",
         "dev:api": "cross-env NODE_ENV=development tsup --watch src/api",
         "dev": "pnpm run \"/^dev:.*/\"",

@@ -5,6 +5,7 @@ import {
     getCachedExtensionList,
     loadExtensionModule,
 } from "@buildingai/core/modules/extension/utils/extension.utils";
+import { UploadModule } from "@buildingai/core/modules/upload/upload.module";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { Extension } from "@buildingai/db/entities/extension.entity";
 import { DataSource } from "@buildingai/db/typeorm";
@@ -47,7 +48,12 @@ export class ExtensionCoreModule implements OnModuleInit {
 
         return {
             module: ExtensionCoreModule,
-            imports: [Pm2Module, TypeOrmModule.forFeature([Extension]), ...loadedExtensions],
+            imports: [
+                Pm2Module,
+                UploadModule,
+                TypeOrmModule.forFeature([Extension]),
+                ...loadedExtensions,
+            ],
             providers: [
                 ExtensionConfigService,
                 ExtensionSchemaService,
