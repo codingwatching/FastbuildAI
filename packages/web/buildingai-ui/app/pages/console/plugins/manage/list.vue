@@ -412,7 +412,7 @@ onMounted(() => getLists());
                                     />
 
                                     <UButton
-                                        v-if="!extension.isLocal"
+                                        v-if="extension.hasUpdate"
                                         color="primary"
                                         variant="ghost"
                                         size="sm"
@@ -422,7 +422,7 @@ onMounted(() => getLists());
                                     />
 
                                     <UDropdownMenu
-                                        v-else
+                                        v-if="extension.isInstalled"
                                         :items="[
                                             [
                                                 {
