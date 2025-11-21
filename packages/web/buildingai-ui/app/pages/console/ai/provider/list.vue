@@ -186,10 +186,9 @@ onMounted(() => getLists());
                 v-model="searchIsActive"
                 :items="[
                     { label: t('ai-provider.backend.search.all'), value: 'all' },
-                    { label: t('console-common.enabled'), value: true },
-                    { label: t('console-common.disabled'), value: false },
+                    { label: t('console-common.show'), value: true },
+                    { label: t('console-common.hide'), value: false },
                 ]"
-                class="w-fit"
                 label-key="label"
                 value-key="value"
                 :placeholder="t('ai-provider.backend.search.status')"
