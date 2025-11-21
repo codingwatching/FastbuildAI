@@ -203,13 +203,27 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
                 :error="packNameError"
             >
                 <UInput
+                    v-if="props.isEdit"
                     v-model="formData.packName"
                     :placeholder="t('extensions.develop.form.packNameInput')"
                     size="lg"
-                    :ui="{ root: 'w-full' }"
                     :disabled="props.isEdit"
+                    :ui="{ root: 'w-full' }"
+                >
+                </UInput>
+                <UInput
+                    v-else
+                    v-model="formData.packName"
+                    :placeholder="t('extensions.develop.form.packNameInput')"
+                    size="lg"
+                    :disabled="props.isEdit"
+                    :ui="{ root: 'w-full', base: 'pl-22' }"
                     @update:model-value="checkIdentifierUniqueness(formData.packName)"
-                />
+                >
+                    <template #leading>
+                        <span class="text-muted-foreground pl-1 text-sm"> buildingai- </span>
+                    </template>
+                </UInput>
                 <template #help>
                     <span class="text-xs">{{ t("extensions.develop.form.packNameHelp") }}</span>
                 </template>
