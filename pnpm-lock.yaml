@@ -451,6 +451,9 @@ importers:
       nuxt-svgo:
         specifier: catalog:web
         version: 4.2.6(magicast@0.5.1)(vue@3.5.24(typescript@5.9.2))
+      openai:
+        specifier: ^5.23.2
+        version: 5.23.2(ws@8.18.3)(zod@3.25.76)
       panzoom:
         specifier: catalog:web
         version: 9.4.3
@@ -681,9 +684,6 @@ importers:
       mammoth:
         specifier: ^1.11.0
         version: 1.11.0
-      openai:
-        specifier: ^5.23.2
-        version: 5.23.2(ws@8.18.3)(zod@3.25.76)
       pdf-parse:
         specifier: ^1.1.4
         version: 1.1.4
@@ -1221,9 +1221,6 @@ importers:
       node-segment:
         specifier: ^0.0.2
         version: 0.0.2
-      openai:
-        specifier: ^5.13.1
-        version: 5.23.2(ws@8.18.3)(zod@3.25.76)
       pg:
         specifier: ^8.16.3
         version: 8.16.3

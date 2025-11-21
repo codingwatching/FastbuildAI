@@ -40,7 +40,6 @@
         "@modelcontextprotocol/sdk": "1.21.0",
         "@types/pdf-parse": "^1.1.5",
         "mammoth": "^1.11.0",
-        "openai": "^5.23.2",
         "pdf-parse": "^1.1.4",
         "tiktoken": "^1.0.22",
         "xlsx": "^0.18.5"

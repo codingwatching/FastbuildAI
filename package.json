@@ -107,6 +107,7 @@
         "@vueuse/motion": "catalog:web",
         "@vueuse/nuxt": "catalog:web",
         "axios": "catalog:",
+        "openai": "^5.23.2",
         "bing-translate-api": "^4.1.0",
         "buildingai": "link:packages/cli",
         "bullmq": "catalog:api",
