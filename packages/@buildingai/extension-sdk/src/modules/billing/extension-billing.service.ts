@@ -1,11 +1,11 @@
 import { ACCOUNT_LOG_TYPE } from "@buildingai/constants";
 import { ACCOUNT_LOG_SOURCE } from "@buildingai/constants/shared/account-log.constants";
-import { BaseBillingService } from "@buildingai/core/modules/billing/base-billing.service";
-import { PowerDeductionOptions } from "@buildingai/core/modules/billing/types";
+import { BaseBillingService } from "@buildingai/core/modules";
 import {
     getExtensionIdentifierFromStack,
     getExtensionNameFromConfig,
-} from "@buildingai/core/modules/extension/utils/extension.utils";
+    PowerDeductionOptions,
+} from "@buildingai/core/modules";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { User } from "@buildingai/db/entities";
 import { AccountLog } from "@buildingai/db/entities";

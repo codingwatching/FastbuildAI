@@ -1,13 +1,12 @@
 import { CacheModule, RedisModule } from "@buildingai/cache";
 import { createDataSourceConfig } from "@buildingai/config/db.config";
-import { BillingModule } from "@buildingai/core/modules/billing/billing.module";
+import { getEnabledExtensionsFromConfig, initExtensionCache } from "@buildingai/core/modules";
+import { getExtensionSchemaName } from "@buildingai/core/modules";
 import {
-    getEnabledExtensionsFromConfig,
-    initExtensionCache,
-} from "@buildingai/core/modules/extension/utils/extension.utils";
-import { getExtensionSchemaName } from "@buildingai/core/modules/extension/utils/extension.utils";
-import { SecretModule } from "@buildingai/core/modules/secret/secret.module";
-import { UploadModule as CoreUploadModule } from "@buildingai/core/modules/upload/upload.module";
+    BillingModule,
+    SecretModule,
+    UploadModule as CoreUploadModule,
+} from "@buildingai/core/modules";
 import { FileUrlModule } from "@buildingai/db";
 import { DataSource } from "@buildingai/db/typeorm";
 import { DictModule } from "@buildingai/dict";

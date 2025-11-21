@@ -1,4 +1,4 @@
-import { UploadModule as CoreUploadModule } from "@buildingai/core/modules/upload/upload.module";
+import { UploadModule as CoreUploadModule } from "@buildingai/core/modules";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
 import { Module } from "@nestjs/common";

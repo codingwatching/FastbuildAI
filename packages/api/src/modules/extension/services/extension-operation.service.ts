@@ -5,13 +5,15 @@ import {
     type ExtensionSupportTerminalType,
     type ExtensionTypeType,
 } from "@buildingai/constants/shared/extension.constant";
-import type { CreateExtensionDto } from "@buildingai/core/modules/extension/dto/create-extension.dto";
-import { ExtensionDetailType } from "@buildingai/core/modules/extension/interfaces/extension-market.interface";
-import { ExtensionsService } from "@buildingai/core/modules/extension/services/extension.service";
-import { ExtensionConfigService } from "@buildingai/core/modules/extension/services/extension-config.service";
-import { ExtensionSchemaService } from "@buildingai/core/modules/extension/services/extension-schema.service";
-import { getExtensionSchemaName } from "@buildingai/core/modules/extension/utils/extension.utils";
-import { FileUploadService } from "@buildingai/core/modules/upload/services/file-upload.service";
+import { getExtensionSchemaName } from "@buildingai/core/modules";
+import {
+    type CreateExtensionDto,
+    ExtensionConfigService,
+    ExtensionDetailType,
+    ExtensionSchemaService,
+    ExtensionsService,
+    FileUploadService,
+} from "@buildingai/core/modules";
 import { BaseSeeder } from "@buildingai/db";
 import { SeedRunner } from "@buildingai/db/seeds";
 import { DataSource } from "@buildingai/db/typeorm";

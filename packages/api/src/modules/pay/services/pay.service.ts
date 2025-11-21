@@ -4,7 +4,7 @@ import {
     ACCOUNT_LOG_TYPE,
 } from "@buildingai/constants/shared/account-log.constants";
 import { PayConfigPayType } from "@buildingai/constants/shared/payconfig.constant";
-import { AppBillingService } from "@buildingai/core/modules/billing/app-billing.service";
+import { AppBillingService } from "@buildingai/core/modules";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { User } from "@buildingai/db/entities";
 import { Payconfig } from "@buildingai/db/entities";

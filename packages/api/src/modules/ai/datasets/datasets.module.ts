@@ -1,4 +1,4 @@
-import { QueueModule } from "@buildingai/core/modules/queue/queue.module";
+import { QueueModule } from "@buildingai/core/modules";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { User } from "@buildingai/db/entities";
 import { AiModel } from "@buildingai/db/entities";

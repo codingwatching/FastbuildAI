@@ -1,4 +1,4 @@
-import { ExtensionEntity } from "@buildingai/core/decorators/extension-entity.decorator";
+import { ExtensionEntity } from "@buildingai/core/decorators";
 import { User } from "@buildingai/db/entities";
 import {
     Column,

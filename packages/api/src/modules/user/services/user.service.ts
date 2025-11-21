@@ -7,7 +7,7 @@ import {
     ACCOUNT_LOG_TYPE,
     ACTION,
 } from "@buildingai/constants/shared/account-log.constants";
-import { AppBillingService } from "@buildingai/core/modules/billing/app-billing.service";
+import { AppBillingService } from "@buildingai/core/modules";
 import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { User } from "@buildingai/db/entities";

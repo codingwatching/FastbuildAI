@@ -1,9 +1,7 @@
 import { ExtensionDownloadType, ExtensionStatus } from "@buildingai/constants";
 import { DICT_GROUP_KEYS, DICT_KEYS } from "@buildingai/constants/server/dict-key.constant";
-import { ApplicationListItem } from "@buildingai/core/modules/extension/interfaces/extension.interface";
-import { ExtensionDetailType } from "@buildingai/core/modules/extension/interfaces/extension-market.interface";
-import { PlatformInfo } from "@buildingai/core/modules/extension/interfaces/platform.interface";
-import { ExtensionsService } from "@buildingai/core/modules/extension/services/extension.service";
+import { ApplicationListItem } from "@buildingai/core/modules";
+import { ExtensionDetailType, ExtensionsService, PlatformInfo } from "@buildingai/core/modules";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { createHttpClient, createHttpErrorMessage, HttpClientInstance } from "@buildingai/utils";

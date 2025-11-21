@@ -5,15 +5,15 @@ import {
     type ExtensionStatusType,
     type ExtensionTypeType,
 } from "@buildingai/constants/shared/extension.constant";
-import { CreateExtensionDto } from "@buildingai/core/modules/extension/dto/create-extension.dto";
-import { QueryExtensionDto } from "@buildingai/core/modules/extension/dto/query-extension.dto";
 import {
     BatchUpdateExtensionStatusDto,
+    CreateExtensionDto,
+    ExtensionConfigService,
+    ExtensionsService,
+    PlatformInfo,
+    QueryExtensionDto,
     UpdateExtensionDto,
-} from "@buildingai/core/modules/extension/dto/update-extension.dto";
-import { PlatformInfo } from "@buildingai/core/modules/extension/interfaces/platform.interface";
-import { ExtensionsService } from "@buildingai/core/modules/extension/services/extension.service";
-import { ExtensionConfigService } from "@buildingai/core/modules/extension/services/extension-config.service";
+} from "@buildingai/core/modules";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";

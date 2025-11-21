@@ -1,5 +1,5 @@
 import { BaseController } from "@buildingai/base";
-import { ExtensionConsoleController } from "@buildingai/core/decorators/extension-controller.decorator";
+import { ExtensionConsoleController } from "@buildingai/core/decorators";
 import { type UserPlayground } from "@buildingai/db";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { UUIDValidationPipe } from "@buildingai/pipe/param-validate.pipe";

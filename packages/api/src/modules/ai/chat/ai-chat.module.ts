@@ -1,5 +1,5 @@
-import { SecretService } from "@buildingai/core/modules/secret/services/secret.service";
-import { SecretTemplateService } from "@buildingai/core/modules/secret/services/secret-template.service";
+import { SecretService } from "@buildingai/core/modules";
+import { SecretTemplateService } from "@buildingai/core/modules";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { User } from "@buildingai/db/entities";
 import { AiModel } from "@buildingai/db/entities";

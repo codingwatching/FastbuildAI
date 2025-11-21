@@ -1,4 +1,4 @@
-import { getCachedExtensionList } from "@buildingai/core/modules/extension/utils/extension.utils";
+import { getCachedExtensionList } from "@buildingai/core/modules";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { CanActivate, ExecutionContext, Injectable, Logger } from "@nestjs/common";
 import type { Request } from "express";

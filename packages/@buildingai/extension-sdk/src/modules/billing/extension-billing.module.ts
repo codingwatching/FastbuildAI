@@ -1,4 +1,4 @@
-import { BaseBillingService } from "@buildingai/core/modules/billing/base-billing.service";
+import { BaseBillingService } from "@buildingai/core/modules";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { User } from "@buildingai/db/entities";
 import { AccountLog } from "@buildingai/db/entities";

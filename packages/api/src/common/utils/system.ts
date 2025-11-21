@@ -1,5 +1,5 @@
 import { AppConfig } from "@buildingai/config/app.config";
-import { getCachedExtensionList } from "@buildingai/core/modules/extension/utils/extension.utils";
+import { getCachedExtensionList } from "@buildingai/core/modules";
 import { TerminalLogger } from "@buildingai/logger";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";

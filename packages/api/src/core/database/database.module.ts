@@ -1,7 +1,7 @@
 import { createDataSourceConfig } from "@buildingai/config/db.config";
 import { table3BorderStyle } from "@buildingai/config/table.config";
-import type { ExtensionInfo } from "@buildingai/core/modules/extension/interfaces/extension.interface";
-import { getCachedExtensionList } from "@buildingai/core/modules/extension/utils/extension.utils";
+import type { ExtensionInfo } from "@buildingai/core/modules";
+import { getCachedExtensionList } from "@buildingai/core/modules";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import {
     AiModel,

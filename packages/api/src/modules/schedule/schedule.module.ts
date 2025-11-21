@@ -1,5 +1,5 @@
+import { ScheduleService } from "@buildingai/core";
 import { ScheduleModule as NestScheduleModule } from "@buildingai/core/@nestjs/schedule";
-import { ScheduleService } from "@buildingai/core/services/schedule.service";
 import { Module } from "@nestjs/common";
 
 import { ScheduleController } from "./controllers/schedule.controller";

@@ -2,46 +2,19 @@ import { BaseService, ExcludeFieldsResult, FieldPath } from "@buildingai/base";
 import { BooleanNumber, type BooleanNumberType } from "@buildingai/constants";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { SecretTemplate } from "@buildingai/db/entities";
-import { type KeyFieldValue, Secret } from "@buildingai/db/entities";
+import { Secret } from "@buildingai/db/entities";
 import { Like, Raw, Repository } from "@buildingai/db/typeorm";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { buildWhere, decryptValue } from "@buildingai/utils";
 import { Inject, Injectable, Optional } from "@nestjs/common";
 
-/**
- * Create secret DTO interface
- */
-export interface CreateSecretDto {
-    name: string;
-    templateId: string;
-    fieldValues: KeyFieldValue[];
-    remark?: string;
-    status?: BooleanNumberType;
-    sortOrder?: number;
-}
-
-/**
- * Update secret DTO interface
- */
-export interface UpdateSecretDto extends Partial<CreateSecretDto> {}
-
-/**
- * Query secret DTO interface
- */
-export interface QuerySecretDto extends PaginationDto {
-    name?: string;
-    templateId?: string;
-    status?: BooleanNumberType;
-}
-
-/**
- * Secret usage DTO interface
- */
-export interface SecretUsageDto {
-    configId: string;
-    usage?: string;
-}
+import {
+    CreateSecretDto,
+    QuerySecretDto,
+    SecretUsageDto,
+    UpdateSecretDto,
+} from "../dto/secret.dto";
 
 /**
  * AI Provider Service interface for dependency injection

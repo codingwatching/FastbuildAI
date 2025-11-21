@@ -1,11 +1,10 @@
-import { ExtensionsService } from "@buildingai/core/modules/extension/services/extension.service";
-import { ExtensionConfigService } from "@buildingai/core/modules/extension/services/extension-config.service";
-import { ExtensionSchemaService } from "@buildingai/core/modules/extension/services/extension-schema.service";
+import { getCachedExtensionList, loadExtensionModule } from "@buildingai/core/modules";
 import {
-    getCachedExtensionList,
-    loadExtensionModule,
-} from "@buildingai/core/modules/extension/utils/extension.utils";
-import { UploadModule } from "@buildingai/core/modules/upload/upload.module";
+    ExtensionConfigService,
+    ExtensionSchemaService,
+    ExtensionsService,
+    UploadModule,
+} from "@buildingai/core/modules";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { Extension } from "@buildingai/db/entities";
 import { DataSource } from "@buildingai/db/typeorm";

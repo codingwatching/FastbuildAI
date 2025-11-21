@@ -2,43 +2,19 @@ import { BaseService } from "@buildingai/base";
 import { BooleanNumber, type BooleanNumberType } from "@buildingai/constants";
 import { BusinessCode } from "@buildingai/constants/shared/business-code.constant";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { SecretTemplate, type TemplateField } from "@buildingai/db/entities";
+import { SecretTemplate } from "@buildingai/db/entities";
 import { Like, Repository } from "@buildingai/db/typeorm";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { buildWhere } from "@buildingai/utils";
 import { Injectable } from "@nestjs/common";
 
-/**
- * Create secret template DTO interface
- */
-export interface CreateSecretTemplateDto {
-    name: string;
-    icon?: string;
-    fieldConfig: TemplateField[];
-    isEnabled?: BooleanNumberType;
-    sortOrder?: number;
-}
-
-/**
- * Update secret template DTO interface
- */
-export interface UpdateSecretTemplateDto extends Partial<CreateSecretTemplateDto> {}
-
-/**
- * Query secret template DTO interface
- */
-export interface QuerySecretTemplateDto extends PaginationDto {
-    name?: string;
-    isEnabled?: BooleanNumberType;
-}
-
-/**
- * Import secret template JSON DTO interface
- */
-export interface ImportSecretTemplateJsonDto {
-    jsonData: string;
-}
+import {
+    CreateSecretTemplateDto,
+    ImportSecretTemplateJsonDto,
+    QuerySecretTemplateDto,
+    UpdateSecretTemplateDto,
+} from "../dto/secret-template.dto";
 
 /**
  * Secret template service

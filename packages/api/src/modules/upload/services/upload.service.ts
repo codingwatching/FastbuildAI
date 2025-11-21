@@ -1,8 +1,5 @@
 import { BaseService } from "@buildingai/base";
-import {
-    FileUploadService,
-    type UploadFileResult,
-} from "@buildingai/core/modules/upload/services/file-upload.service";
+import { FileUploadService, type UploadFileResult } from "@buildingai/core/modules";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";

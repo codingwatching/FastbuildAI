@@ -1,4 +1,4 @@
-import type { ExtensionInfo } from "@buildingai/core/modules/extension/interfaces/extension.interface";
+import type { ExtensionInfo } from "@buildingai/core/modules";
 import { BaseSeeder } from "@buildingai/db";
 import { SeedRunner } from "@buildingai/db/seeds";
 import { DataSource } from "@buildingai/db/typeorm";

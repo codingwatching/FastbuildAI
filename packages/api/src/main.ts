@@ -3,7 +3,7 @@ import "@buildingai/config/utils/env";
 const setupTime = Date.now();
 
 import { AppConfig } from "@buildingai/config/app.config";
-import { setStackFinderFn } from "@buildingai/core/modules/extension/utils/extension.utils";
+import { setStackFinderFn } from "@buildingai/core/modules";
 import { FileUrlService } from "@buildingai/db";
 import { NestContainer } from "@buildingai/di";
 import { findStackTargetFile, isDevelopment, printBrandLogo } from "@buildingai/utils";

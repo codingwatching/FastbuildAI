@@ -1,5 +1,5 @@
 import { BaseController } from "@buildingai/base";
-import { ExtensionConsoleController } from "@buildingai/core/decorators/extension-controller.decorator";
+import { ExtensionConsoleController } from "@buildingai/core/decorators";
 import { UUIDValidationPipe } from "@buildingai/pipe/param-validate.pipe";
 import { Body, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 

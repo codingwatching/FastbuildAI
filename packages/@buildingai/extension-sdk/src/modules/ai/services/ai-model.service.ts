@@ -1,7 +1,7 @@
 import { Adapter, getProvider } from "@buildingai/ai-sdk";
 import { ClientOptions } from "@buildingai/ai-sdk/openai";
 import { BaseService } from "@buildingai/base";
-import { SecretService } from "@buildingai/core/modules/secret/services/secret.service";
+import { SecretService } from "@buildingai/core/modules";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { AiModel, Secret } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
