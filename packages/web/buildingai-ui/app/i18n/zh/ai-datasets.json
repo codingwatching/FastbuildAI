@@ -191,6 +191,11 @@
                 "editor": "编辑者",
                 "viewer": "查看者"
             },
+            "roleOwnerDescription": "知识库的创建者，拥有最高权限",
+            "roleManagerDescription": "可管理团队成员和整个知识库项目",
+            "roleEditorDescription": "可上传和编辑自己的知识库数据，其他人的数据不允许编辑",
+            "roleViewerDescription": "仅能查看知识库所有的数据，增删改不能操作",
+            "rolePermissionDescription": "角色权限说明",
             "self": "自己",
             "note": "备注",
             "notePlaceholder": "请输入备注信息...",
