@@ -981,6 +981,19 @@
                                 "pluginPackName": null
                             },
                             {
+                                "name": "console-common.check",
+                                "code": "diy-design-view",
+                                "path": "preview",
+                                "icon": "",
+                                "component": "/console/decorate/design/view",
+                                "permissionCode": null,
+                                "sort": 0,
+                                "isHidden": 1,
+                                "type": 2,
+                                "sourceType": 1,
+                                "pluginPackName": null
+                            },
+                            {
                                 "name": "console-common.add",
                                 "code": "diy-create",
                                 "path": "",
