@@ -96,6 +96,8 @@ export class DatabaseInitService implements OnModuleInit {
         // 2. Run runtime seeders (NestJS dependencies)
         await this.runRuntimeSeeds();
 
+        await this.initializeSpaLoadingIcon();
+
         // 3. Mark system as installed
         await this.markSystemAsInstalled();
 
@@ -134,6 +136,26 @@ export class DatabaseInitService implements OnModuleInit {
         // 2. Initialize menus (depends on permission data)
         const menuSeeder = new MenuSeeder(this.menuRepository, this.permissionService);
         await menuSeeder.run();
+    }
+
+    /**
+     * Initialize SPA loading icon from source
+     */
+    private async initializeSpaLoadingIcon(): Promise<void> {
+        try {
+            const rootDir = path.join(process.cwd(), "..", "..");
+            const sourcePath = path.join(rootDir, "public/web/spa-loading-source.png");
+            const targetPath = path.join(rootDir, "public/web/spa-loading.png");
+
+            if (await fse.pathExists(sourcePath)) {
+                await fse.copy(sourcePath, targetPath, { overwrite: true });
+                this.logger.log("✅ Initialized SPA loading icon");
+            } else {
+                this.logger.warn("⚠️ SPA loading source icon not found, skipping initialization");
+            }
+        } catch (e) {
+            this.logger.error(`❌ Failed to initialize SPA loading icon: ${e.message}`);
+        }
     }
 
     /**

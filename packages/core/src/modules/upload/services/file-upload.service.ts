@@ -127,11 +127,6 @@ export class FileUploadService extends BaseService<File> {
 
             const result = `${protocol}://${host}`;
 
-            // Debug log
-            console.log(
-                `[FileUpload] Request domain: protocol=${protocol}, host=${host}, result=${result}`,
-            );
-
             return result;
         } catch (error) {
             console.error(error);

@@ -55,7 +55,6 @@ export class SecretTemplateSeeder extends BaseSeeder {
                 const templateData = {
                     name: templateConfig.name,
                     icon: templateConfig.icon,
-                    type: templateConfig.type,
                     fieldConfig: templateConfig.fieldConfig,
                     isEnabled: templateConfig.isEnabled,
                     sortOrder: templateConfig.sortOrder,
