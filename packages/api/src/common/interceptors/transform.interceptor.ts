@@ -202,7 +202,6 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
             // 先检查端口,根据端口修正协议
             if (host.includes(":443")) {
                 protocol = "https";
-                this.logger.debug(`检测到 :443 端口,修正协议为 https`);
             } else if (host.includes(":80")) {
                 protocol = "http";
             }
@@ -232,11 +231,6 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
             protocol === "https"
                 ? host.replace(/:443$/, "") // 移除 https 的 :443
                 : host.replace(/:80$/, ""); // 移除 http 的 :80
-
-        // 调试日志
-        if (normalizedHost !== host) {
-            this.logger.debug(`端口标准化: ${host} -> ${normalizedHost}`);
-        }
 
         return normalizedHost;
     }
