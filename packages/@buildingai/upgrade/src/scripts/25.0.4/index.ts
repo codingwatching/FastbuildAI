@@ -4,28 +4,28 @@ import { Repository } from "@buildingai/db/typeorm";
 import { BaseUpgradeScript, UpgradeContext } from "../../index";
 
 /**
- * 升级脚本 25.0.4
+ * Upgrade script 25.0.4
  *
- * 添加 DIY 设计预览菜单项
+ * Add DIY design preview menu item.
  *
- * 菜单层级结构：
- * - diy-center (DIY中心)
- *   - diy-micropage (微页面) <- 父菜单
- *     - diy-design (设计页面)
- *     - diy-design-view (预览页面) <- 本次添加的菜单
- *     - diy-create (创建按钮)
- *     - diy-edit (编辑按钮)
+ * Menu hierarchy:
+ * - diy-center (DIY Center)
+ *   - diy-micropage (Micro Page) <- parent menu
+ *     - diy-design (Design Page)
+ *     - diy-design-view (Preview Page) <- new menu added in this version
+ *     - diy-create (Create Button)
+ *     - diy-edit (Edit Button)
  */
 export class Upgrade extends BaseUpgradeScript {
     readonly version = "25.0.4";
 
     /**
-     * 执行升级逻辑
+     * Execute upgrade logic.
      *
-     * @param context 升级上下文
+     * @param context Upgrade context.
      */
     async execute(context: UpgradeContext): Promise<void> {
-        this.log("开始升级到版本 25.0.4");
+        this.log("Start upgrading to version 25.0.4");
 
         await this.updateSystemMenu(context);
         await this.createSpaLoadingIcon();
@@ -36,27 +36,27 @@ export class Upgrade extends BaseUpgradeScript {
             const { dataSource } = context;
             const menuRepository: Repository<Menu> = dataSource.getRepository(Menu);
 
-            // 查找父菜单 diy-micropage (微页面菜单)
+            // Find parent menu diy-micropage (Micro Page menu)
             const parentMenu = await menuRepository.findOne({
                 where: { code: "diy-micropage" },
             });
 
             if (!parentMenu) {
-                this.log("未找到父菜单 diy-micropage，跳过菜单添加");
+                this.log("Parent menu diy-micropage not found, skip adding menu");
                 return;
             }
 
-            // 检查菜单是否已存在
+            // Check whether the menu already exists
             const existingMenu = await menuRepository.findOne({
                 where: { code: "diy-design-view" },
             });
 
             if (existingMenu) {
-                this.log("菜单 diy-design-view 已存在，跳过添加");
+                this.log("Menu diy-design-view already exists, skip adding");
                 return;
             }
 
-            // 创建新菜单项
+            // Create new menu item
             const newMenu = menuRepository.create({
                 name: "console-common.check",
                 code: "diy-design-view",
@@ -72,9 +72,9 @@ export class Upgrade extends BaseUpgradeScript {
 
             await menuRepository.save(newMenu);
 
-            this.success("成功添加菜单项 diy-design-view");
+            this.success("Menu diy-design-view added successfully");
         } catch (error) {
-            this.error("升级失败", error);
+            this.error("Upgrade failed", error);
             throw error;
         }
     }
@@ -85,30 +85,30 @@ export class Upgrade extends BaseUpgradeScript {
             const path = await import("path");
 
             const rootDir = path.resolve(process.cwd());
-            // 这里的路径是相对于运行目录（通常是 api 包目录）
-            // 需要回退到 monorepo 根目录
+            // The path is relative to the runtime directory (usually the api package directory)
+            // Need to go back to the monorepo root directory
             const projectRoot = path.join(rootDir, "..", "..");
 
             const sourcePath = path.join(projectRoot, "public", "web", "spa-loading-source.png");
             const targetPath = path.join(projectRoot, "public", "web", "spa-loading.png");
 
-            // 检查目标文件是否存在
+            // Check whether target file exists
             const exists = await fs.pathExists(targetPath);
 
             if (!exists) {
-                // 检查源文件是否存在
+                // Check whether source file exists
                 if (await fs.pathExists(sourcePath)) {
                     await fs.copy(sourcePath, targetPath);
-                    this.log("成功创建 spa-loading.png");
+                    this.log("spa-loading.png created successfully");
                 } else {
-                    this.log("未找到 spa-loading-source.png，跳过创建");
+                    this.log("spa-loading-source.png not found, skip creation");
                 }
             } else {
-                this.log("spa-loading.png 已存在，跳过创建");
+                this.log("spa-loading.png already exists, skip creation");
             }
         } catch (error) {
-            this.error("创建 spa-loading.png 失败:", error);
-            // 不抛出错误，不影响主升级流程
+            this.error("Failed to create spa-loading.png:", error);
+            // Do not throw error so that it does not affect main upgrade flow
         }
     }
 }
