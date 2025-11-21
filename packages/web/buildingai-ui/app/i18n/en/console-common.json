@@ -38,6 +38,8 @@
     "batchDeleteSuccess": "Batch deleted",
     "enabled": "Enabled",
     "disabled": "Disabled",
+    "show": "Show",
+    "hide": "Hide",
     "pending": "Pending",
     "processing": "Processing",
     "completed": "Completed",

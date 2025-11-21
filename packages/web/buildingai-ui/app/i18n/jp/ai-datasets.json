@@ -191,6 +191,11 @@
                 "editor": "編集者",
                 "viewer": "閲覧者"
             },
+            "roleOwnerDescription": "ナレッジベースの作成者、最高権限を所有",
+            "roleManagerDescription": "チームメンバーとナレッジベースプロジェクト全体を管理可能",
+            "roleEditorDescription": "自分のナレッジベースデータをアップロード・編集可能、他の人のデータは編集不可",
+            "roleViewerDescription": "ナレッジベースのすべてのデータを閲覧のみ可能、追加・削除・変更操作は不可",
+            "rolePermissionDescription": "役割権限説明",
             "self": "自分",
             "note": "備考",
             "notePlaceholder": "備考情報を入力...",
