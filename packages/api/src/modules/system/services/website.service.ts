@@ -167,7 +167,8 @@ export class WebsiteService extends BaseService<Dict> {
 
             // 获取项目根目录路径
             const rootDir = path.resolve(process.cwd());
-            const targetDir = path.join(rootDir, "..", "..", "public/web");
+            const projectRoot = path.join(rootDir, "..", "..");
+            const targetDir = path.join(projectRoot, "public/web");
             const targetPath = path.join(targetDir, "spa-loading.png");
 
             let sourcePath: string;
@@ -178,8 +179,12 @@ export class WebsiteService extends BaseService<Dict> {
                 try {
                     const url = new URL(iconPath);
                     // 假设URL路径对应的本地路径在项目根目录下
-                    // 例如: http://localhost:4090/uploads/image/xxx.png -> rootDir/uploads/image/xxx.png
-                    sourcePath = path.join(rootDir, "storage", url.pathname);
+                    // 例如: http://localhost:4090/uploads/image/xxx.png -> projectRoot/storage/uploads/image/xxx.png
+                    sourcePath = path.join(
+                        projectRoot,
+                        "storage",
+                        decodeURIComponent(url.pathname),
+                    );
                     this.logger.debug(`源文件路径: ${sourcePath}`);
                 } catch (urlError) {
                     console.error(urlError);
@@ -187,8 +192,8 @@ export class WebsiteService extends BaseService<Dict> {
                     return;
                 }
             } else {
-                // 如果是相对路径，直接拼接到根目录
-                sourcePath = path.join(rootDir, iconPath);
+                // 如果是相对路径，直接拼接到项目根目录
+                sourcePath = path.join(projectRoot, iconPath);
             }
 
             // 检查源文件是否存在
@@ -277,11 +282,15 @@ export class WebsiteService extends BaseService<Dict> {
             // 读取模板文件内容
             const templateContent = await promisify(fs.readFile)(templatePath, "utf8");
 
+            // 生成带时间戳的图片路径
+            const timestamp = new Date().getTime();
+            const imagePath = `/spa-loading.png?v=${timestamp}`;
+
             // 使用正则表达式替换img标签的src属性
-            // 匹配 <img ... src="任意路径" ... /> 并替换为 src="/spa-loading.png"
+            // 匹配 <img ... src="任意路径" ... /> 并替换为 src="/spa-loading.png?v=timestamp"
             const updatedContent = templateContent.replace(
                 /(<img[^>]*\s+src=")[^"]*(")/gi,
-                "$1/spa-loading.png$2",
+                `$1${imagePath}$2`,
             );
 
             // 写回文件

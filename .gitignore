@@ -38,6 +38,7 @@ packages/**/dist
 /public/package.json
 !/public/web/extensions/buildingai-simple-blog
 /public/web/extensions/*
+/public/web/spa-loading.png
 /public/*
 !/public/web/
 !/public/index.html

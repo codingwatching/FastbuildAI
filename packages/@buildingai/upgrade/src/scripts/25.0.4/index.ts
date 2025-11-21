@@ -25,8 +25,13 @@ export class Upgrade extends BaseUpgradeScript {
      * @param context 升级上下文
      */
     async execute(context: UpgradeContext): Promise<void> {
-        console.log("开始升级到版本 25.0.4");
+        this.log("开始升级到版本 25.0.4");
 
+        await this.updateSystemMenu(context);
+        await this.createSpaLoadingIcon();
+    }
+
+    async updateSystemMenu(context: UpgradeContext) {
         try {
             const { dataSource } = context;
             const menuRepository: Repository<Menu> = dataSource.getRepository(Menu);
@@ -37,7 +42,7 @@ export class Upgrade extends BaseUpgradeScript {
             });
 
             if (!parentMenu) {
-                console.log("未找到父菜单 diy-micropage，跳过菜单添加");
+                this.log("未找到父菜单 diy-micropage，跳过菜单添加");
                 return;
             }
 
@@ -47,7 +52,7 @@ export class Upgrade extends BaseUpgradeScript {
             });
 
             if (existingMenu) {
-                console.log("菜单 diy-design-view 已存在，跳过添加");
+                this.log("菜单 diy-design-view 已存在，跳过添加");
                 return;
             }
 
@@ -69,8 +74,41 @@ export class Upgrade extends BaseUpgradeScript {
 
             this.success("成功添加菜单项 diy-design-view");
         } catch (error) {
-            console.log("升级失败", error);
+            this.error("升级失败", error);
             throw error;
+        }
+    }
+
+    async createSpaLoadingIcon() {
+        try {
+            const fs = await import("fs-extra");
+            const path = await import("path");
+
+            const rootDir = path.resolve(process.cwd());
+            // 这里的路径是相对于运行目录（通常是 api 包目录）
+            // 需要回退到 monorepo 根目录
+            const projectRoot = path.join(rootDir, "..", "..");
+
+            const sourcePath = path.join(projectRoot, "public", "web", "spa-loading-source.png");
+            const targetPath = path.join(projectRoot, "public", "web", "spa-loading.png");
+
+            // 检查目标文件是否存在
+            const exists = await fs.pathExists(targetPath);
+
+            if (!exists) {
+                // 检查源文件是否存在
+                if (await fs.pathExists(sourcePath)) {
+                    await fs.copy(sourcePath, targetPath);
+                    this.log("成功创建 spa-loading.png");
+                } else {
+                    this.log("未找到 spa-loading-source.png，跳过创建");
+                }
+            } else {
+                this.log("spa-loading.png 已存在，跳过创建");
+            }
+        } catch (error) {
+            this.error("创建 spa-loading.png 失败:", error);
+            // 不抛出错误，不影响主升级流程
         }
     }
 }
