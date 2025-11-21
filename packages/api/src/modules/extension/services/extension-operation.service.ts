@@ -820,7 +820,6 @@ export class ExtensionOperationService {
      */
     async createFromTemplate(dto: CreateExtensionDto) {
         this.logger.log(`Starting create extension from template: ${dto.identifier}`);
-
         try {
             // 1. Check if extension already exists
             const existingExtension = await this.extensionsService.findByIdentifier(dto.identifier);
