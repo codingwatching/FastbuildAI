@@ -176,6 +176,8 @@
             "previewConfig": "設定プレビュー",
             "embedCode": "埋め込みコード",
             "embedCodeDesc": "Webサイトやアプリにエージェントを埋め込み",
+            "embedStyle": "埋め込み方式を選択",
+            "embedStyleDesc": "チャットアプリケーションをWebサイトに埋め込む方法を選択",
             "unpublishedDesc2": "埋め込みコード取得には公開が必要",
             "iframeCode": "iframe 埋め込みコード",
             "iframeCodeDesc1": "幅と高さをカスタマイズ可能",
