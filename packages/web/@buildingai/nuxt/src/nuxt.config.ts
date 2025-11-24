@@ -314,6 +314,7 @@ export const configPresets: ExtendedNuxtConfig = {
                     "@buildingai/api/types": ["../../api/src/types/index.ts"],
                 },
             },
+            exclude: ["src/api/**/*"],
         },
     },
     nitro: {

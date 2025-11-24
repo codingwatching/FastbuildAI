@@ -6,6 +6,7 @@
 import { ROUTES } from "@buildingai/constants/web";
 import { AnalyseActionType, apiRecordAnalyse } from "@buildingai/service/common";
 import { useAppStore } from "@buildingai/stores/app";
+import { usePermissionStore } from "@buildingai/stores/permission";
 import { useUserStore } from "@buildingai/stores/user";
 import type { RouteLocationNormalized, RouteLocationNormalizedLoaded } from "vue-router";
 
@@ -138,6 +139,7 @@ export function defineBuildingAIRouteMiddleware(
 
     return defineNuxtRouteMiddleware(async (to, from) => {
         const appStore = useAppStore();
+        const permissionStore = usePermissionStore();
         const userStore = useUserStore();
 
         console.log("useRuntimeConfig().public.pluginName", useRuntimeConfig().public.pluginName);
@@ -164,6 +166,34 @@ export function defineBuildingAIRouteMiddleware(
         // =============================================
         const authRedirect = await handleAuth(to, from, userStore);
         if (authRedirect) return authRedirect;
+
+        // =============================================
+        // 2.1 Console permission guard
+        //    - Load permissions lazily
+        //    - Non-root users without permissions → 403
+        //    - Permission-specific routes enforce meta.permissionCode
+        // =============================================
+        if (to.path.startsWith(ROUTES.CONSOLE)) {
+            try {
+                if (!permissionStore.permissions?.length) {
+                    await permissionStore.loadPermissions();
+                }
+            } catch (error) {
+                console.error("Failed to load permissions:", error);
+                return ROUTES.FORBIDDEN;
+            }
+
+            const isNonRootUser = userStore.userInfo?.isRoot === 0;
+            const lacksAnyPermission = !permissionStore.permissions?.length;
+            const requiresSpecificPermission = Boolean(to.meta.permissionCode);
+            const hasRequiredPermission = requiresSpecificPermission
+                ? permissionStore.hasPermission(String(to.meta.permissionCode))
+                : true;
+
+            if (isNonRootUser && (lacksAnyPermission || !hasRequiredPermission)) {
+                return ROUTES.FORBIDDEN;
+            }
+        }
 
         // =============================================
         // 2.5. Handle buildingai-middleware redirect
