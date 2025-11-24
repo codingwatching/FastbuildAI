@@ -303,23 +303,23 @@ export class ExtensionOperationService {
     }
 
     /**
-     * Upgrade extension by preserving data, storage, and node_modules
+     * Upgrade extension by preserving data and storage directories
      * @param sourceDir New extension source directory
      * @param targetDir Existing extension directory
      */
     private async upgradeExtension(sourceDir: string, targetDir: string): Promise<void> {
-        const preserveDirs = ["data", "storage", "node_modules"];
+        const preservePaths = ["data", "storage"];
         const tempBackupDir = path.join(this.tempDir, `backup-${uuidv4()}`);
 
         try {
-            // 1. Backup preserved directories
+            // 1. Backup preserved paths
             await fs.ensureDir(tempBackupDir);
-            for (const dir of preserveDirs) {
-                const sourcePath = path.join(targetDir, dir);
+            for (const preservePath of preservePaths) {
+                const sourcePath = path.join(targetDir, preservePath);
                 if (await fs.pathExists(sourcePath)) {
-                    const backupPath = path.join(tempBackupDir, dir);
+                    const backupPath = path.join(tempBackupDir, preservePath);
                     await fs.copy(sourcePath, backupPath);
-                    this.logger.log(`Backed up ${dir} directory`);
+                    this.logger.log(`Backed up ${preservePath} directory`);
                 }
             }
 
@@ -332,22 +332,15 @@ export class ExtensionOperationService {
             await fs.copy(sourceDir, targetDir);
             this.logger.log(`Copied new extension files to: ${targetDir}`);
 
-            // 4. Restore preserved directories (don't overwrite if exists in new version)
-            for (const dir of preserveDirs) {
-                const backupPath = path.join(tempBackupDir, dir);
-                const targetPath = path.join(targetDir, dir);
+            // 4. Restore preserved paths
+            for (const preservePath of preservePaths) {
+                const backupPath = path.join(tempBackupDir, preservePath);
+                const targetPath = path.join(targetDir, preservePath);
 
                 if (await fs.pathExists(backupPath)) {
-                    if (!(await fs.pathExists(targetPath))) {
-                        // Directory doesn't exist in new version, restore it
-                        await fs.copy(backupPath, targetPath);
-                        this.logger.log(`Restored ${dir} directory`);
-                    } else {
-                        // Directory exists in new version, keep the new one
-                        this.logger.log(
-                            `Skipped restoring ${dir} (exists in new version, keeping new)`,
-                        );
-                    }
+                    // Always restore preserved directories, merge with new version if exists
+                    await fs.copy(backupPath, targetPath, { overwrite: false });
+                    this.logger.log(`Restored ${preservePath} directory (merged with new version)`);
                 }
             }
         } finally {
