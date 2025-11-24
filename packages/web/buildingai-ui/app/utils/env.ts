@@ -86,14 +86,6 @@ export function isSSR(): boolean {
 }
 
 /**
- * Get runtime environment type
- * @returns Runtime environment type (server or client)
- */
-export function getRuntimeEnv(): RuntimeEnvironment {
-    return isServer() ? "server" : "client";
-}
-
-/**
  * Environment configuration object
  * Provides convenient environment detection properties
  */
