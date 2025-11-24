@@ -125,8 +125,6 @@ export class FileUploadService extends BaseService<File> {
             // Remove default ports (http:80, https:443)
             host = this.normalizeHost(host, protocol);
 
-            console.log(12313123);
-
             // Handle localhost/127.0.0.1 addresses
             if (host.includes("127.0.0.1") || host.includes("localhost")) {
                 console.warn(
