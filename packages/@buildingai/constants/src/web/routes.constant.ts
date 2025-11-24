@@ -14,6 +14,8 @@ export const ROUTES = {
     HOME: "/",
     /** Login page path */
     LOGIN: "/login",
+    /** Forbidden page path */
+    FORBIDDEN: "/403",
     /** Console/Admin page path */
     CONSOLE: "/console",
     /** Extension page path */

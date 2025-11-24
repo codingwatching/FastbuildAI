@@ -99,7 +99,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
         // Non-admin with no permissions → 403
         if (userStore.userInfo?.isRoot === 0 && permissionStore.permissions.length === 0) {
-            return "/403";
+            return ROUTES.FORBIDDEN;
         }
 
         // Build and register console routes
@@ -123,7 +123,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
             to.meta.permissionCode &&
             !permissionStore.hasPermission(to.meta.permissionCode as string)
         ) {
-            return "/403";
+            return ROUTES.FORBIDDEN;
         }
 
         // Console home → redirect to first accessible route

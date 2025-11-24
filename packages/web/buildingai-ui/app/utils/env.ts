@@ -86,22 +86,6 @@ export function isSSR(): boolean {
 }
 
 /**
- * Check if current runtime is server
- * @returns Whether the current runtime is server
- */
-export function isServer(): boolean {
-    return import.meta.server === true;
-}
-
-/**
- * Check if current runtime is client
- * @returns Whether the current runtime is client
- */
-export function isClient(): boolean {
-    return import.meta.client === true;
-}
-
-/**
  * Get runtime environment type
  * @returns Runtime environment type (server or client)
  */
@@ -140,16 +124,6 @@ export const env = {
     isSSR: isSSR(),
 
     /**
-     * Whether the current runtime is server
-     */
-    isServer: isServer(),
-
-    /**
-     * Whether the current runtime is client
-     */
-    isClient: isClient(),
-
-    /**
      * Runtime environment type
      */
     runtime: getRuntimeEnv(),
@@ -184,16 +158,6 @@ export const envUtils = {
      * Check if SSR is enabled
      */
     isSSR,
-
-    /**
-     * Check if current runtime is server
-     */
-    isServer,
-
-    /**
-     * Check if current runtime is client
-     */
-    isClient,
 
     /**
      * Get runtime environment type
