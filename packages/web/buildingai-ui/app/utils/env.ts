@@ -114,11 +114,6 @@ export const env = {
      * Whether SSR is enabled
      */
     isSSR: isSSR(),
-
-    /**
-     * Runtime environment type
-     */
-    runtime: getRuntimeEnv(),
 } as const;
 
 /**
@@ -150,11 +145,6 @@ export const envUtils = {
      * Check if SSR is enabled
      */
     isSSR,
-
-    /**
-     * Get runtime environment type
-     */
-    getRuntimeEnv,
 } as const;
 
 /**
