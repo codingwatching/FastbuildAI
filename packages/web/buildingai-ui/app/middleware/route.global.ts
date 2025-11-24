@@ -20,26 +20,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         router.resolve(path).matched.some((r) => r.path.startsWith(ROUTES.CONSOLE));
 
     if (to.path.startsWith(`${ROUTES.EXTENSIONS}/`)) {
-        // Extract extension name from path
-        const pathParts = to.path.split("/").filter(Boolean);
-        if (pathParts.length >= 2 && pathParts[0] === ROUTES.EXTENSIONS.replace("/", "")) {
-            const extensionName = pathParts[1];
-            const config = useRuntimeConfig();
-            const availableExtensions = (config.public.extensions as string[]) || [];
-
-            // Check if extension exists
-            if (extensionName && availableExtensions.includes(extensionName)) {
-                // Extension exists, let Nuxt handle the route normally
-                // Don't use navigateTo with external: true as it causes infinite refresh
-                return;
-            }
-        }
-
-        // Extension not found, return 404
-        throw createError({
-            statusCode: 404,
-            statusMessage: "Extension not found",
-        });
+        return;
     }
 
     /**

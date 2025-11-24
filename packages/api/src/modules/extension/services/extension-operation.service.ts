@@ -496,9 +496,6 @@ export class ExtensionOperationService {
             // Update extensions.json to enable the new extension
             await this.updateExtensionsConfigWrapper(extensionInfo, targetVersion);
 
-            // Copy web assets to public directory
-            await this.copyWebAssets(identifier);
-
             // Install dependencies before restarting
             await this.installDependencies();
 
@@ -568,16 +565,13 @@ export class ExtensionOperationService {
             // 4. Update extensions.json
             await this.updateExtensionsConfigWrapper(extensionInfo, latestVersion);
 
-            // 5. Copy web assets to public directory
-            await this.copyWebAssets(identifier);
-
-            // 6. Install dependencies
+            // 5. Install dependencies
             await this.installDependencies();
 
-            // 7. Synchronize extension tables and execute seeds BEFORE restart
+            // 6. Synchronize extension tables and execute seeds BEFORE restart
             await this.synchronizeExtensionTablesAndSeeds(identifier);
 
-            // 8. Schedule PM2 restart after response is sent
+            // 7. Schedule PM2 restart after response is sent
             this.scheduleRestart();
 
             this.logger.log(`Extension upgraded successfully: ${identifier} to ${latestVersion}`);
@@ -860,13 +854,10 @@ export class ExtensionOperationService {
             // 7. Build extension
             await this.buildExtension(extensionDir);
 
-            // 8. Copy web assets to public directory
-            await this.copyWebAssets(dto.identifier);
-
-            // 9. Synchronize extension tables and execute seeds BEFORE restart
+            // 8. Synchronize extension tables and execute seeds BEFORE restart
             await this.synchronizeExtensionTablesAndSeeds(dto.identifier);
 
-            // 10. Schedule PM2 restart after response is sent
+            // 9. Schedule PM2 restart after response is sent
             this.scheduleRestart();
 
             this.logger.log(`Extension created successfully: ${dto.identifier}`);
@@ -1070,43 +1061,6 @@ export class ExtensionOperationService {
         );
 
         this.logger.log(`Added extension to extensions.json: ${dto.identifier}`);
-    }
-
-    /**
-     * Copy web assets from extension .output/public to public/web/extensions/{identifier}
-     * @param identifier Extension identifier
-     * @private
-     */
-    private async copyWebAssets(identifier: string): Promise<void> {
-        try {
-            const safeIdentifier = this.toSafeName(identifier);
-            const extensionDir = path.join(this.extensionsDir, safeIdentifier);
-            const sourceWebDir = path.join(extensionDir, ".output", "public");
-            const targetWebDir = path.join(this.publicWebDir, safeIdentifier);
-
-            // Check if source web directory exists
-            if (!(await fs.pathExists(sourceWebDir))) {
-                this.logger.warn(
-                    `Source web directory not found: ${sourceWebDir}. Skipping web assets copy.`,
-                );
-                return;
-            }
-
-            // Remove existing target directory if it exists
-            if (await fs.pathExists(targetWebDir)) {
-                this.logger.log(`Removing existing web assets: ${targetWebDir}`);
-                await fs.remove(targetWebDir);
-            }
-
-            // Copy web assets to public directory
-            this.logger.log(`Copying web assets from ${sourceWebDir} to ${targetWebDir}`);
-            await fs.copy(sourceWebDir, targetWebDir);
-            this.logger.log(`Web assets copied successfully for extension: ${identifier}`);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            this.logger.error(`Failed to copy web assets: ${errorMessage}`);
-            throw HttpErrorFactory.internal(`Failed to copy web assets: ${errorMessage}`);
-        }
     }
 
     /**

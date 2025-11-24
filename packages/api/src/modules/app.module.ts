@@ -63,12 +63,21 @@ export class AppModule {
         const shouldUseWebPath = existsSync(webPath) && existsSync(webIndexPath);
         const rootPath = shouldUseWebPath ? webPath : publicPath;
 
+        /**
+         * 扩展应用不再使用 serve-static 模块，而是通过中间件在 main.ts 中处理
+         * 这样扩展应用可以像主应用一样作为 Nuxt 应用部署，所有路径都返回 index.html
+         * 由 Nuxt 路由系统处理，而不是作为静态资源目录
+         */
+
         return {
             module: AppModule,
             imports: [
+                // 主应用的 serve-static 模块，排除扩展路径避免冲突
+                // 扩展应用通过中间件在 main.ts 中处理，作为 Nuxt 应用部署
                 ServeStaticModule.forRoot({
                     rootPath,
                     exclude: [
+                        ...extensionsList.map((extension) => `/extensions/${extension.identifier}`),
                         ...extensionsList.map((extension) => `/${extension.name}`),
                         process.env.VITE_APP_WEB_API_PREFIX,
                         process.env.VITE_APP_CONSOLE_API_PREFIX,

@@ -3,6 +3,8 @@ import { getCachedExtensionList } from "@buildingai/core/modules";
 import { TerminalLogger } from "@buildingai/logger";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
+import type { NextFunction, Request, Response } from "express";
+import { existsSync, readFileSync } from "fs";
 import { networkInterfaces } from "os";
 import * as path from "path";
 
@@ -125,7 +127,7 @@ export const setAssetsDir = async (app: NestExpressApplication) => {
         };
     });
 
-    const dirs = [
+    const dirs: Record<string, any>[] = [
         {
             dir: path.join(rootDir, "public", "web"),
             prefix: "/",
@@ -147,4 +149,46 @@ export const setAssetsDir = async (app: NestExpressApplication) => {
             prefix: dir.prefix,
         });
     });
+
+    // extension static
+    const extensionsMain = enabledIdentifiers.map((item) => {
+        return {
+            dir: path.join(rootDir, "extensions", item.identifier, ".output", "public"),
+            prefix: `/extensions/${item.identifier}`,
+        };
+    });
+
+    const extensionIndexHtmlCache = new Map<string, string>();
+
+    extensionsMain.forEach((item) => {
+        const indexPath = path.join(item.dir, "index.html");
+        if (existsSync(item.dir) && existsSync(indexPath)) {
+            extensionIndexHtmlCache.set(item.prefix, readFileSync(indexPath, "utf-8"));
+        }
+    });
+
+    extensionsMain.forEach((item) => {
+        if (existsSync(item.dir)) {
+            app.useStaticAssets(item.dir, {
+                prefix: item.prefix,
+                index: false,
+                fallthrough: true,
+            });
+        }
+    });
+
+    if (extensionIndexHtmlCache.size > 0) {
+        app.use((req: Request, res: Response, next: NextFunction) => {
+            const matchedPrefix = Array.from(extensionIndexHtmlCache.keys()).find(
+                (prefix) => req.path === prefix || req.path.startsWith(`${prefix}/`),
+            );
+
+            if (matchedPrefix && !res.headersSent) {
+                res.setHeader("Content-Type", "text/html; charset=utf-8");
+                return res.send(extensionIndexHtmlCache.get(matchedPrefix)!);
+            }
+
+            next();
+        });
+    }
 };
