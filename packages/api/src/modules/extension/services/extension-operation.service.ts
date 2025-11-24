@@ -157,22 +157,6 @@ export class ExtensionOperationService {
             }
 
             const baseName = this.buildPackageBaseName(identifier, version);
-            const cachedFilePath = await this.findExistingPackage(baseName);
-
-            if (cachedFilePath) {
-                const pluginDirFromCache = await this.extractPluginPackage(
-                    cachedFilePath,
-                    identifier,
-                    type,
-                );
-
-                return {
-                    identifier,
-                    version,
-                    pluginDir: pluginDirFromCache,
-                    packagePath: cachedFilePath,
-                };
-            }
 
             const response = await this.httpClient.get(url, {
                 responseType: "arraybuffer",
@@ -247,18 +231,6 @@ export class ExtensionOperationService {
         const safeIdentifier = this.toSafeName(identifier);
         const safeVersion = version ? this.toSafeName(version) : undefined;
         return safeVersion ? `${safeIdentifier}-${safeVersion}` : safeIdentifier;
-    }
-
-    /**
-     * 判断是否已有缓存的扩展包文件
-     *
-     * @param baseName 扩展包基础文件名
-     * @returns 已存在的扩展包文件路径
-     */
-    private async findExistingPackage(baseName: string): Promise<string | null> {
-        const files = await fs.readdir(this.tempDir);
-        const matched = files.find((file) => file.startsWith(baseName));
-        return matched ? path.join(this.tempDir, matched) : null;
     }
 
     /**
