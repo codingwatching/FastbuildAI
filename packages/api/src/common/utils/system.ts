@@ -58,10 +58,10 @@ export const startLog = (currentPort?: number, startTime?: number) => {
 };
 
 /**
- * 尝试监听端口，如果被占用则尝试其他端口（仅在开发环境下）
- * @param app NestJS应用实例
- * @param initialPort 初始端口号
- * @param maxRetries 最大重试次数
+ * Try to listen on a port. If the port is in use, try the next one (development only).
+ * @param app NestJS application instance
+ * @param initialPort Initial port number
+ * @param maxRetries Maximum number of retries
  * @returns Promise<void>
  */
 export const tryListen = async (
@@ -76,11 +76,11 @@ export const tryListen = async (
     while (retries < maxRetries) {
         try {
             await app.listen(currentPort);
-            // 如果端口变更，记录到日志
+            // Log when port is changed
             if (currentPort !== initialPort) {
                 TerminalLogger.success(
-                    "端口切换",
-                    `端口 ${initialPort} 被占用，已切换到端口 ${currentPort}`,
+                    "Port switched",
+                    `Port ${initialPort} was in use, switched to port ${currentPort}`,
                 );
             }
             startLog(currentPort, startTime);
@@ -90,22 +90,22 @@ export const tryListen = async (
                 retries++;
                 currentPort = initialPort + retries;
                 TerminalLogger.warn(
-                    "端口占用",
-                    `端口 ${initialPort + retries - 1} 被占用，尝试端口 ${currentPort}...`,
+                    "Port in use",
+                    `Port ${initialPort + retries - 1} is in use, trying port ${currentPort}...`,
                 );
             } else {
-                // 非端口占用错误或非开发环境，直接抛出
+                // Non EADDRINUSE error or non-development environment: rethrow
                 throw error;
             }
         }
     }
 
-    throw new Error(`尝试了 ${maxRetries} 个端口后仍无法启动服务`);
+    throw new Error(`Unable to start server after trying ${maxRetries} ports`);
 };
 
 /**
- * 设置静态资源目录
- * @param app NestExpressApplication实例
+ * Set static resource directories
+ * @param app NestExpressApplication instance
  */
 export const setAssetsDir = async (app: NestExpressApplication) => {
     const enabledIdentifiers = getCachedExtensionList();
