@@ -125,6 +125,63 @@ export class FileUploadService extends BaseService<File> {
             // Remove default ports (http:80, https:443)
             host = this.normalizeHost(host, protocol);
 
+            console.log(12313123);
+
+            // Handle localhost/127.0.0.1 addresses
+            if (host.includes("127.0.0.1") || host.includes("localhost")) {
+                console.warn(
+                    `[FileUpload] Detected internal address (${host}), attempting to resolve from referer or environment variable`,
+                );
+
+                // Try to extract from referer header
+                const referer = request.get("referer") || request.headers?.referer;
+                if (referer && typeof referer === "string") {
+                    try {
+                        const refererUrl = new URL(referer);
+                        const refererHost = refererUrl.host;
+
+                        // Validate referer host is not also localhost
+                        if (
+                            !refererHost.includes("127.0.0.1") &&
+                            !refererHost.includes("localhost")
+                        ) {
+                            host = refererHost;
+                            protocol = refererUrl.protocol.replace(":", "") as "http" | "https";
+                            console.log(
+                                `[FileUpload] Resolved domain from referer: ${protocol}://${host}`,
+                            );
+                        }
+                    } catch (_error) {
+                        console.warn(`[FileUpload] Failed to parse referer: ${referer}`);
+                    }
+                }
+
+                // If still localhost, fallback to APP_DOMAIN environment variable
+                if (host.includes("127.0.0.1") || host.includes("localhost")) {
+                    const appDomain = process.env.APP_DOMAIN;
+                    if (appDomain) {
+                        try {
+                            const domainUrl = new URL(
+                                appDomain.startsWith("http") ? appDomain : `https://${appDomain}`,
+                            );
+                            host = domainUrl.host;
+                            protocol = domainUrl.protocol.replace(":", "") as "http" | "https";
+                            console.log(
+                                `[FileUpload] Using APP_DOMAIN from environment: ${protocol}://${host}`,
+                            );
+                        } catch {
+                            console.error(
+                                `[FileUpload] Invalid APP_DOMAIN format: ${appDomain}. Using localhost as fallback.`,
+                            );
+                        }
+                    } else {
+                        console.error(
+                            `[FileUpload] No APP_DOMAIN configured. File URLs will use localhost and may be inaccessible externally.`,
+                        );
+                    }
+                }
+            }
+
             const result = `${protocol}://${host}`;
 
             return result;
