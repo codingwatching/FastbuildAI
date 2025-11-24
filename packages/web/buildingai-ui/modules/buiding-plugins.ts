@@ -3,15 +3,13 @@ import { resolve } from "node:path";
 
 import { defineNuxtModule } from "@nuxt/kit";
 
-import { isProd } from "../app/utils/env";
-
 export default defineNuxtModule({
     meta: {
         name: "buildingai-extensions-loader",
     },
     setup(options, nuxt) {
         // Only execute in development or production environment
-        if (isProd()) {
+        if (process.env.NODE_ENV === "production") {
             return;
         }
 
