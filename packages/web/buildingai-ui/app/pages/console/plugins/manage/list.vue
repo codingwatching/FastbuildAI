@@ -91,8 +91,7 @@ const handleTabChange = (value: string | number) => {
 };
 
 const handleNavigate = (extension: ExtensionFormData) => {
-    console.log("handleNavigate", extension);
-    window.open(`${ROUTES.EXTENSIONS}/${extension.identifier}/buildingai-middleware`, "_self");
+    window.open(`${ROUTES.EXTENSIONS}/${extension.identifier}/buildingai-middleware`, "_blank");
 };
 
 const installingMap = reactive<Record<string, boolean>>({});
