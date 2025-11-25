@@ -94,15 +94,13 @@ const handleMenuClick = (item: MenuItem) => {
                     v-ripple
                 >
                     <div class="flex flex-1 items-center justify-center gap-2">
-                        <UChip color="success" inset>
-                            <UAvatar
-                                :src="userStore.userInfo?.avatar"
-                                :alt="userStore.userInfo?.nickname"
-                                :icon="userStore.userInfo?.nickname ? 'tabler:user' : undefined"
-                                :size="props.size"
-                                :ui="{ root: 'rounded-lg' }"
-                            />
-                        </UChip>
+                        <UAvatar
+                            :src="userStore.userInfo?.avatar"
+                            :alt="userStore.userInfo?.nickname"
+                            :icon="userStore.userInfo?.nickname ? 'tabler:user' : undefined"
+                            :size="props.size"
+                            :ui="{ root: 'rounded-lg' }"
+                        />
                         <div v-if="!props.collapsed" class="flex w-[100px] flex-col">
                             <span class="truncate text-sm font-medium">
                                 {{ userStore.userInfo?.nickname }}

@@ -352,15 +352,13 @@ defineShortcuts({
                     :class="{ 'flex-col': value }"
                 >
                     <div class="flex flex-1 items-center gap-2">
-                        <UChip color="success" inset>
-                            <UAvatar
-                                :src="userStore.userInfo?.avatar"
-                                :alt="userStore.userInfo?.nickname"
-                                :icon="userStore.userInfo?.nickname ? 'tabler:user' : undefined"
-                                size="lg"
-                                :ui="{ root: 'rounded-lg' }"
-                            />
-                        </UChip>
+                        <UAvatar
+                            :src="userStore.userInfo?.avatar"
+                            :alt="userStore.userInfo?.nickname"
+                            :icon="userStore.userInfo?.nickname ? 'tabler:user' : undefined"
+                            size="lg"
+                            :ui="{ root: 'rounded-lg' }"
+                        />
                         <div v-if="!value" class="flex w-[100px] flex-col">
                             <span class="truncate text-sm font-medium">
                                 {{ userStore.userInfo?.nickname }}
@@ -371,26 +369,19 @@ defineShortcuts({
                         </div>
                     </div>
                     <div v-if="!value" class="flex items-center">
-                        <!-- <UButton
-                            icon="i-lucide-chevrons-up-down"
-                            color="neutral"
-                            variant="link"
-                            :ui="{ leadingIcon: 'size-4' }"
-                        /> -->
                         <Icon name="i-lucide-chevrons-up-down" class="text-muted" />
                     </div>
                 </div>
 
                 <!-- Mixed模式的触发器 -->
-                <UChip inset v-else-if="mode === 'mixture'">
-                    <UAvatar
-                        :src="userStore.userInfo?.avatar"
-                        :alt="userStore.userInfo?.nickname"
-                        :icon="userStore.userInfo?.nickname ? 'tabler:user' : undefined"
-                        size="lg"
-                        :ui="{ root: 'rounded-lg' }"
-                    />
-                </UChip>
+                <UAvatar
+                    v-else-if="mode === 'mixture'"
+                    :src="userStore.userInfo?.avatar"
+                    :alt="userStore.userInfo?.nickname"
+                    :icon="userStore.userInfo?.nickname ? 'tabler:user' : undefined"
+                    size="lg"
+                    :ui="{ root: 'rounded-lg' }"
+                />
             </UDropdownMenu>
         </div>
     </div>
