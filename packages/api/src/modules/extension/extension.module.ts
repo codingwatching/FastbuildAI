@@ -67,11 +67,16 @@ export class ExtensionCoreModule implements OnModuleInit {
     }
 
     /**
-     * Execute seeds for newly installed extensions
+     * Execute initialization tasks on module init
+     * - Clean extension operation locks
+     * - Execute seeds for newly installed extensions
      *
      * Called after all modules are initialized
      */
     async onModuleInit() {
+        // Clean extension operation locks on startup
+        await ExtensionOperationService.cleanAllLocks();
+
         const extensionList = getCachedExtensionList();
         if (extensionList.length === 0) {
             return;

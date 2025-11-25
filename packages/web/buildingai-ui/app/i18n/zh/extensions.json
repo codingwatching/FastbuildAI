@@ -112,7 +112,8 @@
             "allCategories": "全部分类",
             "allTypes": "全部类型"
         },
-        "add": "新增应用",
+        "add": "创建应用",
+        "store": "市场安装",
         "selectType": "请选择应用类型",
         "noDescription": "暂无描述",
         "unknownAuthor": "未知作者",

@@ -111,7 +111,6 @@ const handleInstall = async (extension: ExtensionFormData) => {
         toast.success(t("console-common.messages.success"));
     } catch (error) {
         console.error("安装插件失败:", error);
-        toast.error(t("console-common.messages.failed"));
     } finally {
         installingMap[extension.identifier] = false;
     }
@@ -130,7 +129,6 @@ const handleUpgrade = async (extension: ExtensionFormData) => {
         toast.success(t("console-common.messages.success"));
     } catch (error) {
         console.error("更新插件失败:", error);
-        toast.error(t("console-common.messages.failed"));
     } finally {
         upgradingMap[extension.identifier] = false;
     }
@@ -144,7 +142,6 @@ const { lockFn: handleUninstall } = useLockFn(async (extension: ExtensionFormDat
         toast.success(t("console-common.messages.success"));
     } catch (error) {
         console.error("卸载插件失败:", error);
-        toast.error(t("console-common.messages.failed"));
     }
 });
 
@@ -161,7 +158,6 @@ const handleEnable = async (extension: ExtensionFormData) => {
         toast.success(t("console-common.messages.success"));
     } catch (error) {
         console.error("启用插件失败:", error);
-        toast.error(t("console-common.messages.failed"));
     }
 };
 
@@ -173,7 +169,6 @@ const handleDisable = async (extension: ExtensionFormData) => {
         toast.success(t("console-common.messages.success"));
     } catch (error) {
         console.error("禁用插件失败:", error);
-        toast.error(t("console-common.messages.failed"));
     }
 };
 
@@ -275,7 +270,45 @@ onMounted(() => getLists());
             </div>
         </div>
 
-        <div class="grid h-[calc(100vh-12rem)]">
+        <!-- Empty state -->
+        <div
+            v-if="!paging.loading && paging.items.length === 0"
+            class="flex h-[calc(100vh-12rem)] flex-col items-center justify-center"
+        >
+            <UIcon name="i-lucide-puzzle" class="text-muted-foreground mb-4 size-10" />
+            <h3 class="text-secondary-foreground mb-2 text-lg font-medium">
+                {{ t("extensions.manage.empty.title") }}
+            </h3>
+            <p class="text-accent-foreground mb-4">
+                {{ t("extensions.manage.empty.description") }}
+            </p>
+            <div class="flex gap-2">
+                <UButton
+                    icon="i-lucide-plus"
+                    color="primary"
+                    variant="outline"
+                    :ui="{
+                        leadingIcon: 'size-4',
+                    }"
+                    @click="handleLocal({} as ExtensionFormData, false)"
+                >
+                    {{ t("extensions.manage.add") }}
+                </UButton>
+                <UButton
+                    trailing-icon="i-lucide-external-link"
+                    :ui="{
+                        trailingIcon: 'size-4',
+                        leadingIcon: 'size-4',
+                    }"
+                    color="primary"
+                    @click="handleLocal({} as ExtensionFormData, false)"
+                >
+                    {{ t("extensions.manage.store") }}
+                </UButton>
+            </div>
+        </div>
+
+        <div v-else class="grid h-[calc(100vh-12rem)]">
             <BdScrollArea class="h-full" :shadow="false">
                 <BdInfiniteScroll
                     :loading="paging.loading"

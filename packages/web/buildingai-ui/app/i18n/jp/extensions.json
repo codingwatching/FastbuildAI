@@ -112,7 +112,8 @@
             "allCategories": "全カテゴリ",
             "allTypes": "全タイプ"
         },
-        "add": "プラグイン追加",
+        "add": "プラグイン作成",
+        "store": "市場インストール",
         "selectType": "プラグインタイプを選択",
         "noDescription": "説明はありません",
         "unknownAuthor": "作者不明",

@@ -112,7 +112,8 @@
             "allCategories": "All Categories",
             "allTypes": "All Types"
         },
-        "add": "Add Extension",
+        "add": "Create Extension",
+        "store": "Market Install",
         "selectType": "Select plugin type",
         "noDescription": "No description available",
         "unknownAuthor": "Unknown author",
