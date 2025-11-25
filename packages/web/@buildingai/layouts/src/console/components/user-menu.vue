@@ -55,9 +55,6 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     [
         {
             label: "profile",
-            onSelect: () => {
-                smartNavigate(`/profile/${userStore.userInfo?.id}`);
-            },
         },
     ],
     [
@@ -308,10 +305,10 @@ defineShortcuts({
                     {{ (item as DropdownMenuItem).icon }}
                 </template>
                 <template #item="{ item }">
-                    <RouterLink
+                    <div
                         v-if="item?.label === 'profile'"
                         class="flex px-1 pt-1.5"
-                        to="/profile"
+                        @click="smartNavigate(`/profile/${userStore.userInfo?.id}`)"
                     >
                         <UAvatar
                             :src="userStore.userInfo?.avatar"
@@ -328,7 +325,7 @@ defineShortcuts({
                                 {{ userStore.userInfo?.username }}
                             </span>
                         </div>
-                    </RouterLink>
+                    </div>
                     <div
                         v-else
                         class="text-foreground flex h-full w-full cursor-pointer items-center gap-2 px-1 py-1"
