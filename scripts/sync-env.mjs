@@ -4,6 +4,12 @@ import process from "node:process";
 import chalk from "chalk";
 
 /**
+ * Keys that are allowed to exist in .env but not in .env.example
+ * These are environment-specific variables that should not be synced
+ */
+const IGNORED_KEYS = new Set(["SERVER_IS_DEMO_ENV", "SERVER_DEMO_POST_WHITELIST"]);
+
+/**
  * Parse env file content into structured data
  * @param {string} content - The content of the env file
  * @returns {Array<{type: 'comment'|'empty'|'variable', content: string, key?: string, value?: string}>}
@@ -103,7 +109,7 @@ function syncEnvFile(examplePath, envPath) {
 
     // Find removed keys (exist in .env but not in .env.example)
     for (const [key] of existingVariables) {
-        if (!exampleKeys.has(key)) {
+        if (!exampleKeys.has(key) && !IGNORED_KEYS.has(key)) {
             removedKeys.push(key);
         }
     }
