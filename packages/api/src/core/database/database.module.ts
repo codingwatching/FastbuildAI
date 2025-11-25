@@ -2,6 +2,7 @@ import { createDataSourceConfig } from "@buildingai/config/db.config";
 import { table3BorderStyle } from "@buildingai/config/table.config";
 import type { ExtensionInfo } from "@buildingai/core/modules";
 import { getCachedExtensionList } from "@buildingai/core/modules";
+import { NormalizeFileUrlSubscriber } from "@buildingai/db";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import {
     AiModel,
@@ -261,6 +262,7 @@ async function logDatabaseInfo(
                     ...databaseOptions,
                     logger: new CustomLogger(),
                     entities: entityPaths,
+                    subscribers: [NormalizeFileUrlSubscriber],
                 };
             },
             dataSourceFactory: async (options: PostgresConnectionOptions) => {

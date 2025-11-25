@@ -85,10 +85,16 @@ export class SystemService {
                 });
             }
             if (dto.websiteLogo) {
-                await this.dictService.set("logo", dto.websiteLogo, { group: "webinfo" });
+                await this.dictService.set("logo", dto.websiteLogo, {
+                    group: "webinfo",
+                    normalizeFileUrlFields: ["**"],
+                });
             }
             if (dto.websiteIcon) {
-                await this.dictService.set("icon", dto.websiteIcon, { group: "webinfo" });
+                await this.dictService.set("icon", dto.websiteIcon, {
+                    group: "webinfo",
+                    normalizeFileUrlFields: ["**"],
+                });
             }
 
             // 标记系统已初始化

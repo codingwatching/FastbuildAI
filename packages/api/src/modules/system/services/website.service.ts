@@ -302,6 +302,14 @@ export class WebsiteService extends BaseService<Dict> {
         }
     }
 
+    /**
+     * File URL fields that need normalization for each config group
+     */
+    private readonly FILE_URL_FIELDS_MAP: Record<string, string[]> = {
+        webinfo: ["icon", "logo", "spaLoadingIcon"],
+        copyright: ["**.iconUrl"],
+    };
+
     private async updateGroupConfig(group: string, data: Record<string, any>) {
         if (!data) return;
 
@@ -311,14 +319,27 @@ export class WebsiteService extends BaseService<Dict> {
                 data.updateAt = new Date().toISOString();
             }
 
+            // Get file URL fields for this group
+            const fileUrlFields = this.FILE_URL_FIELDS_MAP[group];
+
             // 遍历对象的每个属性
             for (const [key, value] of Object.entries(data)) {
+                // Check if this key needs file URL normalization
+                const needsNormalization = fileUrlFields?.some(
+                    (field) => field === key || field.startsWith("**."),
+                );
+
                 // 使用 dictService 的 set 方法更新或创建配置
                 await this.dictService.set(key, value, {
                     group,
                     description: `网站${group}配置 - ${key}`,
                     sort: 0,
                     isEnabled: true,
+                    ...(needsNormalization && {
+                        normalizeFileUrlFields: fileUrlFields.includes(key)
+                            ? ["**"]
+                            : fileUrlFields,
+                    }),
                 });
             }
         } catch (error) {
