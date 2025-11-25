@@ -6,11 +6,10 @@ import {
     ExtensionType,
     type ExtensionTypeType,
 } from "@buildingai/constants/shared/extension.constant";
-import { NestContainer } from "@buildingai/di";
 
 import { AppEntity } from "../decorators/app-entity.decorator";
-import { BeforeInsert, BeforeUpdate, Column } from "../typeorm";
-import { FileUrlService } from "./../utils/file-url.service";
+import { NormalizeFileUrl } from "../decorators/file-url.decorator";
+import { BeforeInsert, Column } from "../typeorm";
 import { BaseEntity } from "./base";
 
 /**
@@ -48,6 +47,7 @@ export class Extension extends BaseEntity {
      * 应用图标
      */
     @Column({ type: "text", nullable: true, comment: "应用图标" })
+    @NormalizeFileUrl()
     icon?: string;
 
     /**
@@ -121,24 +121,6 @@ export class Extension extends BaseEntity {
      */
     @Column({ type: "jsonb", nullable: true, comment: "应用配置参数" })
     config?: Record<string, any>;
-
-    /**
-     * 应用图标处理
-     *
-     * 在插入和更新前处理图标文件路径
-     */
-    @BeforeInsert()
-    @BeforeUpdate()
-    private async setIcon() {
-        if (this.icon) {
-            try {
-                const fileService = NestContainer.get(FileUrlService);
-                this.icon = await fileService.set(this.icon);
-            } catch (error) {
-                console.warn("获取FileService失败:", error);
-            }
-        }
-    }
 
     /**
      * 设置默认的支持终端类型
