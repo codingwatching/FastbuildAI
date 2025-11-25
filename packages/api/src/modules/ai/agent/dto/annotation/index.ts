@@ -36,11 +36,7 @@ export class CreateAnnotationDto extends AnnotationBaseDto {
     createBy?: string;
 }
 
-export class UpdateAnnotationDto extends AnnotationBaseDto {
-    @IsNotEmpty({ message: "标注ID不能为空" })
-    @IsUUID(4, { message: "标注ID必须是有效的UUID" })
-    id: string;
-}
+export class UpdateAnnotationDto extends AnnotationBaseDto {}
 
 export class QueryAnnotationDto extends PaginationDto {
     @IsOptional()
