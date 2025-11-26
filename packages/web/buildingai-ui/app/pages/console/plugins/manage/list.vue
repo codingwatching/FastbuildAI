@@ -426,7 +426,8 @@ onMounted(() => getLists());
                                     >
                                         <UButton
                                             color="primary"
-                                            variant="ghost"
+                                            icon="i-lucide-settings"
+                                            variant="soft"
                                             size="sm"
                                             :label="t('extensions.manage.manage')"
                                             @click="handleNavigate(extension)"
@@ -436,7 +437,8 @@ onMounted(() => getLists());
                                     <UButton
                                         v-if="!extension.isInstalled"
                                         color="primary"
-                                        variant="ghost"
+                                        variant="solid"
+                                        icon="i-lucide-download"
                                         size="sm"
                                         :loading="installingMap[extension.identifier]"
                                         :label="$t('extensions.manage.install')"
@@ -445,8 +447,9 @@ onMounted(() => getLists());
 
                                     <UButton
                                         v-if="extension.hasUpdate"
-                                        color="primary"
-                                        variant="ghost"
+                                        color="info"
+                                        variant="subtle"
+                                        icon="i-lucide-circle-fading-arrow-up"
                                         size="sm"
                                         :loading="upgradingMap[extension.identifier]"
                                         :label="$t('extensions.manage.upgrade')"
