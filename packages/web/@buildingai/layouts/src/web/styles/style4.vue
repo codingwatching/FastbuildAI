@@ -23,7 +23,7 @@ const { navigationItems, linkItems } = useNavigationMenu(toRef(props, "navigatio
 </script>
 
 <template>
-    <div class="bg-muted/50 flex h-full w-full flex-row">
+    <div class="bg-muted dark:bg-muted/50 flex h-full w-full flex-row">
         <!-- 桌面版侧边栏 - 参考 index.vue 的实现 -->
         <aside
             class="relative hidden h-full flex-col transition-all duration-300 md:flex"

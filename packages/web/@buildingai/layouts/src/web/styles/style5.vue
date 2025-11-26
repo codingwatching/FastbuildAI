@@ -47,10 +47,10 @@ const isActive = (path: string): boolean => {
 </script>
 
 <template>
-    <div class="bg-muted dark:bg-muted/50 flex h-full min-h-full w-full flex-1">
+    <div class="flex h-full min-h-full w-full flex-1">
         <!-- 固定侧边栏 -->
         <div
-            class="fixed top-0 left-0 z-50 hidden h-full w-20 transition-[width,opacity] sm:block"
+            class="bg-muted dark:bg-muted/50 fixed top-0 left-0 z-50 hidden h-full w-20 transition-[width,opacity] sm:block"
             :class="{ '!left-inherit !static !translate-x-0': hasPreview }"
         >
             <div class="flex h-full flex-col items-center">
