@@ -98,6 +98,11 @@ const resetForm = () => {
  * Debounced to avoid excessive API calls during user input
  */
 const checkIdentifierUniqueness = useDebounceFn(async (identifier: string) => {
+    if (!identifier) {
+        packNameError.value = false;
+        return true;
+    }
+
     try {
         const { exists } = await apiCheckExtensionIdentifier(
             identifier,

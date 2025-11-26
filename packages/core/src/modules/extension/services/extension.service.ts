@@ -306,6 +306,10 @@ export class ExtensionsService extends BaseService<Extension> {
      * @returns Whether exists
      */
     async isIdentifierExists(identifier: string, excludeId?: string): Promise<boolean> {
+        if (!identifier) {
+            return false;
+        }
+
         const where: FindOptionsWhere<Extension> = { identifier };
 
         const extension = await super.findOne({ where });
