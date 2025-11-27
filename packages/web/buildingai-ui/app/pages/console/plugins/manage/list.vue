@@ -466,13 +466,15 @@ onMounted(() => getLists());
                                                     onSelect: () =>
                                                         handleDetailExtension(extension),
                                                 },
-                                                {
-                                                    label: t('extensions.manage.logs'),
-                                                    icon: 'i-lucide-file-text',
-                                                    onSelect: () =>
-                                                        handleChangelogExtension(extension),
-                                                },
-                                            ],
+                                                extension.isLocal
+                                                    ? undefined
+                                                    : {
+                                                          label: t('extensions.manage.logs'),
+                                                          icon: 'i-lucide-file-text',
+                                                          onSelect: () =>
+                                                              handleChangelogExtension(extension),
+                                                      },
+                                            ].filter((item) => item !== undefined),
                                             [
                                                 {
                                                     label:

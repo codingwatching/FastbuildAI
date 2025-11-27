@@ -242,11 +242,11 @@
         "callDetails": "Call Details"
     },
     "request": {
-        "400": "Bad Request 400",
-        "401": "Unauthorized 401",
-        "403": "Forbidden 403",
-        "404": "Not Found 404",
-        "500": "Server Error 500"
+        "400": "Bad Request",
+        "401": "Unauthorized",
+        "403": "Forbidden",
+        "404": "Not Found",
+        "500": "Server Error"
     },
     "chat": {
         "newChat": "New chat",

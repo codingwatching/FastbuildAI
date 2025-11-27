@@ -88,7 +88,7 @@ export class ExtensionMarketService {
         } catch (error) {
             const errorMessage = createHttpErrorMessage(error);
             this.logger.error(`Failed to get application list: ${errorMessage}`, error);
-            throw HttpErrorFactory.badRequest(errorMessage);
+            throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
 
@@ -105,7 +105,7 @@ export class ExtensionMarketService {
                 `Failed to get application detail for ${identifier}: ${errorMessage}`,
                 error,
             );
-            throw HttpErrorFactory.badRequest(errorMessage);
+            throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
 
@@ -128,7 +128,7 @@ export class ExtensionMarketService {
                 `Failed to get application versions for ${identifier}: ${errorMessage}`,
                 error,
             );
-            throw HttpErrorFactory.badRequest(errorMessage);
+            throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
 
@@ -155,7 +155,7 @@ export class ExtensionMarketService {
                 `Failed to download application ${identifier}@${version}: ${errorMessage}`,
                 error,
             );
-            throw HttpErrorFactory.badRequest(errorMessage);
+            throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
 
@@ -172,7 +172,7 @@ export class ExtensionMarketService {
                 `Failed to uninstall application ${identifier}@${version}: ${errorMessage}`,
                 error,
             );
-            throw HttpErrorFactory.badRequest(errorMessage);
+            throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
 
