@@ -3,7 +3,7 @@
     "compilerOptions": {
         "outDir": "./build",
         "rootDir": "./src/api",
-        "tsBuildInfoFile": "dist/build.tsbuildinfo",
+        "tsBuildInfoFile": "build/build.tsbuildinfo",
         "resolveJsonModule": true,
     },
     "include": [

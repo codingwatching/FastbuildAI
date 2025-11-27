@@ -1,8 +1,5 @@
 {
     "extends": [
         "./.nuxt/tsconfig.json"
-    ],
-    "compilerOptions": {
-        "tsBuildInfoFile": "build/build.tsbuildinfo",
-    }
+    ]
 }
