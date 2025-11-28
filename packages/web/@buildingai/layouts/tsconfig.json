@@ -1,11 +1,26 @@
 {
-    "extends": [
-        "../../buildingai-ui/.nuxt/tsconfig.json"
-    ],
+    "extends": "@buildingai/typescript-config/base.json",
     "include": [
         "env.d.ts",
         "src/**/*",
         "src/**/*.vue",
         "../../buildingai-ui/.nuxt/types/imports.d.ts"
-    ]
+    ],
+    "compilerOptions": {
+        "lib": [
+            "es2022",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "module": "preserve",
+        "moduleResolution": "Bundler",
+        "paths": {
+            "@/*": [
+                "../../buildingai-ui/app/*"
+            ],
+            "~/*": [
+                "../../buildingai-ui/app/*"
+            ]
+        }
+    }
 }
