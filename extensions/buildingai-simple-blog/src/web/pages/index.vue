@@ -4,7 +4,7 @@ import { apiGetPublishedArticles } from "~/services/web/article";
 import type { Category } from "~/services/web/category";
 import { apiGetCategoryList } from "~/services/web/category";
 
-definePageMeta({ auth: false, name: "文章中心", inLinkSelector: true });
+definePageMeta({ auth: false, name: "首页", inLinkSelector: true });
 
 const { t } = useI18n();
 
