@@ -376,7 +376,8 @@ export function defineBuildingAIConfig(config: Partial<ExtendedNuxtConfig> = {})
             public: {
                 ...mergedConfig.runtimeConfig?.public,
                 isPlugin: false,
-                EXTENSION_API_URL: process.env.EXTENSION_API_URL,
+                EXTENSION_API_URL:
+                    process.env.EXTENSION_API_URL || "https://cloud.buildingai.cc/api",
             },
         },
     });

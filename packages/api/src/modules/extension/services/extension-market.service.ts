@@ -22,7 +22,7 @@ export class ExtensionMarketService {
         private readonly extensionsService: ExtensionsService,
     ) {
         this.httpClient = createHttpClient({
-            baseURL: process.env.EXTENSION_API_URL + "/market",
+            baseURL: process.env.EXTENSION_API_URL || "https://cloud.buildingai.cc/api" + "/market",
             timeout: 20000,
             retryConfig: {
                 retries: 3,
