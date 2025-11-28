@@ -74,9 +74,13 @@ export class PluginLinksService {
             );
 
             // Iterate through each plugin directory
-            for (const pluginName of pluginDirs) {
-                const pluginPath = join(this.extensionsDir, pluginName);
+            for (const pluginDir of pluginDirs) {
+                const pluginPath = join(this.extensionsDir, pluginDir);
+                const manifestPath = join(pluginPath, "manifest.json");
                 const webPagesPath = join(pluginPath, "src", "web", "pages");
+
+                // Read plugin name from manifest.json
+                const pluginName = this.getPluginNameFromManifest(manifestPath, pluginDir);
 
                 // Check if src/web/pages directory exists
                 if (!this.existsSync(webPagesPath)) {
@@ -292,6 +296,44 @@ export class PluginLinksService {
         // Otherwise concatenate plugin name and remaining path parts
         const remainingPath = pathParts.join("/");
         return `/extensions/${pluginName}/${remainingPath}/`;
+    }
+
+    /**
+     * Get plugin name from manifest.json
+     * @param manifestPath Path to manifest.json
+     * @param fallbackName Fallback name if manifest.json is not found or invalid
+     * @returns string Plugin name
+     */
+    private getPluginNameFromManifest(manifestPath: string, fallbackName: string): string {
+        try {
+            if (!this.existsSync(manifestPath)) {
+                TerminalLogger.warn(
+                    "PluginLinks",
+                    `Manifest not found: ${manifestPath}, using fallback name: ${fallbackName}`,
+                );
+                return fallbackName;
+            }
+
+            const manifestContent = this.readFileSync(manifestPath, "utf-8");
+            const manifest = JSON.parse(manifestContent);
+
+            if (manifest.name && typeof manifest.name === "string") {
+                return manifest.name;
+            }
+
+            TerminalLogger.warn(
+                "PluginLinks",
+                `Invalid or missing name in manifest: ${manifestPath}, using fallback name: ${fallbackName}`,
+            );
+            return fallbackName;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            TerminalLogger.warn(
+                "PluginLinks",
+                `Failed to read manifest: ${manifestPath}, error: ${errorMessage}, using fallback name: ${fallbackName}`,
+            );
+            return fallbackName;
+        }
     }
 
     /**
