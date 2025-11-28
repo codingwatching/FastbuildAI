@@ -352,11 +352,14 @@ onMounted(() => getLists());
                                     <div
                                         class="ml-[12px] h-[64px] w-[64px] flex-none overflow-hidden rounded-[10px]"
                                     >
-                                        <NuxtImg
+                                        <UAvatar
                                             :src="extension.icon"
                                             :alt="extension.name"
-                                            class="h-full w-full object-cover"
-                                            loading="lazy"
+                                            icon="i-lucide-puzzle"
+                                            :ui="{
+                                                root: 'size-full rounded-md bg-primary',
+                                                icon: 'size-7 text-white',
+                                            }"
                                         />
                                     </div>
                                 </div>
