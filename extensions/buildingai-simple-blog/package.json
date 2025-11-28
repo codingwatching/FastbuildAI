@@ -22,7 +22,7 @@
         "./*": "./*"
     },
     "scripts": {
-        "build:clean": "rimraf build .nuxt .output build/build.tsbuildinfo",
+        "build:clean": "rimraf build .nuxt .output .temp",
         "dev:web": "rimraf .nuxt && cross-env NUXT_BUILD_SSR=false NUXT_BUILD_ENV=development nuxt dev --no-clear --dotenv ../../.env",
         "dev:api": "cross-env NODE_ENV=development tsup --watch src/api",
         "dev": "concurrently -n web,api -c cyan,magenta \"pnpm dev:web\" \"pnpm dev:api\"",
