@@ -5,7 +5,7 @@
             "path": "./tsconfig.api.json"
         },
         {
-            "path": "./tsconfig.web.json",
-        }
+            "path": "./tsconfig.web.json"
+        },
     ]
 }
