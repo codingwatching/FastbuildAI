@@ -1,10 +1,10 @@
 {
     "extends": [
-        "/packages/web/buildingai-ui/.nuxt/tsconfig.json"
+        "../../buildingai-ui/.nuxt/tsconfig.json"
     ],
     "include": [
         "src/**/*",
         "src/**/*.vue",
-        "/packages/web/buildingai-ui/.nuxt/types/imports.d.ts"
+        "../../buildingai-ui/.nuxt/types/imports.d.ts"
     ]
 }
