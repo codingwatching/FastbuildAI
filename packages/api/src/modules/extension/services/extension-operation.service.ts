@@ -1539,6 +1539,31 @@ export class ExtensionOperationService {
     }
 
     /**
+     * Wait for heavy operations (install/upgrade) to complete
+     * Polls every second until no heavy lock exists
+     * @private
+     */
+    private async waitForHeavyOperations(): Promise<void> {
+        const maxWaitTime = 10 * 60 * 1000; // 10 minutes max wait
+        const pollInterval = 1000; // 1 second
+        const startTime = Date.now();
+
+        while (Date.now() - startTime < maxWaitTime) {
+            const heavyLock = await this.getHeavyLock();
+            if (!heavyLock) {
+                return; // No heavy operation in progress, safe to restart
+            }
+
+            this.logger.log(
+                `Waiting for heavy operation to complete: ${heavyLock.identifier} (${heavyLock.operation})`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, pollInterval));
+        }
+
+        this.logger.warn("Max wait time exceeded, proceeding with restart anyway");
+    }
+
+    /**
      * 扫描插件的会员功能配置并同步到数据库
      *
      * @param identifier 插件标识符
