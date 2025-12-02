@@ -14,6 +14,7 @@ import {
     AiMcpTool,
     AiUserMcpServer,
     Secret,
+    UserSubscription,
 } from "@buildingai/db/entities";
 import { Module } from "@nestjs/common";
 
@@ -28,6 +29,7 @@ import {
     ChatCompletionCommandHandler,
     ConversationCommandHandler,
     McpServerCommandHandler,
+    MembershipValidationCommandHandler,
     MessageContextCommandHandler,
     ModelValidationCommandHandler,
     PowerDeductionCommandHandler,
@@ -57,6 +59,7 @@ import { ChatConfigService } from "./services/chat-config.service";
             Secret,
             SecretTemplate,
             User,
+            UserSubscription,
         ]),
     ],
     controllers: [
@@ -78,6 +81,7 @@ import { ChatConfigService } from "./services/chat-config.service";
         // Command Handlers
         ConversationCommandHandler,
         ModelValidationCommandHandler,
+        MembershipValidationCommandHandler,
         UserPowerValidationCommandHandler,
         McpServerCommandHandler,
         MessageContextCommandHandler,

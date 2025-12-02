@@ -129,6 +129,8 @@
         "upgrade": "Upgrade",
         "detail": "Details",
         "logs": "Logs",
+        "syncMemberFeatures": "Sync Features",
+        "featureConfig": "Feature Config",
         "official": "Official",
         "version": "Version",
         "size": "Size",
@@ -172,5 +174,12 @@
             "mp": "Mini Program",
             "api": "API"
         }
+    },
+    "featureConfig": {
+        "title": "Feature Config",
+        "empty": "No features configured",
+        "emptyTip": "Please sync features first",
+        "levelPlaceholder": "Select membership levels",
+        "levelTip": "No selection means all users can access"
     }
 }

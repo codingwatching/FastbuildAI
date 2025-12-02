@@ -1,7 +1,7 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { User } from "@buildingai/db/entities";
 import { Agent } from "@buildingai/db/entities";
-import { AccountLog } from "@buildingai/db/entities";
+import { AccountLog, UserSubscription } from "@buildingai/db/entities";
 import { Permission } from "@buildingai/db/entities";
 import { Role } from "@buildingai/db/entities";
 import { AiDatasetsModule } from "@modules/ai/datasets/datasets.module";
@@ -18,7 +18,7 @@ import { UserService } from "./services/user.service";
  */
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, Role, Permission, AccountLog, Agent]),
+        TypeOrmModule.forFeature([User, Role, Permission, AccountLog, Agent, UserSubscription]),
         MenuModule,
         RoleModule,
         AiDatasetsModule,

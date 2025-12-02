@@ -12,6 +12,7 @@ import {
     ChatCompletionCommandHandler,
     ConversationCommandHandler,
     McpServerCommandHandler,
+    MembershipValidationCommandHandler,
     MessageContextCommandHandler,
     ModelValidationCommandHandler,
     PowerDeductionCommandHandler,
@@ -32,6 +33,7 @@ export class AiChatMessageWebController extends BaseController {
     constructor(
         private readonly conversationHandler: ConversationCommandHandler,
         private readonly modelValidationHandler: ModelValidationCommandHandler,
+        private readonly membershipValidationHandler: MembershipValidationCommandHandler,
         private readonly userPowerValidationHandler: UserPowerValidationCommandHandler,
         private readonly mcpServerHandler: McpServerCommandHandler,
         private readonly messageContextHandler: MessageContextCommandHandler,
@@ -70,6 +72,9 @@ export class AiChatMessageWebController extends BaseController {
 
             // 2. 获取并验证模型
             const model = await this.modelValidationHandler.getAndValidateModel(dto.modelId);
+
+            // 2.1 验证用户会员等级权限
+            await this.membershipValidationHandler.validateModelAccessOrThrow(user.id, model);
 
             // 3. 获取并验证用户积分
             const userInfo = await this.userPowerValidationHandler.getAndValidateUserPower(
@@ -212,6 +217,10 @@ export class AiChatMessageWebController extends BaseController {
         try {
             // 1. 获取并验证用户积分（提前验证）
             const model = await this.modelValidationHandler.getAndValidateModel(dto.modelId);
+
+            // 1.1 验证用户会员等级权限
+            await this.membershipValidationHandler.validateModelAccessOrThrow(user.id, model);
+
             const userInfo = await this.userPowerValidationHandler.getAndValidateUserPower(
                 user.id,
                 model,
@@ -412,6 +421,9 @@ export class AiChatMessageWebController extends BaseController {
         try {
             // 1. 获取并验证模型
             const model = await this.modelValidationHandler.getAndValidateModel(dto.modelId);
+
+            // 1.1 验证用户会员等级权限
+            await this.membershipValidationHandler.validateModelAccessOrThrow(user.id, model);
 
             // 2. 获取并验证用户积分
             const userInfo = await this.userPowerValidationHandler.getAndValidateUserPower(

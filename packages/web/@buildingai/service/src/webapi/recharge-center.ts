@@ -87,7 +87,7 @@ export interface OrderInfo extends BaseEntity {
     /** Order ID */
     orderId: string;
     /** Order amount */
-    orderAmount: string;
+    orderAmount: number;
     /** Order number */
     orderNo: string;
 }

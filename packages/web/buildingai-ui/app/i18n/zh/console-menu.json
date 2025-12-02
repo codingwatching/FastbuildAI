@@ -68,6 +68,12 @@
         "userInfo": "用户信息",
         "userRecharge": "充值管理"
     },
+    "membershipManagement": {
+        "title": "会员管理",
+        "levelsList": "等级列表",
+        "plansList": "套餐列表",
+        "membershipOrder": "会员订单"
+    },
     "diyCenter": {
         "title": "DIY 中心",
         "microPage": "微页面",
@@ -79,7 +85,8 @@
         "accountBalance": "余额明细",
         "financialCenter": "财务中心",
         "orderManagement": "订单管理",
-        "orderList": "充值订单"
+        "orderList": "充值订单",
+        "orderMembership": "会员订单"
     },
     "permission": {
         "title": "权限管理",

@@ -15,7 +15,7 @@ const { t } = useI18n();
 const toast = useMessage();
 
 const permissionGroups = shallowRef<PermissionGroup[]>([]);
-const selectedPermissionIds = shallowRef<string[]>([]);
+const selectedPermissionIds = ref<string[]>([]);
 
 const allPermissionIds = computed(() =>
     permissionGroups.value.flatMap(

@@ -7,9 +7,9 @@ import {
 } from "@buildingai/constants/shared/account-log.constants";
 import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { Agent } from "@buildingai/db/entities";
+import { Agent, UserSubscription } from "@buildingai/db/entities";
 import { AccountLog } from "@buildingai/db/entities";
-import { In, IsNull, Like, Not, Repository } from "@buildingai/db/typeorm";
+import { In, IsNull, Like, MoreThan, Not, Repository } from "@buildingai/db/typeorm";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
@@ -51,6 +51,8 @@ export class UserWebController extends BaseController {
         private readonly agentRepository: Repository<Agent>,
         @InjectRepository(AccountLog)
         private readonly accountLogRepository: Repository<AccountLog>,
+        @InjectRepository(UserSubscription)
+        private readonly userSubscriptionRepository: Repository<UserSubscription>,
     ) {
         super();
         this.accountLogService = new BaseService(accountLogRepository);
@@ -81,10 +83,33 @@ export class UserWebController extends BaseController {
         // 判断用户是否有权限：有权限就是1，没有权限就是0
         const hasPermissions = user.isRoot === 1 || permissionCodes.length > 0 ? 1 : 0;
 
+        // 获取用户当前有效的会员等级ID列表
+        const membershipLevelIds = await this.getUserMembershipLevelIds(user.id);
+
         return {
             ...userInfo,
             permissions: hasPermissions,
+            membershipLevelIds,
         };
+    }
+
+    /**
+     * 获取用户当前有效的会员等级ID列表
+     *
+     * @param userId 用户ID
+     * @returns 会员等级ID列表
+     */
+    private async getUserMembershipLevelIds(userId: string): Promise<string[]> {
+        const now = new Date();
+        const subscriptions = await this.userSubscriptionRepository.find({
+            where: {
+                userId,
+                endTime: MoreThan(now),
+            },
+            select: ["levelId"],
+        });
+
+        return subscriptions.filter((sub) => sub.levelId).map((sub) => sub.levelId!);
     }
 
     /**

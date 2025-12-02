@@ -7,6 +7,8 @@
     "noSearchResults": "没有找到匹配的结果",
     "tryOtherKeywords": "请尝试其他关键词",
     "noAvailableKeyPool": "暂无可用的密钥池",
+    "noAvailableLevels": "暂无可用的会员等级",
+    "givePower": "赠送积分",
     "updateAt": "更新时间",
     "goHome": "返回前台",
     "goHomeText": "返回首页",
@@ -51,7 +53,9 @@
         "colorSelect": "请选择颜色",
         "dateSelect": "请选择日期",
         "dateRange": "请选择日期范围",
-        "timeSelect": "请选择时间"
+        "timeSelect": "请选择时间",
+        "levelSelect": "请选择会员等级",
+        "searchLevel": "搜索会员等级..."
     },
     "tab": {
         "system": "系统",
@@ -67,7 +71,8 @@
         "personalRights": "个人权益"
     },
     "personalRights": {
-        "rechargeCenter": "充值中心"
+        "rechargeCenter": "充值中心",
+        "memberCenter": "会员中心"
     },
     "dateGroup": {
         "today": "今天",
@@ -346,5 +351,9 @@
         "undo": "撤销",
         "redo": "重做",
         "purple": "紫色"
+    },
+    "membership": {
+        "required": "需要会员权限",
+        "hasAccess": "会员专属"
     }
 }

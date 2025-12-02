@@ -19,7 +19,12 @@ export { DecorateMicropageEntity } from "./decorate-micropage.entity";
 export { DecoratePageEntity } from "./decorate-page.entity";
 export { Dict } from "./dict.entity";
 export { Extension } from "./extension.entity";
+export { ExtensionFeature } from "./extension-feature.entity";
 export { File, FileType } from "./file.entity";
+export { MembershipLevels } from "./membership-levels.entity";
+export { MembershipOrder } from "./membership-order.entity";
+export type { Billing, Duration } from "./membership-plans.entity";
+export { MembershipPlanDuration, MembershipPlans } from "./membership-plans.entity";
 export { Menu, MenuSourceType, MenuType } from "./menu.entity";
 export { Payconfig } from "./payconfig.entity";
 export { Permission, PermissionType } from "./permission.entity";
@@ -36,4 +41,5 @@ export {
 } from "./secret-template.entity";
 export { Tag } from "./tag.entity";
 export { User } from "./user.entity";
+export { UserSubscription } from "./user-subscription.entity";
 export { UserToken } from "./user-token.entity";

@@ -191,11 +191,6 @@
                 "editor": "Editor",
                 "viewer": "Viewer"
             },
-            "roleOwnerDescription": "Creator of the knowledge base, possesses the highest authority/permissions",
-            "roleManagerDescription": "Can manage team members and the entire knowledge base project",
-            "roleEditorDescription": "Can upload and edit their own knowledge base data; other people's data is not allowed to be edited",
-            "roleViewerDescription": "Can only view all data in the knowledge base; add, delete, modify operations are not allowed",
-            "rolePermissionDescription": "Role Permission Description",
             "self": "Self",
             "note": "Note",
             "notePlaceholder": "Enter note...",

@@ -7,6 +7,8 @@
     "noSearchResults": "No matching results found",
     "tryOtherKeywords": "Try other keywords",
     "noAvailableKeyPool": "No available key pool",
+    "noAvailableLevels": "No available membership levels",
+    "givePower": "Bonus points",
     "updateAt": "Updated at",
     "goHome": "Return to the front desk",
     "goHomeText": "Go Home",
@@ -51,7 +53,9 @@
         "colorSelect": "Select color",
         "dateSelect": "Select date",
         "dateRange": "Select date range",
-        "timeSelect": "Select time"
+        "timeSelect": "Select time",
+        "levelSelect": "Select membership level",
+        "searchLevel": "Search levels..."
     },
     "tab": {
         "system": "System",
@@ -346,5 +350,9 @@
         "undo": "Undo",
         "redo": "Redo",
         "purple": "Purple"
+    },
+    "membership": {
+        "required": "Membership Required",
+        "hasAccess": "Member Exclusive"
     }
 }

@@ -25,6 +25,11 @@ const items = computed<
                 icon: "i-lucide-badge-dollar-sign",
                 to: `/profile/${userStore.userInfo?.id}/personal-rights/recharge-center`,
             },
+            {
+                label: t("common.personalRights.memberCenter"),
+                icon: "i-lucide-crown",
+                to: `/profile/${userStore.userInfo?.id}/personal-rights/member-center`,
+            },
         ],
     },
     {

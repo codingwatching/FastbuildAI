@@ -13,6 +13,7 @@ import Draggable from "vuedraggable";
 
 const ModelModal = defineAsyncComponent(() => import("./model-form-modal.vue"));
 const ModelBatchEdit = defineAsyncComponent(() => import("./model-batch-edit.vue"));
+const ModelBillingSetting = defineAsyncComponent(() => import("./model-billing-setting.vue"));
 
 const props = defineProps<{
     provider?: {
@@ -114,6 +115,23 @@ const handleBatchEdit = async () => {
     if (selectedModels.value.size === 0) return;
 
     const modal = overlay.create(ModelBatchEdit);
+    const instance = modal.open({
+        models: selectedModelsData.value,
+        provider: props.provider,
+    });
+
+    const shouldRefresh = await instance.result;
+    if (shouldRefresh) {
+        getLists();
+    }
+    selectedModels.value.clear();
+    selectedModelsData.value.clear();
+};
+
+const handleBillingSetting = async () => {
+    if (selectedModels.value.size === 0) return;
+
+    const modal = overlay.create(ModelBillingSetting);
     const instance = modal.open({
         models: selectedModelsData.value,
         provider: props.provider,
@@ -362,6 +380,16 @@ watch(
                         "
                     />
                 </UDropdownMenu>
+                <AccessControl :codes="['membership:setting']">
+                    <UButton
+                        color="primary"
+                        variant="soft"
+                        size="sm"
+                        @click="() => handleBillingSetting()"
+                    >
+                        计费设置
+                    </UButton>
+                </AccessControl>
                 <AccessControl :codes="['ai-models:create']">
                     <UButton
                         color="primary"

@@ -459,3 +459,69 @@ export function apiGetPlatformSecret(): Promise<PlatformSecretResponse> {
 export function apiSetPlatformSecret(data: PlatformSecretRequest): Promise<boolean> {
     return useConsolePost("/extensions/platform-secret", data);
 }
+
+/**
+ * Sync member features response interface
+ * @description Interface for sync member features response
+ */
+export interface SyncMemberFeaturesResponse {
+    /** Operation message */
+    message: string;
+    /** Added count */
+    added: number;
+    /** Updated count */
+    updated: number;
+    /** Removed count */
+    removed: number;
+    /** Total count */
+    total: number;
+}
+
+/**
+ * Sync extension member features
+ * @description Scans and syncs @MemberOnly decorated features to database
+ * @param identifier Extension identifier
+ * @returns Promise with sync result
+ */
+export function apiSyncExtensionMemberFeatures(
+    identifier: string,
+): Promise<SyncMemberFeaturesResponse> {
+    return useConsolePost(`/extensions/sync-member-features/${identifier}`, {});
+}
+
+/**
+ * Extension feature interface
+ */
+export interface ExtensionFeatureItem {
+    id: string;
+    featureCode: string;
+    name: string;
+    description?: string;
+    extensionId: string;
+    status: boolean;
+    membershipLevels: Array<{ id: string; name: string; level: number }>;
+    createdAt: string;
+    updatedAt: string;
+}
+
+/**
+ * Get extension features
+ * @param identifier Extension identifier
+ * @returns Promise with features list
+ */
+export function apiGetExtensionFeatures(identifier: string): Promise<ExtensionFeatureItem[]> {
+    return useConsoleGet(`/extensions/features/${identifier}`);
+}
+
+/**
+ * Update feature membership levels
+ * @param featureId Feature ID
+ * @param levelIds Membership level IDs
+ * @returns Promise with updated feature
+ */
+export function apiUpdateFeatureLevels(
+    featureId: string,
+    levelIds: string[],
+): Promise<ExtensionFeatureItem> {
+    return useConsolePatch(`/extensions/features/${featureId}/levels`, { levelIds });
+}
