@@ -70,6 +70,12 @@
         "lint:fix": {
             "dependsOn": ["^lint:fix"]
         },
+        "dev:desktop": {
+            "dependsOn": ["^dev:desktop"]
+        },
+        "build:desktop": {
+            "dependsOn": ["^build:desktop"]
+        },
         "check-types": {
             "dependsOn": ["^check-types"]
         },
