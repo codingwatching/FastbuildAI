@@ -468,7 +468,7 @@ export class ExtensionConsoleController extends BaseController {
         name: "启用应用",
     })
     async enable(@Param("id") id: string) {
-        return await this.extensionsService.enable(id);
+        return await this.extensionOperationService.enable(id);
     }
 
     /**
@@ -484,7 +484,7 @@ export class ExtensionConsoleController extends BaseController {
         name: "禁用应用",
     })
     async disable(@Param("id") id: string) {
-        return await this.extensionsService.disable(id);
+        return await this.extensionOperationService.disable(id);
     }
 
     /**

@@ -1469,6 +1469,30 @@ export class ExtensionOperationService {
     }
 
     /**
+     * Enable extension and schedule restart
+     *
+     * @param id Extension ID
+     * @returns Updated extension
+     */
+    async enable(id: string) {
+        const result = await this.extensionsService.enable(id);
+        this.scheduleRestart();
+        return result;
+    }
+
+    /**
+     * Disable extension and schedule restart
+     *
+     * @param id Extension ID
+     * @returns Updated extension
+     */
+    async disable(id: string) {
+        const result = await this.extensionsService.disable(id);
+        this.scheduleRestart();
+        return result;
+    }
+
+    /**
      * Schedule PM2 restart after response is sent
      * Uses debouncing to prevent multiple concurrent restart requests
      * Waits for heavy operations (install/upgrade) to complete before restarting

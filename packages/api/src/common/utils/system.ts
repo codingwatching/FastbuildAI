@@ -151,12 +151,14 @@ export const setAssetsDir = async (app: NestExpressApplication) => {
     });
 
     // extension static
-    const extensionsMain = enabledIdentifiers.map((item) => {
-        return {
-            dir: path.join(rootDir, "extensions", item.identifier, ".output", "public"),
-            prefix: `/extensions/${item.identifier}`,
-        };
-    });
+    const extensionsMain = enabledIdentifiers
+        .filter((item) => item.enabled)
+        .map((item) => {
+            return {
+                dir: path.join(rootDir, "extensions", item.identifier, ".output", "public"),
+                prefix: `/extensions/${item.identifier}`,
+            };
+        });
 
     const extensionIndexHtmlCache = new Map<string, string>();
 
