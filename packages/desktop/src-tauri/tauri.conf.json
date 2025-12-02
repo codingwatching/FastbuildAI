@@ -4,7 +4,7 @@
     "version": "0.1.0",
     "identifier": "buildingai.desktop",
     "build": {
-        "devUrl": "https://demo.buildingai.cc",
+        "devUrl": "http://localhost:4090",
         "frontendDist": "../../../public/web"
     },
     "app": {
