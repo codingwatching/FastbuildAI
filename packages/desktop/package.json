@@ -4,9 +4,10 @@
     "version": "0.1.0",
     "type": "module",
     "scripts": {
-        "dev": "tauri dev",
-        "dev:desktop": "tauri dev",
-        "build:desktop": "tauri build",
+        "prepare": "node scripts/prepare-frontend.js",
+        "dev": "node scripts/prepare-frontend.js && tauri dev",
+        "dev:desktop": "node scripts/prepare-frontend.js && tauri dev",
+        "build:desktop": "node scripts/prepare-frontend.js && tauri build",
         "tauri": "tauri"
     },
     "dependencies": {
