@@ -7,6 +7,8 @@
     "noSearchResults": "一致する結果が見つかりません",
     "tryOtherKeywords": "他のキーワードを試してください",
     "noAvailableKeyPool": "利用可能なキープールがありません",
+    "noAvailableLevels": "利用可能な会員レベルがありません",
+    "givePower": "ボーナスポイント",
     "updateAt": "更新時間",
     "goHome": "フロントに戻る",
     "goHomeText": "ホームに戻る",
@@ -51,7 +53,9 @@
         "colorSelect": "色を選択",
         "dateSelect": "日付を選択",
         "dateRange": "日付範囲を選択",
-        "timeSelect": "時間を選択"
+        "timeSelect": "時間を選択",
+        "levelSelect": "会員レベルを選択",
+        "searchLevel": "レベルを検索..."
     },
     "tab": {
         "system": "システム",
@@ -346,5 +350,9 @@
         "undo": "元に戻す",
         "redo": "やり直し",
         "purple": "紫"
+    },
+    "membership": {
+        "required": "会員権限が必要",
+        "hasAccess": "会員限定"
     }
 }

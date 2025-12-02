@@ -128,6 +128,8 @@
         "upgrade": "更新",
         "detail": "详情",
         "logs": "日志",
+        "syncMemberFeatures": "同步功能",
+        "featureConfig": "功能配置",
         "official": "官方",
         "version": "版本",
         "size": "大小",
@@ -171,5 +173,12 @@
             "mp": "小程序",
             "api": "API端"
         }
+    },
+    "featureConfig": {
+        "title": "功能配置",
+        "empty": "暂无功能配置",
+        "emptyTip": "请先同步功能后再进行配置",
+        "levelPlaceholder": "选择允许访问的会员等级",
+        "levelTip": "不选择任何等级表示所有用户都可以访问"
     }
 }

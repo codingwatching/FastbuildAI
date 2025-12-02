@@ -14,6 +14,7 @@ import { TerminalLogger } from "@buildingai/logger";
 import { AuthGuard } from "@common/guards/auth.guard";
 import { DemoGuard } from "@common/guards/demo.guard";
 import { ExtensionGuard } from "@common/guards/extension.guard";
+import { MemberOnlyGuard } from "@common/guards/member-only.guard";
 import { PermissionsGuard } from "@common/guards/permissions.guard";
 import { SuperAdminGuard } from "@common/guards/super-admin.guard";
 import { DatabaseModule } from "@core/database/database.module";
@@ -22,6 +23,7 @@ import { AuthModule } from "@modules/auth/auth.module";
 import { ChannelModule } from "@modules/channel/channel.module";
 import { ExtensionCoreModule } from "@modules/extension/extension.module";
 import { HealthModule } from "@modules/health/health.module";
+import { MembershipModule } from "@modules/membership/membership.module";
 import { DynamicModule, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
@@ -94,6 +96,7 @@ export class AppModule {
                 MenuModule,
                 PayModule,
                 PermissionModule,
+                MembershipModule,
                 Pm2Module,
                 RechargeModule,
                 RoleModule,
@@ -127,6 +130,10 @@ export class AppModule {
                 {
                     provide: APP_GUARD,
                     useClass: SuperAdminGuard,
+                },
+                {
+                    provide: APP_GUARD,
+                    useClass: MemberOnlyGuard,
                 },
             ],
         };

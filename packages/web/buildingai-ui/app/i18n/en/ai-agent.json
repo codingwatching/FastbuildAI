@@ -176,8 +176,6 @@
             "previewConfig": "Config Preview",
             "embedCode": "Embed Code",
             "embedCodeDesc": "Embed agent in your site/app",
-            "embedStyle": "Select Embed Style",
-            "embedStyleDesc": "Choose a way to embed the chat application into your website",
             "unpublishedDesc2": "Publish first to get embed code",
             "iframeCode": "iframe Code",
             "iframeCodeDesc1": "Customizable width/height",

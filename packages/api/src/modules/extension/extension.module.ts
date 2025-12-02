@@ -12,6 +12,7 @@ import { TerminalLogger } from "@buildingai/logger";
 import { DynamicModule, Module, OnModuleInit } from "@nestjs/common";
 import { ModuleRef } from "@nestjs/core";
 
+import { AuthModule } from "../auth/auth.module";
 import { Pm2Module } from "../pm2/pm2.module";
 import { ExtensionConsoleController } from "./controllers/console/extension.controller";
 import { ExtensionMarketService } from "./services/extension-market.service";
@@ -48,6 +49,7 @@ export class ExtensionCoreModule implements OnModuleInit {
         return {
             module: ExtensionCoreModule,
             imports: [
+                AuthModule,
                 Pm2Module,
                 UploadModule,
                 TypeOrmModule.forFeature([Extension]),

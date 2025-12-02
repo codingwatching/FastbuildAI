@@ -20,6 +20,7 @@ import { HttpErrorFactory } from "@buildingai/errors";
 import { maskSensitiveValue } from "@buildingai/utils";
 import { ConsoleController } from "@common/decorators/controller.decorator";
 import { Permissions } from "@common/decorators/permissions.decorator";
+import { ExtensionFeatureScanService } from "@common/modules/auth/services/extension-feature-scan.service";
 import {
     DownloadExtensionDto,
     SetPlatformSecretDto,
@@ -39,6 +40,7 @@ export class ExtensionConsoleController extends BaseController {
         private readonly extensionOperationService: ExtensionOperationService,
         private readonly extensionConfigService: ExtensionConfigService,
         private readonly dictService: DictService,
+        private readonly extensionFeatureScanService: ExtensionFeatureScanService,
     ) {
         super();
     }
@@ -373,6 +375,48 @@ export class ExtensionConsoleController extends BaseController {
     }
 
     /**
+     * 获取插件功能列表
+     *
+     * @param identifier 插件标识符
+     * @returns 功能列表
+     */
+    @Get("features/:identifier")
+    @Permissions({
+        code: "get-features",
+        name: "获取插件功能列表",
+    })
+    async getFeatures(@Param("identifier") identifier: string) {
+        const extension = await this.extensionsService.findByIdentifier(identifier);
+        if (!extension) {
+            throw HttpErrorFactory.notFound("Extension does not exist");
+        }
+
+        return await this.extensionFeatureScanService.getExtensionFeatures(extension.id);
+    }
+
+    /**
+     * 更新功能的会员等级配置
+     *
+     * @param featureId 功能ID
+     * @param levelIds 会员等级ID列表
+     * @returns 更新后的功能
+     */
+    @Patch("features/:featureId/levels")
+    @Permissions({
+        code: "update-feature-levels",
+        name: "更新功能会员等级",
+    })
+    async updateFeatureLevels(
+        @Param("featureId") featureId: string,
+        @Body("levelIds") levelIds: string[],
+    ) {
+        return await this.extensionFeatureScanService.updateFeatureMembershipLevels(
+            featureId,
+            levelIds,
+        );
+    }
+
+    /**
      * Get single extension details
      *
      * @param id Extension ID
@@ -542,6 +586,36 @@ export class ExtensionConsoleController extends BaseController {
         return {
             message: `Successfully deleted ${deleted} extensions`,
             deleted,
+        };
+    }
+
+    /**
+     * 同步插件会员功能配置
+     *
+     * 扫描插件代码中的 @MemberOnly 装饰器，并将功能配置同步到数据库
+     *
+     * @param identifier 插件标识符
+     * @returns 同步结果
+     */
+    @Post("sync-member-features/:identifier")
+    @Permissions({
+        code: "sync-member-features",
+        name: "同步会员功能",
+    })
+    async syncMemberFeatures(@Param("identifier") identifier: string) {
+        const extension = await this.extensionsService.findByIdentifier(identifier);
+        if (!extension) {
+            throw HttpErrorFactory.notFound("Extension does not exist");
+        }
+
+        const result = await this.extensionFeatureScanService.scanAndSyncExtensionFeatures(
+            identifier,
+            extension.id,
+        );
+
+        return {
+            message: `同步完成: 新增 ${result.added} 个, 更新 ${result.updated} 个, 移除 ${result.removed} 个`,
+            ...result,
         };
     }
 }

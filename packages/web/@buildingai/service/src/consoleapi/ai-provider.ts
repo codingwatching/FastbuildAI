@@ -222,6 +222,8 @@ export interface AiModelInfo extends BaseModel {
     maxContext: number;
     /** Billing rule information */
     billingRule: BillingRule;
+    /** 会员等级 */
+    membershipLevel: string[];
 }
 
 /**

@@ -914,6 +914,103 @@
                 ]
             },
             {
+                "name": "console-menu.membershipManagement.title",
+                "code": "membership",
+                "path": "membership",
+                "icon": "i-lucide-crown",
+                "component": "",
+                "permissionCode": null,
+                "sort": 650,
+                "isHidden": 0,
+                "type": 1,
+                "sourceType": 1,
+                "pluginPackName": "",
+                "children": [
+                    {
+                        "name": "console-menu.membershipManagement.levelsList",
+                        "code": "levels-list",
+                        "path": "levels",
+                        "icon": "",
+                        "component": "/console/membership/levels/list",
+                        "permissionCode": "levels:list",
+                        "sort": 0,
+                        "isHidden": 0,
+                        "type": 2,
+                        "sourceType": 1,
+                        "pluginPackName": null,
+                        "children": [
+                            {
+                                "name": "console-common.edit",
+                                "code": "levels-list-update",
+                                "path": "levels/edit",
+                                "icon": "",
+                                "component": "/console/membership/levels/edit",
+                                "permissionCode": "levels:update",
+                                "sort": 0,
+                                "isHidden": 1,
+                                "type": 2,
+                                "sourceType": 1,
+                                "pluginPackName": null
+                            },
+                            {
+                                "name": "console-common.add",
+                                "code": "levels-list-add",
+                                "path": "levels/add",
+                                "icon": "",
+                                "component": "/console/membership/levels/add",
+                                "permissionCode": "levels:create",
+                                "sort": 0,
+                                "isHidden": 1,
+                                "type": 2,
+                                "sourceType": 1,
+                                "pluginPackName": null
+                            }
+                        ]
+                    },
+                    {
+                        "name": "console-menu.membershipManagement.plansList",
+                        "code": "plans-list",
+                        "path": "plans",
+                        "icon": "",
+                        "component": "/console/membership/plans/list",
+                        "permissionCode": "plans:list",
+                        "sort": 1,
+                        "isHidden": 0,
+                        "type": 2,
+                        "sourceType": 1,
+                        "pluginPackName": null,
+                        "children": [
+                            {
+                                "name": "console-common.edit",
+                                "code": "plans-list-update",
+                                "path": "plans/edit",
+                                "icon": "",
+                                "component": "/console/membership/plans/edit",
+                                "permissionCode": "plans:update",
+                                "sort": 0,
+                                "isHidden": 1,
+                                "type": 2,
+                                "sourceType": 1,
+                                "pluginPackName": null
+                            },
+                            {
+                                "name": "console-common.add",
+                                "code": "plans-list-add",
+                                "path": "plans/add",
+                                "icon": "",
+                                "component": "/console/membership/plans/add",
+                                "permissionCode": "plans:create",
+                                "sort": 0,
+                                "isHidden": 1,
+                                "type": 2,
+                                "sourceType": 1,
+                                "pluginPackName": null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "name": "console-menu.financial.orderManagement",
                 "code": null,
                 "path": "order",
@@ -933,6 +1030,19 @@
                         "icon": "",
                         "component": "/console/order/order-recharge",
                         "permissionCode": "recharge-order:list",
+                        "sort": 0,
+                        "isHidden": 0,
+                        "type": 2,
+                        "sourceType": 1,
+                        "pluginPackName": null
+                    },
+                    {
+                        "name": "console-menu.financial.orderMembership",
+                        "code": "membership-order",
+                        "path": "order-membership",
+                        "icon": "",
+                        "component": "/console/order/order-membership",
+                        "permissionCode": "membership-order:list",
                         "sort": 0,
                         "isHidden": 0,
                         "type": 2,

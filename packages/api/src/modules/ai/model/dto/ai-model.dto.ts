@@ -105,6 +105,15 @@ export class CreateAiModelDto {
     billingRule: BillingRuleDto;
 
     /**
+     * 会员等级
+     */
+    @IsArray({ message: "会员等级必须是数组" })
+    @IsOptional()
+    @Type(() => String)
+    @IsString({ each: true, message: "会员等级必须是字符串数组" })
+    membershipLevel?: string[];
+
+    /**
      * 是否启用该模型
      */
     @IsBoolean({ message: "启用状态必须是布尔值" })

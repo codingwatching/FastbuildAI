@@ -15,6 +15,7 @@ import {
     apiEnableExtension,
     apiGetExtensionList,
     apiInstallExtension,
+    apiSyncExtensionMemberFeatures,
     apiUninstallExtension,
     apiUpgradeExtension,
 } from "@buildingai/service/consoleapi/extensions";
@@ -23,6 +24,7 @@ import type { TabsItem } from "@nuxt/ui";
 const ExtensionChangelogDrawer = defineAsyncComponent(() => import("../components/changelog.vue"));
 const ExtensionDetailDrawer = defineAsyncComponent(() => import("../components/details.vue"));
 const AddLocalExtension = defineAsyncComponent(() => import("../components/add-extension.vue"));
+const FeatureConfigModal = defineAsyncComponent(() => import("../components/feature-config.vue"));
 
 const { t } = useI18n();
 const overlay = useOverlay();
@@ -175,6 +177,30 @@ const handleDisable = async (extension: ExtensionFormData) => {
         console.error("禁用插件失败:", error);
         toast.error(t("console-common.messages.failed"));
     }
+};
+
+const syncingMap = reactive<Record<string, boolean>>({});
+
+const handleSyncMemberFeatures = async (extension: ExtensionFormData) => {
+    if (syncingMap[extension.identifier]) {
+        return;
+    }
+
+    try {
+        syncingMap[extension.identifier] = true;
+        const result = await apiSyncExtensionMemberFeatures(extension.identifier);
+        toast.success(result.message);
+    } catch (error) {
+        console.error("同步会员功能失败:", error);
+        toast.error(t("console-common.messages.failed"));
+    } finally {
+        syncingMap[extension.identifier] = false;
+    }
+};
+
+const handleFeatureConfig = (extension: ExtensionFormData) => {
+    const modal = overlay.create(FeatureConfigModal);
+    modal.open({ extension });
 };
 
 const handleLocal = async (extension: ExtensionFormData, flag: boolean) => {
@@ -436,6 +462,20 @@ onMounted(() => getLists());
                                                     icon: 'i-lucide-file-text',
                                                     onSelect: () =>
                                                         handleChangelogExtension(extension),
+                                                },
+                                                {
+                                                    label: t(
+                                                        'extensions.manage.syncMemberFeatures',
+                                                    ),
+                                                    icon: 'i-lucide-refresh-cw',
+                                                    disabled: syncingMap[extension.identifier],
+                                                    onSelect: () =>
+                                                        handleSyncMemberFeatures(extension),
+                                                },
+                                                {
+                                                    label: t('extensions.manage.featureConfig'),
+                                                    icon: 'i-lucide-settings',
+                                                    onSelect: () => handleFeatureConfig(extension),
                                                 },
                                             ],
                                             [

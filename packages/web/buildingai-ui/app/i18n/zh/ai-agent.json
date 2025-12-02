@@ -176,8 +176,6 @@
             "previewConfig": "配置预览",
             "embedCode": "嵌入代码",
             "embedCodeDesc": "将智能体嵌入到您的网站或应用中",
-            "embedStyle": "选择嵌入方式",
-            "embedStyleDesc": "选择一种方式将聊天应用嵌入到你的网站中",
             "unpublishedDesc2": "请先发布智能体才能获取嵌入代码",
             "iframeCode": "iframe 嵌入代码",
             "iframeCodeDesc1": "可自定义宽度和高度",

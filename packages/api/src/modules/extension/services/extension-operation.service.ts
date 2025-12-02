@@ -20,7 +20,9 @@ import { DataSource } from "@buildingai/db/typeorm";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { createHttpClient, HttpClientInstance } from "@buildingai/utils";
+import { ExtensionFeatureScanService } from "@common/modules/auth/services/extension-feature-scan.service";
 import { Injectable, Logger } from "@nestjs/common";
+import { ModuleRef } from "@nestjs/core";
 import AdmZip from "adm-zip";
 import * as fs from "fs-extra";
 import * as path from "path";
@@ -56,6 +58,7 @@ export class ExtensionOperationService {
         private readonly pm2Service: Pm2Service,
         private readonly dataSource: DataSource,
         private readonly fileUploadService: FileUploadService,
+        private readonly moduleRef: ModuleRef,
     ) {
         // 初始化临时目录路径
         this.rootDir = path.join(process.cwd(), "..", "..");
@@ -505,6 +508,9 @@ export class ExtensionOperationService {
             // Synchronize extension tables and execute seeds BEFORE restart
             await this.synchronizeExtensionTablesAndSeeds(identifier);
 
+            // Scan and sync member-only features
+            await this.scanExtensionMemberFeatures(identifier, extension.id);
+
             // Schedule PM2 restart after response is sent
             this.scheduleRestart();
 
@@ -820,6 +826,7 @@ export class ExtensionOperationService {
      */
     async createFromTemplate(dto: CreateExtensionDto) {
         this.logger.log(`Starting create extension from template: ${dto.identifier}`);
+
         try {
             // 1. Check if extension already exists
             const existingExtension = await this.extensionsService.findByIdentifier(dto.identifier);
@@ -1356,5 +1363,37 @@ export class ExtensionOperationService {
                 ExtensionOperationService.restartTimer = null;
             }
         }, ExtensionOperationService.RESTART_DEBOUNCE_MS);
+    }
+
+    /**
+     * 扫描插件的会员功能配置并同步到数据库
+     *
+     * @param identifier 插件标识符
+     * @param extensionId 插件ID
+     * @private
+     */
+    private async scanExtensionMemberFeatures(
+        identifier: string,
+        extensionId: string,
+    ): Promise<void> {
+        try {
+            // 通过 ModuleRef 获取 ExtensionFeatureScanService
+            const featureScanService = this.moduleRef.get(ExtensionFeatureScanService, {
+                strict: false,
+            });
+
+            if (!featureScanService) {
+                this.logger.warn(
+                    "ExtensionFeatureScanService not available, skipping feature scan",
+                );
+                return;
+            }
+
+            await featureScanService.scanAndSyncExtensionFeatures(identifier, extensionId);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to scan member features for ${identifier}: ${errorMessage}`);
+            // 不抛出错误，避免影响插件安装流程
+        }
     }
 }

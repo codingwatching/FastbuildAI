@@ -90,6 +90,29 @@ export class AccountLog extends BaseEntity {
     remark: string;
 
     /**
+     * 积分过期时间
+     * 仅对会员赠送积分有效,到期后积分清零
+     */
+    @Column({
+        type: "timestamp with time zone",
+        nullable: true,
+        comment: "积分过期时间",
+    })
+    @Index()
+    expireAt: Date | null;
+
+    /**
+     * 当前记录剩余可用数量
+     * 用于追踪赠送积分的使用情况,初始值等于 changeAmount
+     */
+    @Column({
+        type: "integer",
+        default: 0,
+        comment: "当前记录剩余可用数量",
+    })
+    availableAmount: number;
+
+    /**
      * 关联的用户
      */
     @ManyToOne(() => User, {

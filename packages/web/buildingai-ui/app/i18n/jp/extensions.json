@@ -128,6 +128,8 @@
         "upgrade": "アップグレード",
         "detail": "詳細",
         "logs": "ログ",
+        "syncMemberFeatures": "機能を同期",
+        "featureConfig": "機能設定",
         "official": "公式",
         "version": "バージョン",
         "size": "サイズ",
@@ -171,5 +173,12 @@
             "mp": "ミニアプリ",
             "api": "API端末"
         }
+    },
+    "featureConfig": {
+        "title": "機能設定",
+        "empty": "機能設定なし",
+        "emptyTip": "先に機能を同期してください",
+        "levelPlaceholder": "会員レベルを選択",
+        "levelTip": "未選択の場合、全ユーザーがアクセス可能"
     }
 }
