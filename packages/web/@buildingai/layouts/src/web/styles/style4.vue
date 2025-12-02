@@ -35,7 +35,7 @@ const { navigationItems, linkItems } = useNavigationMenu(toRef(props, "navigatio
             </div>
 
             <!-- 中间菜单区域 - 可滚动 -->
-            <div class="flex-1 overflow-y-auto px-1.5 py-2">
+            <BdScrollArea class="flex-1 px-1.5 py-2" :shadow="false">
                 <!-- 主导航菜单 -->
                 <div>
                     <UNavigationMenu
@@ -59,7 +59,7 @@ const { navigationItems, linkItems } = useNavigationMenu(toRef(props, "navigatio
                         </template>
                     </UNavigationMenu>
                 </div>
-            </div>
+            </BdScrollArea>
 
             <!-- 底部区域 - 固定 -->
             <div class="flex flex-none flex-col gap-2 px-1.5 py-2">

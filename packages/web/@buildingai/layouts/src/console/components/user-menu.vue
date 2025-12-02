@@ -30,9 +30,7 @@ const value = props.mode === "sidebar" ? useVModel(props, "collapsed", emits) : 
 
 const controlsStore = useControlsStore();
 const { store } = useColorMode();
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const appConfig = useAppConfig() as any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const { locale, t, setLocale } = useI18n() as any;
 const { smartNavigate } = useSmartNavigate();
 const userStore = useUserStore();
