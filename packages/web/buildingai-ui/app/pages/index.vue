@@ -171,7 +171,7 @@ definePageMeta({
 <template>
     <div class="ai-chat dark:bg-muted/50 flex h-full min-h-0 items-center justify-center pl-0">
         <div
-            class="border-border/50 h-full flex-none border-r pl-0 sm:pl-2"
+            class="border-border/50 h-full flex-none border-r pl-0"
             :class="{ 'border-none': !controlsStore.chatSidebarVisible }"
         >
             <ChatsChats />
