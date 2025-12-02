@@ -5,7 +5,9 @@
     "identifier": "buildingai.desktop",
     "build": {
         "devUrl": "http://localhost:4090",
-        "frontendDist": "../../../public/web"
+        "frontendDist": "../../../public/web",
+        "beforeDevCommand": "pnpm run prepare",
+        "beforeBuildCommand": "pnpm run prepare"
     },
     "app": {
         "windows": [
