@@ -24,6 +24,30 @@ export interface ChatCompletionResult {
 }
 
 /**
+ * Custom error for MCP tool call failures
+ */
+export class McpToolError extends Error {
+    constructor(
+        message: string,
+        public readonly toolName: string,
+        public readonly mcpToolCall: any,
+    ) {
+        super(message);
+        this.name = "McpToolError";
+    }
+}
+
+/**
+ * Custom error for user cancellation
+ */
+export class UserCancelledError extends Error {
+    constructor() {
+        super("User cancelled the request");
+        this.name = "UserCancelledError";
+    }
+}
+
+/**
  * Chat Completion Command Handler
  *
  * Handles AI chat completion logic for both normal and streaming modes.
@@ -148,6 +172,7 @@ export class ChatCompletionCommandHandler {
      *
      * @param params - Execution parameters
      * @param res - Express response object for SSE
+     * @param abortSignal - Optional AbortSignal for cancellation
      */
     async executeStreamCompletion(
         params: {
@@ -160,6 +185,7 @@ export class ChatCompletionCommandHandler {
             >;
         },
         res: Response,
+        abortSignal?: AbortSignal,
     ): Promise<{
         fullResponse: string;
         finalChatCompletion: any;
@@ -188,6 +214,12 @@ export class ChatCompletionCommandHandler {
 
         // Tool call loop
         do {
+            // Check if user cancelled
+            if (abortSignal?.aborted) {
+                this.logger.debug("🚫 User cancelled the request, ending silently");
+                throw new UserCancelledError();
+            }
+
             hasToolCalls = false;
             roundCount++;
             this.logger.debug(
@@ -210,6 +242,12 @@ export class ChatCompletionCommandHandler {
             let roundResponse = "";
             // Stream processing
             for await (const chunk of stream) {
+                // Check if user cancelled during streaming
+                if (abortSignal?.aborted) {
+                    this.logger.debug("🚫 User cancelled the request, ending silently");
+                    stream.cancel();
+                    throw new UserCancelledError();
+                }
                 // Send content chunks
                 if (chunk.choices[0].delta.content) {
                     res.write(
@@ -332,12 +370,22 @@ export class ChatCompletionCommandHandler {
                                 })}\n\n`,
                             );
                         } else {
-                            // Send tool error
+                            // Send tool error and throw to end conversation
                             res.write(
                                 `data: ${JSON.stringify({
                                     type: "mcp_tool_error",
                                     data: result.mcpToolCall,
                                 })}\n\n`,
+                            );
+
+                            // MCP tool error - end conversation immediately
+                            this.logger.error(
+                                `❌ MCP 工具调用失败，结束对话: ${toolCall.function.name}`,
+                            );
+                            throw new McpToolError(
+                                result.mcpToolCall.error || "MCP tool call failed",
+                                toolCall.function.name,
+                                result.mcpToolCall,
                             );
                         }
                     }
