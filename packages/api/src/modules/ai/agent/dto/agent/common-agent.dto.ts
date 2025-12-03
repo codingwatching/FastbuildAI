@@ -152,7 +152,7 @@ export class AgentChatMessageDto {
      * 消息内容
      * 支持字符串或数组格式（包含文本、图片、音频、视频等）
      */
-    @IsNotEmpty({ message: "消息内容不能为空" })
+    @IsOptional()
     content: MessageContent;
 
     /**
