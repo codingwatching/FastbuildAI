@@ -89,6 +89,7 @@ export class ChatCompletionCommandHandler {
                 hasToolCalls = true;
 
                 // Add AI response to messages
+                // For DeepSeek Thinking Mode: keep reasoning_content for multi-turn tool calls within same question
                 currentMessages.push(assistantMessage);
 
                 // Execute tool calls
@@ -282,12 +283,9 @@ export class ChatCompletionCommandHandler {
                     `🔧 第 ${roundCount} 轮检测到 ${assistantMessage.tool_calls.length} 个工具调用`,
                 );
 
-                // Add AI response to messages (remove reasoning_content to avoid sending in tool calls)
-                const cleanAssistantMessage = {
-                    ...assistantMessage,
-                    reasoning_content: undefined,
-                };
-                currentMessages.push(cleanAssistantMessage);
+                // Add AI response to messages
+                // For DeepSeek Thinking Mode: keep reasoning_content for multi-turn tool calls within same question
+                currentMessages.push(assistantMessage);
 
                 // Execute each tool call
                 for (const toolCall of assistantMessage.tool_calls) {
