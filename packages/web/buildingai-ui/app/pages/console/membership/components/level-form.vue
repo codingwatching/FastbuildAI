@@ -59,10 +59,6 @@ const addBenefit = () => {
  * @param index 要删除的权益索引
  */
 const removeBenefit = (index: number) => {
-    if (formData.value.benefits && formData.value.benefits.length <= 1) {
-        message.warning($t("membership.console-membership.level.form.benefitAtLeastOne"));
-        return;
-    }
     formData.value.benefits = formData.value.benefits?.filter((_, i) => i !== index);
 };
 
@@ -233,7 +229,7 @@ const { lockFn: submitForm, isLock } = useLockFn(async () => {
                             class="h-8 w-8"
                             :text="$t('membership.console-membership.level.form.benefit.icon')"
                             icon=" "
-                            accept=".jpg,.png,.svg,.ico"
+                            accept=".jpg,.png,.ico"
                             :maxCount="1"
                             :single="true"
                             :showPreviewButton="false"

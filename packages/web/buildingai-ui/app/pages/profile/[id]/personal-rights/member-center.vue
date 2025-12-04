@@ -327,7 +327,10 @@ definePageMeta({
         <div v-if="state.membershipStatus" class="flex h-full flex-col space-y-4 px-6 pt-6">
             <div class="flex flex-1 flex-col space-y-8 overflow-y-auto">
                 <!-- 用户信息 -->
-                <div class="bg-muted flex items-center justify-between rounded-lg p-4">
+                <div
+                    v-if="memberCenterInfo?.userSubscription"
+                    class="bg-muted flex items-center justify-between rounded-lg p-4"
+                >
                     <div class="flex items-center gap-4">
                         <UAvatar :src="userStore.userInfo!.avatar" size="3xl" />
                         <div>
@@ -367,7 +370,7 @@ definePageMeta({
                                     class="text-primary cursor-pointer pl-4"
                                     @click="handleSubscription"
                                 >
-                                    订阅管理
+                                    {{ t("membership.frontend.center.subscriptionManagement") }}
                                 </div>
                             </div>
                         </div>
@@ -491,7 +494,15 @@ definePageMeta({
                                 class="flex items-center gap-1.5 text-xs"
                             >
                                 <UIcon
+                                    v-if="!benefit.icon"
                                     name="i-lucide-check"
+                                    class="text-muted-foreground shrink-0"
+                                    size="16"
+                                />
+                                <UAvatar
+                                    v-else
+                                    :src="benefit.icon"
+                                    size="3xs"
                                     class="text-muted-foreground shrink-0"
                                 />
                                 <span class="text-muted-foreground">

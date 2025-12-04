@@ -20,6 +20,8 @@ export interface MembershipBenefit {
     description?: string;
     /** 是否启用 */
     enabled: boolean;
+    /** 图标 */
+    icon?: string;
 }
 
 /**
