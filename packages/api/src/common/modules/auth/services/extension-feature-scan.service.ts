@@ -291,7 +291,6 @@ export class ExtensionFeatureScanService {
         const existingFeatures = await this.extensionFeatureRepository.find({
             where: { extensionId },
         });
-        const existingFeatureCodes = new Set(existingFeatures.map((f) => f.featureCode));
         const scannedFeatureCodes = new Set(features.map((f) => f.code));
 
         // 同步扫描到的功能
