@@ -206,11 +206,13 @@ export class PlansService extends BaseService<MembershipPlans> {
         const { id } = query;
 
         // 并行查询用户信息、订阅计划和用户订阅记录
-        const [user, plans, subscriptions] = await Promise.all([
+        const [user, membershipStatus, plans, subscriptions] = await Promise.all([
             this.userRepository.findOne({
                 where: { id: userId },
                 select: ["id", "userNo", "username", "avatar", "power"],
             }),
+            // 会员状态
+            this.dictService.get("membership_plans_status", false, "membership_config"),
             this.membershipPlansRepository.find({
                 where: id ? { id, status: true } : { status: true },
                 select: [
@@ -223,7 +225,7 @@ export class PlansService extends BaseService<MembershipPlans> {
                     "billing",
                     "duration",
                 ],
-                order: { sort: "DESC", label: "ASC" },
+                order: { sort: "DESC", createdAt: "DESC" },
             }),
             this.userSubscriptionRepository.find({
                 where: { userId },
@@ -273,7 +275,7 @@ export class PlansService extends BaseService<MembershipPlans> {
             where: {
                 id: In(Array.from(levelIds)),
             },
-            select: ["id", "name", "icon", "level", "givePower", "benefits"],
+            select: ["id", "name", "icon", "level", "givePower", "benefits", "description"],
         });
         const levelMap = new Map(levels.map((level) => [level.id, level]));
 
@@ -294,6 +296,7 @@ export class PlansService extends BaseService<MembershipPlans> {
 
         return {
             user,
+            membershipStatus,
             userSubscription,
             plans: plansWithLevels,
             payWayList,

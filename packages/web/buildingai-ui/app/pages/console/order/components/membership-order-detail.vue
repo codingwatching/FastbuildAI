@@ -65,7 +65,7 @@ const getOrderList = () => {
                     {{ t("order.backend.membership.detail.userInfo") }}
                 </div>
                 <div class="text-secondary-foreground mt-1 truncate">
-                    {{ order?.user?.username }}
+                    {{ order?.user?.nickname }}
                 </div>
             </div>
             <!-- 订单类型 -->

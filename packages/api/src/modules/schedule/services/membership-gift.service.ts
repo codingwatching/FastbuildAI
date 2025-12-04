@@ -13,9 +13,9 @@ import { LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from "typeorm"
  * 会员积分赠送定时任务服务
  *
  * 积分发放和清零逻辑:
- * - 用户购买会员后立即赠送积分,过期时间为下月同日
+ * - 用户购买会员后立即赠送积分,过期时间为 30 天后
  * - 每天检查当天需要清零的过期积分
- * - 每天检查当天需要发放新积分的订阅(基于订阅开始日期的日号)
+ * - 每天检查当天需要发放新积分的订阅(距离订阅开始日期是 30 的倍数天)
  */
 @Injectable()
 export class MembershipGiftService {
@@ -83,8 +83,21 @@ export class MembershipGiftService {
             // 1. 将过期积分记录的可用数量清零
             await entityManager.update(AccountLog, { id: log.id }, { availableAmount: 0 } as any);
 
-            // 2. 从用户总积分中扣除过期的积分
-            await entityManager.decrement(User, { id: log.userId }, "power", expiredAmount);
+            // 2. 从用户总积分中扣除过期的积分，并记录账户变动日志
+            await this.appBillingService.deductUserPower(
+                {
+                    userId: log.userId,
+                    amount: expiredAmount,
+                    accountType: ACCOUNT_LOG_TYPE.MEMBERSHIP_GIFT_EXPIRED,
+                    source: {
+                        type: ACCOUNT_LOG_SOURCE.MEMBERSHIP_GIFT,
+                        source: "订阅积分到期",
+                    },
+                    remark: `会员赠送积分到期清零：${expiredAmount}`,
+                    associationNo: log.accountNo || "",
+                },
+                entityManager,
+            );
 
             this.logger.log(`用户 ${log.userId} 过期积分 ${expiredAmount} 已清零`);
         });
@@ -92,7 +105,7 @@ export class MembershipGiftService {
 
     /**
      * 每天凌晨0点5分执行:为当天需要发放积分的会员发放新积分
-     * 发放条件:订阅开始日期的日号 == 今天的日号,且订阅仍在有效期内
+     * 发放条件:距离订阅开始日期是 30 的倍数天,且订阅仍在有效期内
      */
     @Cron("5 0 * * *", {
         name: "daily-gift-power-grant",
@@ -103,7 +116,7 @@ export class MembershipGiftService {
 
         try {
             const now = new Date();
-            const todayDay = now.getDate(); // 今天是几号
+            now.setHours(0, 0, 0, 0); // 归一化到当天 0 点
 
             // 查询所有有效的会员订阅
             const activeSubscriptions = await this.userSubscriptionRepository.find({
@@ -114,13 +127,15 @@ export class MembershipGiftService {
                 relations: ["level"],
             });
 
-            // 筛选出今天需要发放积分的订阅(订阅开始日期的日号 == 今天的日号)
+            // 筛选出今天需要发放积分的订阅(距离订阅开始日期是 30 的倍数天)
             const subscriptionsToGrant = activeSubscriptions.filter((sub) => {
-                const startDay = sub.startTime.getDate();
-                // 处理月末情况:如果订阅开始日期是31号,但本月只有30天,则在30号发放
-                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-                const effectiveStartDay = Math.min(startDay, daysInMonth);
-                return effectiveStartDay === todayDay;
+                const startTime = new Date(sub.startTime);
+                startTime.setHours(0, 0, 0, 0); // 归一化到 0 点
+                const diffDays = Math.floor(
+                    (now.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24),
+                );
+                // 距离订阅开始日期是 30 的倍数天(不包括第 0 天,因为购买时已发放)
+                return diffDays > 0 && diffDays % 30 === 0;
             });
 
             this.logger.log(`找到 ${subscriptionsToGrant.length} 个今日需要发放积分的会员订阅`);
@@ -152,9 +167,9 @@ export class MembershipGiftService {
             return;
         }
 
-        // 计算下月同日作为过期时间
+        // 计算 30 天后作为过期时间
         const now = new Date();
-        const expireAt = this.getNextMonthSameDay(now);
+        const expireAt = this.getNext30Days(now);
 
         // 发放新的临时积分(带过期时间)
         await this.appBillingService.addUserPower({
@@ -163,9 +178,9 @@ export class MembershipGiftService {
             userId: subscription.userId,
             source: {
                 type: ACCOUNT_LOG_SOURCE.MEMBERSHIP_GIFT,
-                source: "会员月度赠送",
+                source: "会员周期赠送",
             },
-            remark: `会员月度赠送临时积分：${givePower}`,
+            remark: `会员周期赠送临时积分：${givePower}`,
             associationNo: subscription.orderId || "",
             expireAt,
         });
@@ -176,28 +191,13 @@ export class MembershipGiftService {
     }
 
     /**
-     * 获取下月同日的时间
-     * 如果下月没有该日期(如1月31日->2月),则取下月最后一天
+     * 获取 30 天后的时间
      * @param date 日期
-     * @returns 下月同日的0点时间
+     * @returns 30 天后的 0 点时间
      */
-    private getNextMonthSameDay(date: Date): Date {
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const day = date.getDate();
-
-        // 计算下月
-        const nextMonth = month + 1;
-        const nextYear = nextMonth > 11 ? year + 1 : year;
-        const actualNextMonth = nextMonth > 11 ? 0 : nextMonth;
-
-        // 获取下月的天数
-        const daysInNextMonth = new Date(nextYear, actualNextMonth + 1, 0).getDate();
-
-        // 如果下月没有该日期,取下月最后一天
-        const actualDay = Math.min(day, daysInNextMonth);
-
-        const nextDate = new Date(nextYear, actualNextMonth, actualDay);
+    private getNext30Days(date: Date): Date {
+        const nextDate = new Date(date);
+        nextDate.setDate(nextDate.getDate() + 30);
         nextDate.setHours(0, 0, 0, 0);
         return nextDate;
     }

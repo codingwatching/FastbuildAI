@@ -12,7 +12,7 @@ import type { PaginationResult } from "../models/globals";
  * 会员订单用户信息
  */
 export interface MembershipOrderUser {
-    username: string;
+    nickname: string;
     avatar: string;
 }
 

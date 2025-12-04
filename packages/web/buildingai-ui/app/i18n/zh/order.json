@@ -21,9 +21,9 @@
                 "pageTitle": "会员订单列表",
                 "orderNo": "订单号",
                 "user": "用户",
-                "planName": "会员套餐",
+                "planName": "订阅计划",
                 "levelName": "会员等级",
-                "duration": "会员时长",
+                "duration": "订阅时长",
                 "orderAmount": "实付金额",
                 "paymentMethod": "支付方式",
                 "paymentStatus": "支付状态",
@@ -109,6 +109,24 @@
                 "paidInAmount": "实付款",
                 "paymentMethod": "支付方式",
                 "createdAt": "下单时间",
+                "refunded": "已退款",
+                "wechat": "微信支付",
+                "alipay": "支付宝支付"
+            }
+        },
+        "subscription": {
+            "tab": {
+                "recharge": "充值记录",
+                "subscription": "订阅记录"
+            },
+            "list": {
+                "orderNo": "订单编号",
+                "planName": "订阅计划",
+                "levelName": "会员等级",
+                "duration": "订阅时长",
+                "paidInAmount": "实付款",
+                "paymentMethod": "支付方式",
+                "createdAt": "购买时间",
                 "refunded": "已退款",
                 "wechat": "微信支付",
                 "alipay": "支付宝支付"

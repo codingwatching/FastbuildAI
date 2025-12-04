@@ -49,6 +49,15 @@ export class UserSubscription extends BaseEntity {
     user: User;
 
     /**
+     * 来源 0-系统 1-订单
+     */
+    @Column({
+        type: "int",
+        comment: "来源",
+    })
+    source: number;
+
+    /**
      * 关联的会员等级
      */
     @ManyToOne(() => MembershipLevels, { nullable: true })

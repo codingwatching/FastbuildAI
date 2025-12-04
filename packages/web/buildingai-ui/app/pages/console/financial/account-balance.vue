@@ -22,6 +22,8 @@ const ACCOUNT_TYPE_OPTIONS = [
     { label: "financial.accountBalance.agentConversation", value: "400" },
     { label: "financial.accountBalance.sharedAgentConversation", value: "401" },
     { label: "financial.accountBalance.pluginConsumption", value: "500" },
+    { label: "financial.accountBalance.membershipGift", value: "600" },
+    { label: "financial.accountBalance.membershipGiftExpire", value: "602" },
 ] as const;
 
 const searchForm = shallowReactive({

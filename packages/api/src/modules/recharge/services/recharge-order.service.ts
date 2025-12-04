@@ -77,7 +77,7 @@ export class RechargeOrderService extends BaseService<RechargeOrder> {
             "recharge-order.payTime",
             "recharge-order.createdAt",
             "recharge-order.orderAmount",
-            "user.username",
+            "user.nickname",
             "user.avatar",
         ]);
         const payWayList = await this.payconfigRepository.find({

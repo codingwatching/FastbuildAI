@@ -4,6 +4,8 @@ export { SeedRunner } from "./seed-runner";
 export { AiModelSeeder } from "./seeders/ai-model.seeder";
 export { AiProviderSeeder } from "./seeders/ai-provider.seeder";
 export { ExtensionSeeder } from "./seeders/extension.seeder";
+export { MembershipLevelsSeeder } from "./seeders/membership-levels.seeder";
+export { MembershipPlansSeeder } from "./seeders/membership-plans.seeder";
 export { PageSeeder } from "./seeders/page.seeder";
 export { PayConfigSeeder } from "./seeders/payconfig.seeder";
 export { SecretTemplateSeeder } from "./seeders/secret-template.seeder";

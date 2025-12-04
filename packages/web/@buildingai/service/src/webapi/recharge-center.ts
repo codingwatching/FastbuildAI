@@ -134,6 +134,8 @@ export interface PayResult extends BaseEntity {
     orderNo: string;
     /** Payment status: 0-unpaid, 1-paid */
     payStatus: number;
+    /** Payment state: 0-unpaid, 1-paid */
+    payState: number;
 }
 
 // ==================== Recharge Center Related APIs ====================

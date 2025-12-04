@@ -54,6 +54,7 @@ export class MembershipLevels extends BaseEntity {
         type: "varchar",
         length: 255,
         comment: "会员等级描述",
+        nullable: true,
     })
     description: string;
 

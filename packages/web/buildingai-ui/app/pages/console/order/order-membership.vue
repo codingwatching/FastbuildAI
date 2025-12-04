@@ -20,6 +20,7 @@ const MembershipOrderDetail = defineAsyncComponent(
 const TimeDisplay = resolveComponent("TimeDisplay");
 const UButton = resolveComponent("UButton");
 const UDropdownMenu = resolveComponent("UDropdownMenu");
+const UAvatar = resolveComponent("UAvatar");
 
 const { t } = useI18n();
 const { hasAccessByCodes } = useAccessControl();
@@ -89,7 +90,11 @@ const columns: TableColumn<MembershipOrderListItem>[] = [
     {
         accessorKey: "user",
         header: t("order.backend.membership.list.user"),
-        cell: ({ row }) => row.original.user?.username || "-",
+        cell: ({ row }) =>
+            h("div", { class: "flex items-center gap-2" }, [
+                h(UAvatar, { src: row.original.user.avatar }),
+                row.original.user.nickname,
+            ]),
     },
     {
         accessorKey: "planSnap",

@@ -20,8 +20,8 @@ export interface Duration {
 export interface Billing {
     levelId: string;
     salesPrice: number;
-    originalPrice: number;
-    label: string;
+    originalPrice?: number;
+    label?: string;
     status: boolean;
 }
 

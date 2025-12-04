@@ -62,6 +62,24 @@
                 "wechat": "WeChat Pay",
                 "alipay": "Alipay"
             }
+        },
+        "subscription": {
+            "tab": {
+                "recharge": "Recharge Records",
+                "subscription": "Subscription Records"
+            },
+            "list": {
+                "orderNo": "Order No",
+                "planName": "Subscription Plan",
+                "levelName": "Membership Level",
+                "duration": "Duration",
+                "paidInAmount": "Amount Paid",
+                "paymentMethod": "Payment Method",
+                "createdAt": "Purchase Time",
+                "refunded": "Refunded",
+                "wechat": "WeChat Pay",
+                "alipay": "Alipay"
+            }
         }
     }
 }

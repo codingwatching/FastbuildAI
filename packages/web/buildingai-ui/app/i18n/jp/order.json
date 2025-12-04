@@ -62,6 +62,24 @@
                 "wechat": "WeChat Pay",
                 "alipay": "Alipay"
             }
+        },
+        "subscription": {
+            "tab": {
+                "recharge": "チャージ履歴",
+                "subscription": "購読履歴"
+            },
+            "list": {
+                "orderNo": "注文番号",
+                "planName": "購読プラン",
+                "levelName": "会員レベル",
+                "duration": "購読期間",
+                "paidInAmount": "実支払額",
+                "paymentMethod": "支払い方法",
+                "createdAt": "購入日時",
+                "refunded": "返金済み",
+                "wechat": "WeChat Pay",
+                "alipay": "Alipay"
+            }
         }
     }
 }

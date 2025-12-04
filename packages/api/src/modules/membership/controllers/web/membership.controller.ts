@@ -1,6 +1,7 @@
 import { BaseController } from "@buildingai/base";
 import { type UserPlayground } from "@buildingai/db";
 import { BuildFileUrl, Playground, Public } from "@buildingai/decorators";
+import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import { WebController } from "@common/decorators/controller.decorator";
 import { QueryPlansDto } from "@modules/membership/dto/query-plans.dto";
 import { SubmitMembershipOrderDto } from "@modules/membership/dto/submit-order.dto";
@@ -69,5 +70,30 @@ export class MembershipWebController extends BaseController {
             order: { level: "ASC" },
             select: ["id", "name", "level", "icon", "description", "givePower", "benefits"],
         });
+    }
+
+    /**
+     * 获取用户订阅记录列表
+     *
+     * @description 获取当前用户的会员订阅记录（仅已支付订单）
+     * @returns 订阅记录列表
+     */
+    @Get("order/lists")
+    async orderLists(@Query() query: PaginationDto, @Playground() user: UserPlayground) {
+        return this.membershipOrderService.userOrderLists(user.id, query);
+    }
+
+    /**
+     * 获取用户订阅列表
+     *
+     * @description 获取当前用户的所有订阅记录（包含会员等级、有效期等信息）
+     * @param query 分页参数
+     * @param user 当前用户
+     * @returns 用户订阅列表
+     */
+    @Get("subscriptions")
+    @BuildFileUrl(["***.icon"])
+    async subscriptions(@Query() query: PaginationDto, @Playground() user: UserPlayground) {
+        return this.membershipOrderService.userSubscriptionLists(user.id, query);
     }
 }
