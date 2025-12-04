@@ -15,7 +15,6 @@ import {
     apiEnableExtension,
     apiGetExtensionList,
     apiInstallExtension,
-    apiSyncExtensionMemberFeatures,
     apiUninstallExtension,
     apiUpgradeExtension,
 } from "@buildingai/service/consoleapi/extensions";
@@ -170,25 +169,6 @@ const handleDisable = async (extension: ExtensionFormData) => {
         toast.success(t("console-common.messages.success"));
     } catch (error) {
         console.error("禁用插件失败:", error);
-    }
-};
-
-const syncingMap = reactive<Record<string, boolean>>({});
-
-const handleSyncMemberFeatures = async (extension: ExtensionFormData) => {
-    if (syncingMap[extension.identifier]) {
-        return;
-    }
-
-    try {
-        syncingMap[extension.identifier] = true;
-        const result = await apiSyncExtensionMemberFeatures(extension.identifier);
-        toast.success(result.message);
-    } catch (error) {
-        console.error("同步会员功能失败:", error);
-        toast.error(t("console-common.messages.failed"));
-    } finally {
-        syncingMap[extension.identifier] = false;
     }
 };
 
@@ -525,15 +505,6 @@ onMounted(() => getLists());
                                                           onSelect: () =>
                                                               handleChangelogExtension(extension),
                                                       },
-                                                {
-                                                    label: t(
-                                                        'extensions.manage.syncMemberFeatures',
-                                                    ),
-                                                    icon: 'i-lucide-refresh-cw',
-                                                    disabled: syncingMap[extension.identifier],
-                                                    onSelect: () =>
-                                                        handleSyncMemberFeatures(extension),
-                                                },
                                                 {
                                                     label: t('extensions.manage.featureConfig'),
                                                     icon: 'i-lucide-settings',

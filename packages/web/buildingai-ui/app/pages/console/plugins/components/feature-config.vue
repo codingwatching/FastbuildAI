@@ -118,7 +118,6 @@ onMounted(loadFeatures);
                 >
                     <UIcon name="i-lucide-box" class="mb-3 h-10 w-10 opacity-50" />
                     <span class="text-sm">{{ t("extensions.featureConfig.empty") }}</span>
-                    <span class="mt-1 text-xs">{{ t("extensions.featureConfig.emptyTip") }}</span>
                 </div>
 
                 <!-- 功能列表 -->
