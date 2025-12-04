@@ -12,11 +12,13 @@ import {
     ChatCompletionCommandHandler,
     ConversationCommandHandler,
     McpServerCommandHandler,
+    McpToolError,
     MembershipValidationCommandHandler,
     MessageContextCommandHandler,
     ModelValidationCommandHandler,
     PowerDeductionCommandHandler,
     TitleGenerationCommandHandler,
+    UserCancelledError,
     UserPowerValidationCommandHandler,
 } from "@modules/ai/chat/handlers";
 import { Body, Post, Res } from "@nestjs/common";
@@ -214,6 +216,19 @@ export class AiChatMessageWebController extends BaseController {
         let mcpServers: any[] = [];
         const mcpToolCalls: any[] = [];
 
+        // Create AbortController for cancellation
+        const abortController = new AbortController();
+        let isClientDisconnected = false;
+
+        // Listen for client disconnect
+        res.on("close", () => {
+            if (!res.writableEnded) {
+                isClientDisconnected = true;
+                this.logger.debug("🔌 客户端断开连接，取消请求");
+                abortController.abort();
+            }
+        });
+
         try {
             // 1. 获取并验证用户积分（提前验证）
             const model = await this.modelValidationHandler.getAndValidateModel(dto.modelId);
@@ -296,6 +311,7 @@ export class AiChatMessageWebController extends BaseController {
                     toolToServerMap,
                 },
                 res,
+                abortController.signal,
             );
 
             mcpToolCalls.push(...toolCalls);
@@ -366,12 +382,60 @@ export class AiChatMessageWebController extends BaseController {
             res.write("data: [DONE]\n\n");
             res.end();
         } catch (error) {
-            this.logger.error(`流式聊天对话失败: ${error.message}`, error.stack);
-
-            // 清理MCP连接
+            // Clean up MCP connections
             await this.mcpServerHandler.cleanupMcpServers(mcpServers);
 
-            // 保存错误消息
+            // Handle user cancellation - just end silently
+            if (error instanceof UserCancelledError || isClientDisconnected) {
+                this.logger.debug("🚫 User cancelled the request, ending silently");
+                if (!res.writableEnded) {
+                    try {
+                        res.end();
+                    } catch {
+                        // Ignore write errors on closed connection
+                    }
+                }
+                return;
+            }
+
+            // Handle MCP tool error
+            if (error instanceof McpToolError) {
+                this.logger.error(`MCP 工具调用失败: ${error.toolName} - ${error.message}`);
+
+                // Save error message if conversation exists
+                if (conversationId) {
+                    await this.conversationHandler.saveAssistantMessage({
+                        conversationId,
+                        modelId: dto.modelId,
+                        content: "",
+                        userConsumedPower: 0,
+                        tokens: {
+                            prompt_tokens: 0,
+                            completion_tokens: 0,
+                            total_tokens: 0,
+                        },
+                        rawResponse: error.mcpToolCall,
+                        mcpToolCalls,
+                        errorMessage: error.message,
+                    });
+                }
+
+                // Send done signal (error already sent via mcp_tool_error event)
+                try {
+                    if (!res.writableEnded) {
+                        res.write("data: [DONE]\n\n");
+                        res.end();
+                    }
+                } catch {
+                    // Ignore write errors
+                }
+                return;
+            }
+
+            // Handle other errors
+            this.logger.error(`流式聊天对话失败: ${error.message}`, error.stack);
+
+            // Save error message
             if (conversationId) {
                 await this.conversationHandler.saveAssistantMessage({
                     conversationId,
@@ -389,19 +453,21 @@ export class AiChatMessageWebController extends BaseController {
                 });
             }
 
-            // 通过SSE流发送错误信息
+            // Send error via SSE
             try {
-                res.write(
-                    `data: ${JSON.stringify({
-                        type: "error",
-                        data: {
-                            message: error.message,
-                            code: error.code || "INTERNAL_ERROR",
-                        },
-                    })}\n\n`,
-                );
-                res.write("data: [DONE]\n\n");
-                res.end();
+                if (!res.writableEnded) {
+                    res.write(
+                        `data: ${JSON.stringify({
+                            type: "error",
+                            data: {
+                                message: error.message,
+                                code: error.code || "INTERNAL_ERROR",
+                            },
+                        })}\n\n`,
+                    );
+                    res.write("data: [DONE]\n\n");
+                    res.end();
+                }
             } catch (writeError) {
                 this.logger.error("发送错误信息失败:", writeError);
                 throw HttpErrorFactory.badRequest(error.message);

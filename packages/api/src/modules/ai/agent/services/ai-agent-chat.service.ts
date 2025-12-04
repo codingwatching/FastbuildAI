@@ -86,6 +86,21 @@ export class AiAgentChatService extends BaseService<AgentChatRecord> {
             this.setupStreamingHeaders(res!);
         }
 
+        // Create AbortController for cancellation (streaming mode only)
+        const abortController = responseMode === "streaming" ? new AbortController() : null;
+        let isClientDisconnected = false;
+
+        // Listen for client disconnect (streaming mode only)
+        if (responseMode === "streaming" && res) {
+            res.on("close", () => {
+                if (!res.writableEnded) {
+                    isClientDisconnected = true;
+                    this.logger.debug("🔌 Client disconnected, cancelling request");
+                    abortController?.abort();
+                }
+            });
+        }
+
         // 获取智能体信息
         const agentInfo = await this.AiAgentService.findOneById(agentId);
         if (!agentInfo) {
@@ -210,6 +225,8 @@ export class AiAgentChatService extends BaseService<AgentChatRecord> {
             updatedLastUserMessage,
             startTime,
             res,
+            abortController,
+            () => isClientDisconnected,
         );
     }
 
@@ -227,6 +244,8 @@ export class AiAgentChatService extends BaseService<AgentChatRecord> {
         lastUserMessage: ChatMessage | string | undefined,
         startTime: number,
         res?: Response,
+        abortController?: AbortController | null,
+        getIsClientDisconnected?: () => boolean,
     ): Promise<AgentChatResponse | void> {
         // 检查模型配置
         if (!finalConfig.modelConfig?.id) {
@@ -293,6 +312,7 @@ export class AiAgentChatService extends BaseService<AgentChatRecord> {
             tools,
             toolToServerMap,
             mcpServers,
+            abortSignal: abortController?.signal,
         };
 
         try {
@@ -328,6 +348,12 @@ export class AiAgentChatService extends BaseService<AgentChatRecord> {
 
             return result;
         } catch (error) {
+            // Handle user cancellation silently
+            if (getIsClientDisconnected?.()) {
+                this.logger.debug("🚫 User cancelled the request, ending silently");
+                return;
+            }
+
             this.logger.error(`智能体对话失败: ${error.message}`);
 
             if (responseMode === "streaming") {

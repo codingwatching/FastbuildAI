@@ -485,11 +485,7 @@ watch(
                                             color="info"
                                             size="xs"
                                         >
-                                            <UIcon
-                                                name="i-lucide-image-play"
-                                                class="mr-1"
-                                                size="xs"
-                                            />
+                                            <UIcon name="i-lucide-image-play" size="xs" />
                                             {{ $t("common.ai.vision") }}
                                         </UBadge>
                                         <UBadge

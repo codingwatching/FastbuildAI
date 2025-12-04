@@ -75,7 +75,7 @@ const isActive = (path: string): boolean => {
                 </div>
 
                 <!-- 中间菜单区域 - 可滚动 -->
-                <div class="flex-1 overflow-y-auto px-2 py-2">
+                <BdScrollArea class="flex-1 px-2 py-2" :shadow="false">
                     <div class="flex flex-col items-center gap-5">
                         <template v-for="item in sidebarMenus" :key="item.path">
                             <!-- 普通菜单项 -->
@@ -99,7 +99,7 @@ const isActive = (path: string): boolean => {
                             </SmartLink>
                         </template>
                     </div>
-                </div>
+                </BdScrollArea>
 
                 <!-- 底部区域 - 固定 -->
                 <div class="flex flex-none flex-col items-center gap-6 py-4">

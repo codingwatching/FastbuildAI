@@ -5,7 +5,11 @@
  */
 
 export type { ChatCompletionResult } from "./chat-completion.handler";
-export { ChatCompletionCommandHandler } from "./chat-completion.handler";
+export {
+    ChatCompletionCommandHandler,
+    McpToolError,
+    UserCancelledError,
+} from "./chat-completion.handler";
 export { ConversationCommandHandler } from "./conversation.handler";
 export type { McpServerInitResult } from "./mcp-server.handler";
 export { McpServerCommandHandler } from "./mcp-server.handler";

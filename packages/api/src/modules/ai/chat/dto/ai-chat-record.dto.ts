@@ -314,7 +314,7 @@ export class CreateMessageDto {
     /**
      * 消息内容
      */
-    @IsNotEmpty({ message: "消息内容不能为空" })
+    @IsOptional()
     content: MessageContent;
 
     /**
