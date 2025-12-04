@@ -258,6 +258,42 @@ export function apiGetExtensionByIdentifier(identifier: string): Promise<Extensi
 }
 
 /**
+ * Plugin layout configuration interface
+ * @description Interface for plugin layout configuration returned from backend
+ */
+export interface PluginLayoutConfig {
+    /** Plugin manifest.json content */
+    manifest: {
+        identifier: string;
+        name: string;
+        type: string;
+        version: string;
+        description: string;
+        homepage?: string;
+        author?: {
+            name: string;
+            homepage: string;
+        };
+        changelog?: any[];
+    } | null;
+    /** Console menu configuration array */
+    consoleMenu: any[] | null;
+}
+
+/**
+ * Get extension plugin layout configuration
+ * @description Retrieves router.options and manifest.json for plugin layout
+ * @param identifier Extension identifier
+ * @returns Promise with plugin layout configuration
+ */
+export function apiGetExtensionPluginLayout(
+    identifier: string,
+): Promise<PluginLayoutConfig> {
+    return useConsoleGet(`/extensions/${identifier}/plugin-layout`);
+}
+
+
+/**
  * Check extension identifier existence
  * @description Checks if a extension identifier already exists
  * @param identifier Extension identifier to check

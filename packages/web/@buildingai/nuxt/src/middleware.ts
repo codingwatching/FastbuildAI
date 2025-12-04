@@ -57,6 +57,58 @@ export function recordPluginUse(path: string, pluginName: string) {
     }
 }
 
+export function enableExtensionUrlSync(): void {
+    if (typeof window === "undefined" || !import.meta.client) {
+        return;
+    }
+
+    try {
+        if (window.self === window.top) {
+            return;
+        }
+    } catch {
+        // Cross-origin iframe
+    }
+
+    const pathMatch = window.location.pathname.match(/^\/extension\/([^/]+)/);
+    if (!pathMatch) {
+        return;
+    }
+
+    const extensionId = pathMatch[1];
+
+    const syncUrl = () => {
+        try {
+            const currentPath = window.location.pathname;
+            const internalPath = currentPath
+                .replace(`/extension/${extensionId}`, "")
+                .replace(/^\/+/, "");
+
+            window.parent.postMessage(
+                {
+                    type: "extension-navigation",
+                    path: internalPath,
+                },
+                "*",
+            );
+        } catch {
+            // Ignore errors
+        }
+    };
+
+    const route = useRoute();
+    watch(
+        () => route.path,
+        () => {
+            syncUrl();
+        },
+    );
+
+    nextTick(() => {
+        syncUrl();
+    });
+}
+
 /**
  * Default authentication handler
  * @param to - Target route
@@ -142,8 +194,15 @@ export function defineBuildingAIRouteMiddleware(
         const permissionStore = usePermissionStore();
         const userStore = useUserStore();
 
-        console.log("useRuntimeConfig().public.pluginName", useRuntimeConfig().public.pluginName);
-        recordPluginUse(to.path, useRuntimeConfig().public.pluginName as string);
+        if (
+            process.env.NODE_ENV === "production" &&
+            !to.path.includes("/console") &&
+            !to.path.includes("/buildingai-middleware")
+        ) {
+            console.log("enableExtensionUrlSync", to.path);
+            enableExtensionUrlSync();
+            setPageLayout("full-screen");
+        }
 
         // =============================================
         // 1. Check system initialization status

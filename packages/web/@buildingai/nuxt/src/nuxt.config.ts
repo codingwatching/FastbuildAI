@@ -418,7 +418,7 @@ export function defineBuildingAIExtensionConfig(
         srcDir: "src/web/",
         app: {
             ...mergedConfig.app,
-            baseURL: `/extensions/${extension}`,
+            baseURL: `/extension/${extension}`,
         },
         runtimeConfig: {
             ...mergedConfig.runtimeConfig,
