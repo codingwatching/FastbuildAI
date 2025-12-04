@@ -224,6 +224,10 @@ const handleLocal = async (extension: ExtensionFormData, flag: boolean) => {
     }
 };
 
+const toStore = () => {
+    window.open("https://buildingai.cc/plugin");
+};
+
 const handleDetailExtension = (extension: ExtensionFormData) => {
     const modal = overlay.create(ExtensionDetailDrawer);
     modal.open({
@@ -298,38 +302,35 @@ onMounted(() => getLists());
         <!-- Empty state -->
         <div
             v-if="!paging.loading && paging.items.length === 0"
-            class="flex h-[calc(100vh-12rem)] flex-col items-center justify-center"
+            class="relative grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
-            <UIcon name="i-lucide-puzzle" class="text-muted-foreground mb-4 size-10" />
-            <h3 class="text-secondary-foreground mb-2 text-lg font-medium">
-                {{ t("extensions.manage.empty.title") }}
-            </h3>
-            <p class="text-accent-foreground mb-4">
-                {{ t("extensions.manage.empty.description") }}
-            </p>
-            <div class="flex gap-2">
-                <UButton
-                    icon="i-lucide-plus"
-                    color="primary"
-                    variant="outline"
-                    :ui="{
-                        leadingIcon: 'size-4',
-                    }"
-                    @click="handleLocal({} as ExtensionFormData, false)"
-                >
-                    {{ t("extensions.manage.add") }}
-                </UButton>
-                <UButton
-                    trailing-icon="i-lucide-external-link"
-                    :ui="{
-                        trailingIcon: 'size-4',
-                        leadingIcon: 'size-4',
-                    }"
-                    color="primary"
-                    @click="handleLocal({} as ExtensionFormData, false)"
-                >
-                    {{ t("extensions.manage.store") }}
-                </UButton>
+            <div class="z-10 h-[170px] rounded-lg border border-dashed p-4">
+                <div class="flex flex-col">
+                    <h3 class="text-muted-foreground pb-2 pl-2 text-xs font-bold">
+                        {{ t("extensions.manage.add") }}
+                    </h3>
+                    <div
+                        class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
+                        @click="handleLocal({} as ExtensionFormData, false)"
+                    >
+                        <UIcon name="i-lucide-file-plus-2" class="mr-2 size-4" />
+                        <span>{{ t("extensions.manage.add") }}</span>
+                    </div>
+                    <div
+                        class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
+                        @click="toStore"
+                    >
+                        <UIcon name="i-lucide-external-link" class="mr-2 size-4" />
+                        <span>{{ t("extensions.manage.store") }}</span>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="absolute top-0 right-0 bottom-0 left-0 flex h-[calc(100vh-12rem)] items-center justify-center"
+            >
+                <span class="text-muted-foreground text-sm font-medium">
+                    {{ t("extensions.manage.empty.title") }}
+                </span>
             </div>
         </div>
 
@@ -346,6 +347,27 @@ onMounted(() => getLists());
                         class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                     >
                         <!-- Extension Cards -->
+                        <div class="h-[170px] rounded-lg border border-dashed p-4">
+                            <div class="flex flex-col">
+                                <h3 class="text-muted-foreground pb-2 pl-2 text-xs font-bold">
+                                    {{ t("extensions.manage.add") }}
+                                </h3>
+                                <div
+                                    class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
+                                    @click="handleLocal({} as ExtensionFormData, false)"
+                                >
+                                    <UIcon name="i-lucide-file-plus-2" class="mr-2 size-4" />
+                                    <span>{{ t("extensions.manage.add") }}</span>
+                                </div>
+                                <div
+                                    class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
+                                    @click="toStore"
+                                >
+                                    <UIcon name="i-lucide-external-link" class="mr-2 size-4" />
+                                    <span>{{ t("extensions.manage.store") }}</span>
+                                </div>
+                            </div>
+                        </div>
                         <div
                             v-for="extension in paging.items"
                             :key="extension.id"
