@@ -92,7 +92,7 @@ export const useLayoutStore = defineStore("layout", () => {
     return {
         // 状态
         currentLayoutId: readonly(currentLayoutId),
-        currentMenus: readonly(currentMenus),
+        currentMenus: currentMenus,
 
         // 计算属性
         currentLayoutStyle,
