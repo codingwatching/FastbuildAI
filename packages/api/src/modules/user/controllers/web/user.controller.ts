@@ -1,6 +1,6 @@
 import { BaseService } from "@buildingai/base";
 import { BaseController } from "@buildingai/base";
-import { LOGIN_TYPE } from "@buildingai/constants";
+import { ACCOUNT_LOG_TYPE, LOGIN_TYPE } from "@buildingai/constants";
 import {
     ACCOUNT_LOG_SOURCE,
     ACCOUNT_LOG_TYPE_DESCRIPTION,
@@ -9,7 +9,15 @@ import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { Agent, UserSubscription } from "@buildingai/db/entities";
 import { AccountLog } from "@buildingai/db/entities";
-import { In, IsNull, Like, MoreThan, Not, Repository } from "@buildingai/db/typeorm";
+import {
+    In,
+    IsNull,
+    Like,
+    MoreThan,
+    MoreThanOrEqual,
+    Not,
+    Repository,
+} from "@buildingai/db/typeorm";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
@@ -268,6 +276,21 @@ export class UserWebController extends BaseController {
             select: ["power"],
         });
 
+        // 获取订阅积分（所有未过期记录的 availableAmount 总和）
+        const now = new Date();
+        const membershipGiftLogs = await this.accountLogService.findAll({
+            where: {
+                userId: user.id,
+                accountType: ACCOUNT_LOG_TYPE.MEMBERSHIP_GIFT_INC,
+                expireAt: MoreThanOrEqual(now),
+                availableAmount: MoreThan(0),
+            } as any,
+        });
+        const membershipGiftPower = membershipGiftLogs.reduce(
+            (sum, log) => sum + ((log as any).availableAmount || 0),
+            0,
+        );
+
         // 使用 paginate 方法进行分页查询
         const lists = await this.accountLogService.paginate(accountLogDto, {
             where,
@@ -335,7 +358,14 @@ export class UserWebController extends BaseController {
             return { ...accountLog, accountTypeDesc, consumeSourceDesc };
         });
 
-        return { ...lists, userInfo };
+        return {
+            ...lists,
+            extend: {
+                ...userInfo,
+                membershipGiftPower,
+                rechargePower: userInfo.power - membershipGiftPower,
+            },
+        };
     }
 
     /**

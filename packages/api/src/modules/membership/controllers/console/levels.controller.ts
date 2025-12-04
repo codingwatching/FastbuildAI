@@ -76,6 +76,7 @@ export class LevelsConsoleController extends BaseController {
         name: "获取会员等级详情",
         description: "获取会员等级详情",
     })
+    @BuildFileUrl(["icon", "benefits.*.icon"])
     async detail(@Param("id", UUIDValidationPipe) id) {
         return this.levelsService.detail(id);
     }

@@ -20,6 +20,8 @@ export interface MembershipBenefit {
     description?: string;
     /** 是否启用 */
     enabled: boolean;
+    /** 图标 */
+    icon?: string;
 }
 
 /**
@@ -137,6 +139,8 @@ export interface MemberCenterInfo {
     plans: MembershipPlan[];
     /** 支付方式列表 */
     payWayList: PayWay[];
+    /** 订阅套餐状态 */
+    membershipStatus: boolean;
 }
 
 /**
@@ -195,4 +199,78 @@ export const apiSubmitMembershipOrder = (
  */
 export const apiGetMembershipLevels = (): Promise<MembershipLevel[]> => {
     return useWebGet("/membership/levels");
+};
+
+// ==================== User Subscription Related Types ====================
+
+/**
+ * 用户订阅列表项
+ * @description 用户订阅记录的详细信息
+ */
+export interface UserSubscriptionItem {
+    /** 订阅ID */
+    id: string;
+    /** 会员等级信息 */
+    level: {
+        /** 等级ID */
+        id: string;
+        /** 等级名称 */
+        name: string;
+        /** 等级图标 */
+        icon: string;
+        /** 等级级别 */
+        level: number;
+    } | null;
+    /** 开始时间 */
+    startTime: string;
+    /** 结束时间 */
+    endTime: string;
+    /** 来源: 0-系统赠送, 1-订单购买 */
+    source: number;
+    /** 来源描述 */
+    sourceDesc: string;
+    /** 订阅时长 */
+    duration: string | null;
+    /** 是否过期 */
+    isExpired: boolean;
+    /** 创建时间 */
+    createdAt: string;
+}
+
+/**
+ * 用户订阅列表响应
+ */
+export interface UserSubscriptionListResult {
+    /** 订阅列表 */
+    items: UserSubscriptionItem[];
+    /** 总数 */
+    total: number;
+    /** 当前页 */
+    page: number;
+    /** 每页数量 */
+    pageSize: number;
+}
+
+/**
+ * 用户订阅列表查询参数
+ */
+export interface UserSubscriptionQueryParams {
+    /** 页码 */
+    page?: number;
+    /** 每页数量 */
+    pageSize?: number;
+}
+
+// ==================== User Subscription Related APIs ====================
+
+/**
+ * 获取用户订阅列表
+ * @description 获取当前用户的所有订阅记录（包含会员等级、有效期等信息）
+ * @param params 分页参数
+ * @returns Promise with user subscription list
+ */
+export const apiGetUserSubscriptions = (
+    params?: UserSubscriptionQueryParams,
+): Promise<UserSubscriptionListResult> => {
+    return useWebGet("/membership/subscriptions", params);
 };

@@ -324,6 +324,7 @@ export class PayService extends BaseService<Payconfig> {
                 orderId: order.id,
                 startTime: now,
                 endTime: endTime,
+                source: 1,
             });
 
             // 立即赠送临时积分(过期时间为下月同日)

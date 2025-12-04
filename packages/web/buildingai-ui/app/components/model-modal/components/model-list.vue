@@ -129,7 +129,10 @@ const handleBatchEdit = async () => {
 };
 
 const handleBillingSetting = async () => {
-    if (selectedModels.value.size === 0) return;
+    if (selectedModels.value.size === 0) {
+        toast.warning(t("ai-provider.backend.messages.selectModel"));
+        return;
+    }
 
     const modal = overlay.create(ModelBillingSetting);
     const instance = modal.open({
@@ -387,7 +390,7 @@ watch(
                         size="sm"
                         @click="() => handleBillingSetting()"
                     >
-                        计费设置
+                        {{ t("ai-provider.backend.model.billingSetting") }}
                     </UButton>
                 </AccessControl>
                 <AccessControl :codes="['ai-models:create']">

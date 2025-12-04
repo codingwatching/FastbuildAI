@@ -5,6 +5,8 @@ import {
     AiModelSeeder,
     AiProviderSeeder,
     ExtensionSeeder,
+    MembershipLevelsSeeder,
+    MembershipPlansSeeder,
     MenuSeeder,
     PageSeeder,
     PayConfigSeeder,
@@ -122,6 +124,8 @@ export class DatabaseInitService implements OnModuleInit {
             new AiProviderSeeder(), // AI providers
             new AiModelSeeder(), // AI models
             new SecretTemplateSeeder(), // Secret templates
+            new MembershipLevelsSeeder(), // Membership levels
+            new MembershipPlansSeeder(), // Membership plans
         ]);
     }
 

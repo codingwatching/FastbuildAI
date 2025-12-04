@@ -184,22 +184,36 @@ async function confirmEditSort(item: Plan) {
  * 获取订阅时长文本
  */
 function getDurationText(durationConfig: number, duration: Duration) {
-    switch (durationConfig) {
-        case 1:
-            return $t("membership.console-membership.plan.duration.month");
-        case 2:
-            return $t("membership.console-membership.plan.duration.quarter");
-        case 3:
-            return $t("membership.console-membership.plan.duration.half");
-        case 4:
-            return $t("membership.console-membership.plan.duration.year");
-        case 5:
-            return $t("membership.console-membership.plan.duration.forever");
-        case 6:
-            return `${duration.value} ${duration.unit}`;
-        default:
-            return "";
+    const durationMapping: Record<number, string> = {
+        1: "membership.console-membership.plan.duration.month", // 单月购买
+        2: "membership.console-membership.plan.duration.quarter", // 季度购买
+        3: "membership.console-membership.plan.duration.half", // 半年购买
+        4: "membership.console-membership.plan.duration.year", // 年度购买
+        5: "membership.console-membership.plan.duration.forever", // 永久购买
+    };
+
+    // 对于非 6 的情况，直接返回映射表的值
+    if (durationConfig !== 6) {
+        return $t(durationMapping[durationConfig] || "");
     }
+
+    // 对于 durationConfig 为 6 的情况，处理自定义的时长
+    const unitText = getDurationUnitText(duration.unit);
+    return `${duration.value} ${unitText}`;
+}
+
+/**
+ * 获取时长单位的文本
+ */
+function getDurationUnitText(unit: string): string {
+    const unitMapping: Record<string, string> = {
+        day: "membership.console-membership.plan.unit.day", // 天
+        month: "membership.console-membership.plan.unit.month", // 月
+        year: "membership.console-membership.plan.unit.year", // 年
+    };
+
+    // 返回对应的翻译文本
+    return $t(unitMapping[unit] || unit);
 }
 
 onMounted(() => {

@@ -42,7 +42,8 @@
 
         "messages": {
             "enableSuccess": "供应商已启用",
-            "disableSuccess": "供应商已禁用"
+            "disableSuccess": "供应商已禁用",
+            "selectModel": "请选择一个模型"
         },
 
         "empty": {
@@ -69,6 +70,7 @@
             "noModelsDescription": "该供应商下还没有配置任何模型",
             "searchPlaceholder": "搜索模型",
             "batchOperation": "批量操作 ({count})",
+            "billingSetting": "计费设置",
             "form": {
                 "name": "模型名称",
                 "namePlaceholder": "请输入模型名称",

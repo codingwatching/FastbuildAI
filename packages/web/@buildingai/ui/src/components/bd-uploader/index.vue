@@ -15,6 +15,9 @@ const props = withDefaults(defineProps<BdUploaderProps>(), {
 
 const emit = defineEmits<BdUploaderEmits>();
 
+// 获取 FormField 上下文，用于触发表单校验
+const formField = useFormField();
+
 const { $i18n } = useNuxtApp();
 const { t } = $i18n as Composer;
 
@@ -331,6 +334,8 @@ function updateModelValue() {
 
     const value: string | string[] = props.single ? urls[0] || "" : urls;
     emit("update:modelValue", value);
+    // 触发表单校验，让 UForm 能够感知到值的变化
+    formField?.emitFormChange();
 }
 
 function validateFile(file: File): boolean {

@@ -48,13 +48,7 @@ const columns: TableColumn<LevelFormData>[] = [
         accessorKey: "level",
         header: () => h("p", { class: "" }, `${columnLabels.value.level}`),
         cell: ({ row }) => {
-            return h(
-                "p",
-                { class: "" },
-                row.original.level === 1
-                    ? row.original.level + "级（默认等级）"
-                    : row.original.level + "级",
-            );
+            return h("p", { class: "" }, row.original.level + "级");
         },
     },
     {
@@ -134,7 +128,7 @@ const columns: TableColumn<LevelFormData>[] = [
                               },
                           })
                         : null,
-                    hasAccessByCodes(["level:delete"]) && row.original.level !== 1
+                    hasAccessByCodes(["level:delete"])
                         ? h(UButton, {
                               icon: "i-lucide-trash",
                               color: "error",

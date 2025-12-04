@@ -97,30 +97,27 @@ export class ExtensionFeatureScanService {
         identifier: string,
         extensionId: string,
     ): Promise<SyncResult> {
-        this.logger.log(`开始扫描插件 ${identifier} 的会员功能...`);
+        this.logger.log(`开始扫描插件 ${identifier} 的功能...`);
 
         const result: SyncResult = { added: 0, updated: 0, removed: 0, total: 0 };
 
         try {
             const features = await this.scanExtensionFeatures(identifier);
 
-            if (features.length === 0) {
-                this.logger.log(`插件 ${identifier} 没有配置会员功能`);
-                return result;
-            }
+            this.logger.log(`扫描到 ${features.length} 个功能`);
 
-            this.logger.log(`扫描到 ${features.length} 个会员功能`);
-
-            // 同步到数据库
+            // 同步到数据库（即使 features 为空也要执行，以便删除数据库中已不存在的功能）
             const syncResult = await this.syncFeaturesToDatabase(extensionId, features);
             Object.assign(result, syncResult);
 
-            this.logger.log(
-                `插件 ${identifier} 会员功能同步完成: 新增 ${result.added}, 更新 ${result.updated}, 移除 ${result.removed}`,
-            );
+            if (result.added > 0 || result.updated > 0 || result.removed > 0) {
+                this.logger.log(
+                    `插件 ${identifier} 功能同步完成: 新增 ${result.added}, 更新 ${result.updated}, 删除 ${result.removed}`,
+                );
+            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            this.logger.error(`扫描插件 ${identifier} 会员功能失败: ${errorMessage}`);
+            this.logger.error(`扫描插件 ${identifier} 功能失败: ${errorMessage}`);
             // 不抛出错误，避免影响插件安装流程
         }
 
@@ -287,7 +284,7 @@ export class ExtensionFeatureScanService {
     ): Promise<SyncResult> {
         const result: SyncResult = { added: 0, updated: 0, removed: 0, total: features.length };
 
-        // 获取当前插件已存在的功能编码
+        // 获取当前插件已存在的功能
         const existingFeatures = await this.extensionFeatureRepository.find({
             where: { extensionId },
         });
@@ -323,13 +320,11 @@ export class ExtensionFeatureScanService {
             }
         }
 
-        // 标记已不存在的功能为废弃（软删除）
+        // 删除数据库中存在但扫描不到的功能（硬删除）
         for (const existingFeature of existingFeatures) {
             if (!scannedFeatureCodes.has(existingFeature.featureCode)) {
-                await this.extensionFeatureRepository.update(existingFeature.id, {
-                    status: false,
-                });
-                this.logger.log(`标记功能为废弃: ${existingFeature.featureCode}`);
+                await this.extensionFeatureRepository.delete(existingFeature.id);
+                this.logger.log(`删除功能: ${existingFeature.featureCode}`);
                 result.removed++;
             }
         }

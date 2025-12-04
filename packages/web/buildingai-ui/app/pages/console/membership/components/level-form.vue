@@ -59,10 +59,6 @@ const addBenefit = () => {
  * @param index 要删除的权益索引
  */
 const removeBenefit = (index: number) => {
-    if (formData.value.benefits && formData.value.benefits.length <= 1) {
-        message.warning($t("membership.console-membership.level.form.benefitAtLeastOne"));
-        return;
-    }
     formData.value.benefits = formData.value.benefits?.filter((_, i) => i !== index);
 };
 
@@ -76,7 +72,6 @@ const schema = object({
 });
 
 const itemSchema = object({
-    icon: string().required($t("membership.console-membership.level.form.benefit.iconRequired")),
     content: string().required(
         $t("membership.console-membership.level.form.benefit.contentRequired"),
     ),
@@ -166,7 +161,7 @@ const { lockFn: submitForm, isLock } = useLockFn(async () => {
                     class="h-24 w-24"
                     :text="$t('membership.console-membership.level.form.uploadIcon')"
                     icon="i-lucide-upload"
-                    accept=".jpg,.png,.svg,.ico"
+                    accept=".jpg,.png,.ico"
                     :maxCount="1"
                     :single="true"
                 />
@@ -234,12 +229,31 @@ const { lockFn: submitForm, isLock } = useLockFn(async () => {
                             class="h-8 w-8"
                             :text="$t('membership.console-membership.level.form.benefit.icon')"
                             icon=" "
-                            accept=".jpg,.png,.svg,.ico"
+                            accept=".jpg,.png,.ico"
                             :maxCount="1"
                             :single="true"
                             :showPreviewButton="false"
                             :showRemoveButton="false"
-                        />
+                        >
+                            <template #trailing>
+                                <UIcon name="i-lucide-upload" class="size-5 cursor-pointer" />
+                            </template>
+                            <template #file-item="{ item }">
+                                <div class="group relative size-full">
+                                    <img
+                                        :src="item.url"
+                                        :alt="item.name"
+                                        class="size-full rounded object-cover"
+                                    />
+                                    <div
+                                        class="absolute -top-1 -right-1 z-10 flex size-4 cursor-pointer items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:bg-red-600"
+                                        @click.stop="updateBenefit(index, 'icon', '')"
+                                    >
+                                        <UIcon name="i-lucide-x" class="size-3" />
+                                    </div>
+                                </div>
+                            </template>
+                        </BdUploader>
                     </UFormField>
                     <UFormField name="content" class="w-full">
                         <UInput

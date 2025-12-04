@@ -5,10 +5,10 @@ import {
 } from "@buildingai/service/consoleapi/membership-level";
 import {
     type Billing,
-    type Duration,
     MembershipPlanDuration,
     type PlanCreateRequest,
 } from "@buildingai/service/consoleapi/membership-plan";
+import type { FormError } from "@nuxt/ui";
 import { number, object, string } from "yup";
 
 const props = defineProps<{
@@ -42,7 +42,7 @@ const durationOptions = [
     },
     {
         value: MembershipPlanDuration.CUSTOM,
-        label: $t("membership.console-membership.plan.form.labelDurationConfig"),
+        label: $t("membership.console-membership.plan.duration.custom"),
     },
 ];
 
@@ -53,12 +53,11 @@ const durationUnitOptions = [
     { value: "year", label: "年" },
 ];
 
-const formData = ref<Partial<PlanCreateRequest>>({});
-
-/** 自定义时长配置（独立管理以确保类型安全） */
-const customDuration = ref<Duration>({
-    value: 1,
-    unit: "day",
+const formData = ref<Partial<PlanCreateRequest>>({
+    duration: {
+        value: 1,
+        unit: "day",
+    },
 });
 
 /** 会员等级列表 */
@@ -125,11 +124,11 @@ watch(
     () => props.initialData,
     (newData) => {
         if (newData && Object.keys(newData).length > 0) {
-            formData.value = { ...formData.value, ...newData };
-            customDuration.value =
-                newData.durationConfig === MembershipPlanDuration.CUSTOM && newData.duration
-                    ? newData.duration
-                    : { value: 1, unit: "day" };
+            formData.value = {
+                ...formData.value,
+                ...newData,
+                duration: newData.duration || { value: 1, unit: "day" },
+            };
             billingList.value = newData.billing || [];
         }
     },
@@ -155,20 +154,26 @@ const schema = object({
     durationConfig: number().required(
         $t("membership.console-membership.plan.form.labelDurationConfig"),
     ),
-    duration: object().when("durationConfig", {
-        is: MembershipPlanDuration.CUSTOM,
-        then: () =>
-            object({
-                value: number()
-                    .required(
-                        $t("membership.console-membership.plan.form.durationValuePlaceholder"),
-                    )
-                    .min(1),
-                unit: string().required(),
-            }),
-        otherwise: () => object().nullable().notRequired(),
-    }),
 });
+
+/**
+ * 自定义验证函数
+ * @param state 表单状态
+ * @returns 验证错误列表
+ */
+const validate = (state: Partial<PlanCreateRequest>): FormError[] => {
+    const errors: FormError[] = [];
+    // 当选择自定义时长时，验证 duration.value
+    if (state.durationConfig === MembershipPlanDuration.CUSTOM) {
+        if (!state.duration?.value || state.duration.value < 1) {
+            errors.push({
+                name: "duration.value",
+                message: $t("membership.console-membership.plan.form.durationValuePlaceholder"),
+            });
+        }
+    }
+    return errors;
+};
 
 /**
  * 删除计费规则
@@ -187,7 +192,7 @@ const { lockFn: submitForm, isLock } = useLockFn(async () => {
     try {
         const submitData: PlanCreateRequest = {
             ...formData.value,
-            duration: isCustomDuration.value ? customDuration.value : undefined,
+            duration: isCustomDuration.value ? formData.value.duration : undefined,
             billing: billingList.value,
         } as PlanCreateRequest;
         emit("submit-success", submitData);
@@ -206,6 +211,7 @@ onMounted(() => {
         <UForm
             :state="formData"
             :schema="schema"
+            :validate="validate"
             class="flex h-full flex-col space-y-4"
             @submit="submitForm"
         >
@@ -249,11 +255,11 @@ onMounted(() => {
                     orientation="horizontal"
                 />
             </UFormField>
-            <UFormField v-if="isCustomDuration" name="duration" class="sm:w-sm">
+            <UFormField v-if="isCustomDuration" name="duration.value" class="sm:w-sm">
                 <div class="flex items-center gap-2">
                     <UInput
                         class="flex-1"
-                        v-model="customDuration.value"
+                        v-model="formData.duration!.value"
                         type="number"
                         :placeholder="
                             $t('membership.console-membership.plan.form.durationValuePlaceholder')
@@ -268,7 +274,7 @@ onMounted(() => {
                         <template #trailing>
                             <div class="flex items-center text-sm" @click.stop.prevent>
                                 <USelect
-                                    v-model="customDuration.unit"
+                                    v-model="formData.duration!.unit"
                                     :items="durationUnitOptions"
                                     size="sm"
                                     :ui="{

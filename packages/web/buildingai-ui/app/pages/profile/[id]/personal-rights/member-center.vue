@@ -13,7 +13,10 @@ import { apiGetPayResult, apiPostPrepaid } from "@buildingai/service/webapi/rech
 
 const PaymentQrModal = defineAsyncComponent(() => import("../../components/payment-qr-modal.vue"));
 const MemberSuccessModal = defineAsyncComponent(
-    () => import("../components/member-success-modal.vue"),
+    () => import("../../components/member-success-modal.vue"),
+);
+const SubscriptionModal = defineAsyncComponent(
+    () => import("../../components/subscription-modal.vue"),
 );
 
 /**
@@ -24,18 +27,6 @@ interface PaymentMethod {
     label: string;
     icon: string;
 }
-
-/**
- * 时长配置映射
- */
-const DURATION_CONFIG_MAP: Record<number, { label: string; discount?: string }> = {
-    1: { label: "按月购买" },
-    2: { label: "按季购买" },
-    3: { label: "按半年购买" },
-    4: { label: "按年购买" },
-    5: { label: "终身" },
-    6: { label: "自定义" },
-};
 
 const appStore = useAppStore();
 const { t } = useI18n();
@@ -50,9 +41,10 @@ const state = reactive({
     paymentMethods: [] as PaymentMethod[],
     selectedPlanIndex: 0,
     selectedLevelIndex: 0,
-    selectedPaymentMethod: 2,
+    selectedPaymentMethod: 1,
     membershipSuccess: false,
     isQrCodeExpired: false,
+    membershipStatus: false,
 });
 
 /**
@@ -71,7 +63,7 @@ const { start: startPaymentPolling, clear: stopPaymentPolling } = usePollingTask
                 from: "membership",
             });
 
-            if (res.payStatus === 1) {
+            if (res.payState === 1) {
                 stopPolling();
                 await refreshMemberCenterInfo();
                 await userStore.getUser();
@@ -107,6 +99,7 @@ const { data: memberCenterInfo } = await useAsyncData(
                 icon: item.logo,
             }));
             state.plans = data.plans.filter((plan) => plan.status);
+            state.membershipStatus = data.membershipStatus;
             return data;
         },
     },
@@ -149,21 +142,11 @@ const currentBillingItem = computed(() => {
 });
 
 /**
- * 获取套餐时长显示文本
- */
-const getPlanDurationText = (plan: MembershipPlan): string => {
-    if (plan.durationConfig === 6 && plan.duration) {
-        return `${plan.duration.value}${plan.duration.unit}`;
-    }
-    return DURATION_CONFIG_MAP[plan.durationConfig]?.label || "";
-};
-
-/**
  * 套餐时长选择 tabs 配置
  */
 const planTabs = computed(() => {
     return state.plans.map((plan) => ({
-        label: getPlanDurationText(plan),
+        label: plan.name,
         value: plan.id,
         discount: plan.label,
     }));
@@ -303,6 +286,18 @@ const handleRefreshQrCode = async (): Promise<void> => {
 };
 
 /**
+ * 打开订阅管理弹框
+ */
+const handleSubscription = async (): Promise<void> => {
+    const modal = overlay.create(SubscriptionModal);
+    const instance = modal.open();
+    const shouldRefresh = await instance.result;
+    if (shouldRefresh) {
+        refreshMemberCenterInfo();
+    }
+};
+
+/**
  * 跳转到服务条款
  */
 const toServiceTerms = (): void => {
@@ -329,10 +324,13 @@ definePageMeta({
 
 <template>
     <div class="h-full">
-        <div v-if="state.plans.length > 0" class="flex h-full flex-col space-y-4 px-6 pt-6">
+        <div v-if="state.membershipStatus" class="flex h-full flex-col space-y-4 px-6 pt-6">
             <div class="flex flex-1 flex-col space-y-8 overflow-y-auto">
                 <!-- 用户信息 -->
-                <div class="bg-muted flex items-center justify-between rounded-lg p-4">
+                <div
+                    v-if="memberCenterInfo?.userSubscription"
+                    class="bg-muted flex items-center justify-between rounded-lg p-4"
+                >
                     <div class="flex items-center gap-4">
                         <UAvatar :src="userStore.userInfo!.avatar" size="3xl" />
                         <div>
@@ -368,6 +366,12 @@ definePageMeta({
                                 <template v-else>
                                     <span>{{ t("membership.frontend.center.normalUser") }}</span>
                                 </template>
+                                <div
+                                    class="text-primary cursor-pointer pl-4"
+                                    @click="handleSubscription"
+                                >
+                                    {{ t("membership.frontend.center.subscriptionManagement") }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -397,11 +401,14 @@ definePageMeta({
                         v-model="selectedPlanId"
                         :items="planTabs"
                         :content="false"
-                        variant="link"
+                        variant="pill"
                         :ui="{
-                            list: 'gap-4',
+                            label: 'text-muted-foreground dark:text-white',
+                            list: 'gap-4 rounded-full',
+                            indicator:
+                                'rounded-full bg-muted dark:bg-muted-foreground font-extrabold',
                             trigger:
-                                'px-2 py-1.5 text-sm font-normal data-[state=active]:font-medium',
+                                'px-2 py-1.5 text-sm font-normal data-[state=active]:font-extrabold',
                         }"
                     >
                         <template #default="{ item }">
@@ -420,7 +427,7 @@ definePageMeta({
                     <div
                         v-for="(item, index) in availableLevels"
                         :key="item.levelId"
-                        class="relative h-[360px] w-[240px] cursor-pointer rounded-xl border bg-white p-5 transition-all duration-200 dark:bg-gray-900/5"
+                        class="relative max-h-[360px] w-[240px] cursor-pointer rounded-xl border bg-white p-5 transition-all duration-200 dark:bg-gray-900/5"
                         :class="[
                             state.selectedLevelIndex === index
                                 ? 'border-primary shadow-primary/10 shadow-lg'
@@ -441,17 +448,7 @@ definePageMeta({
                             class="mb-3 flex items-center gap-1.5"
                             :class="{ 'pt-1': index === 0 }"
                         >
-                            <UAvatar
-                                :src="item.level?.icon"
-                                size="xs"
-                                :class="[
-                                    index === 0
-                                        ? 'text-yellow-500'
-                                        : index === 1
-                                          ? 'text-gray-400'
-                                          : 'text-amber-600',
-                                ]"
-                            />
+                            <UAvatar :src="item.level?.icon" size="xs" />
                             <span class="text-sm font-medium">{{ item.level?.name }}</span>
                         </div>
 
@@ -461,45 +458,30 @@ definePageMeta({
                                 ¥{{ item.salesPrice }}
                             </span>
                             <span
-                                v-if="item.originalPrice !== item.salesPrice"
+                                v-if="item.originalPrice !== item.salesPrice && item.originalPrice"
                                 class="text-muted-foreground text-xs line-through"
                             >
                                 ¥{{ item.originalPrice }}/月
                             </span>
                         </div>
 
-                        <!-- 选择按钮 -->
-                        <UButton
-                            :color="state.selectedLevelIndex === index ? 'primary' : 'neutral'"
-                            :variant="state.selectedLevelIndex === index ? 'solid' : 'outline'"
-                            block
-                            size="sm"
-                            class="mb-4"
-                            @click.stop="handleLevelSelect(index)"
-                        >
-                            {{
-                                state.selectedLevelIndex === index
-                                    ? t("membership.frontend.center.selected")
-                                    : t("membership.frontend.center.select")
-                            }}
-                        </UButton>
-
                         <!-- 赠送算力 -->
-                        <div
-                            v-if="item.level?.givePower"
-                            class="mb-3 flex items-start gap-1.5 text-xs"
-                        >
-                            <UIcon name="i-lucide-zap" class="text-primary mt-0.5 shrink-0" />
+                        <div class="mb-3 flex items-start gap-1.5 text-xs">
+                            <UIcon
+                                v-if="item.level?.givePower"
+                                name="i-lucide-zap"
+                                class="text-primary mt-0.5 shrink-0"
+                            />
                             <div>
-                                <div class="font-medium">
+                                <div v-if="item.level?.givePower" class="font-medium">
                                     {{
                                         t("membership.frontend.center.givePower", {
                                             power: item.level.givePower,
                                         })
                                     }}
                                 </div>
-                                <div class="text-muted-foreground">
-                                    {{ t("membership.frontend.center.givePowerTip") }}
+                                <div v-if="item.level?.description" class="text-muted-foreground">
+                                    {{ item.level.description }}
                                 </div>
                             </div>
                         </div>
@@ -512,13 +494,29 @@ definePageMeta({
                                 class="flex items-center gap-1.5 text-xs"
                             >
                                 <UIcon
+                                    v-if="!benefit.icon"
                                     name="i-lucide-check"
+                                    class="text-muted-foreground shrink-0"
+                                    size="16"
+                                />
+                                <UAvatar
+                                    v-else
+                                    :src="benefit.icon"
+                                    size="3xs"
                                     class="text-muted-foreground shrink-0"
                                 />
                                 <span class="text-muted-foreground">
                                     {{ benefit.content }}
                                 </span>
                             </div>
+                        </div>
+
+                        <!-- 选中标记 -->
+                        <div
+                            v-if="state.selectedLevelIndex === index"
+                            class="bg-primary absolute right-0 bottom-0 flex h-7 w-8 items-center justify-center rounded-tl-lg rounded-br-lg text-white"
+                        >
+                            <UIcon name="i-lucide-check" class="text-sm" />
                         </div>
                     </div>
                 </div>
