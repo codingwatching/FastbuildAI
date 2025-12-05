@@ -5,7 +5,6 @@ import type { NavigationConfig } from "../../../../../buildingai-ui/app/componen
 import Logo from "../../../../../buildingai-ui/public/logo.svg";
 
 const UserProfile = defineAsyncComponent(() => import("../components/user-profile.vue"));
-const SmartLink = defineAsyncComponent(() => import("../components/smart-link.vue"));
 const MobileMenuButton = defineAsyncComponent(() => import("../components/mobile-menu-button.vue"));
 const MobileNavigation = defineAsyncComponent(() => import("../components/mobile-navigation.vue"));
 
@@ -56,7 +55,7 @@ const isActive = (path: string): boolean => {
             <div class="flex h-full flex-col items-center">
                 <!-- 顶部 Logo 区域 - 固定 -->
                 <div class="flex-none py-4">
-                    <SmartLink to="/" class="flex justify-center">
+                    <NuxtLink to="/" class="flex justify-center">
                         <h1 class="flex size-9 items-center justify-center rounded-lg">
                             <NuxtImg
                                 v-if="appStore.siteConfig?.webinfo.logo"
@@ -71,7 +70,7 @@ const isActive = (path: string): boolean => {
                                 filled
                             />
                         </h1>
-                    </SmartLink>
+                    </NuxtLink>
                 </div>
 
                 <!-- 中间菜单区域 - 可滚动 -->
@@ -79,7 +78,7 @@ const isActive = (path: string): boolean => {
                     <div class="flex flex-col items-center gap-5">
                         <template v-for="item in sidebarMenus" :key="item.path">
                             <!-- 普通菜单项 -->
-                            <SmartLink
+                            <NuxtLink
                                 :to="item.path"
                                 :class="`group flex flex-col items-center justify-center gap-1 ${
                                     isActive(item.path) ? 'text-primary' : 'text-foreground/80'
@@ -96,7 +95,7 @@ const isActive = (path: string): boolean => {
                                     <UIcon :name="item.icon" class="h-5 w-5" />
                                 </div>
                                 <span class="text-center text-xs">{{ item.title }}</span>
-                            </SmartLink>
+                            </NuxtLink>
                         </template>
                     </div>
                 </BdScrollArea>
@@ -104,23 +103,19 @@ const isActive = (path: string): boolean => {
                 <!-- 底部区域 - 固定 -->
                 <div class="flex flex-none flex-col items-center gap-6 py-4">
                     <!-- 帮助链接 -->
-                    <ClientOnly>
-                        <SmartLink
-                            v-if="userStore.userInfo?.permissions"
-                            :to="ROUTES.CONSOLE"
-                            class="group text-foreground/80 flex flex-col items-center gap-1"
+                    <NuxtLink
+                        v-if="userStore.userInfo?.permissions"
+                        :to="ROUTES.CONSOLE"
+                        class="group text-foreground/80 flex flex-col items-center gap-1"
+                    >
+                        <div
+                            class="group-hover:bg-foreground/5 flex h-10 w-10 items-center justify-center rounded-full"
+                            :class="isActive('/help') ? 'bg-primary/[0.09]' : ''"
                         >
-                            <div
-                                class="group-hover:bg-foreground/5 flex h-10 w-10 items-center justify-center rounded-full"
-                                :class="isActive('/help') ? 'bg-primary/[0.09]' : ''"
-                            >
-                                <UIcon name="i-lucide-layout-dashboard" class="h-5 w-5" />
-                            </div>
-                            <span class="text-center text-xs">{{
-                                $t("layouts.menu.workspace")
-                            }}</span>
-                        </SmartLink>
-                    </ClientOnly>
+                            <UIcon name="i-lucide-layout-dashboard" class="h-5 w-5" />
+                        </div>
+                        <span class="text-center text-xs">{{ $t("layouts.menu.workspace") }}</span>
+                    </NuxtLink>
 
                     <!-- 用户头像 -->
                     <UserProfile

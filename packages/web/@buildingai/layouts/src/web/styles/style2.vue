@@ -7,7 +7,6 @@ const MobileMenuButton = defineAsyncComponent(() => import("../components/mobile
 const MobileNavigation = defineAsyncComponent(() => import("../components/mobile-navigation.vue"));
 const UserProfile = defineAsyncComponent(() => import("../components/user-profile.vue"));
 const SiteLogo = defineAsyncComponent(() => import("../components/web-site-logo.vue"));
-const SmartLink = defineAsyncComponent(() => import("../components/smart-link.vue"));
 
 defineProps<{
     navigationConfig: NavigationConfig;
@@ -36,7 +35,7 @@ const mobileMenuOpen = shallowRef(false);
                         :key="item.id"
                         class="hover:text-primary transition-colors duration-200"
                     >
-                        <SmartLink
+                        <NuxtLink
                             :to="item.link?.path || '/'"
                             :target="item.link?.path?.startsWith('http') ? '_blank' : '_self'"
                             class="flex items-center justify-center gap-1 text-sm font-medium"
@@ -49,7 +48,7 @@ const mobileMenuOpen = shallowRef(false);
                         >
                             <Icon v-if="item.icon" :name="item.icon" size="16" />
                             <span>{{ item.title }}</span>
-                        </SmartLink>
+                        </NuxtLink>
                     </li>
                 </ul>
 
@@ -74,13 +73,11 @@ const mobileMenuOpen = shallowRef(false);
                     </UserProfile>
 
                     <!-- 工作台按钮 -->
-                    <ClientOnly>
-                        <SmartLink v-if="userStore.userInfo?.permissions" :to="ROUTES.CONSOLE">
-                            <UButton :ui="{ base: 'rounded-full' }" color="primary">
-                                {{ $t("layouts.menu.workspace") }}
-                            </UButton>
-                        </SmartLink>
-                    </ClientOnly>
+                    <NuxtLink v-if="userStore.userInfo?.permissions" :to="ROUTES.CONSOLE">
+                        <UButton :ui="{ base: 'rounded-full' }" color="primary">
+                            {{ $t("layouts.menu.workspace") }}
+                        </UButton>
+                    </NuxtLink>
                 </div>
             </div>
         </header>

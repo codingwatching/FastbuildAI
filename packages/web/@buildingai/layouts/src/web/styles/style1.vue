@@ -7,7 +7,6 @@ const MobileMenuButton = defineAsyncComponent(() => import("../components/mobile
 const MobileNavigation = defineAsyncComponent(() => import("../components/mobile-navigation.vue"));
 const UserProfile = defineAsyncComponent(() => import("../components/user-profile.vue"));
 const SiteLogo = defineAsyncComponent(() => import("../components/web-site-logo.vue"));
-const SmartLink = defineAsyncComponent(() => import("../components/smart-link.vue"));
 
 const props = defineProps<{
     navigationConfig: NavigationConfig;
@@ -34,7 +33,7 @@ const mobileMenuOpen = shallowRef(false);
                 >
                     <li v-for="item in props.navigationConfig.items" :key="item.id">
                         <!-- 普通菜单项 -->
-                        <SmartLink
+                        <NuxtLink
                             :to="item.link?.path || '/'"
                             :target="item.link?.path?.startsWith('http') ? '_blank' : '_self'"
                             class="flex items-center gap-1 rounded-md px-2 py-1 transition-colors duration-300 motion-reduce:transition-none"
@@ -47,7 +46,7 @@ const mobileMenuOpen = shallowRef(false);
                         >
                             <Icon v-if="item.icon" :name="item.icon" class="mr-1 inline-block" />
                             <span class="text-sm font-medium">{{ item.title }}</span>
-                        </SmartLink>
+                        </NuxtLink>
                     </li>
                 </ul>
 
@@ -72,13 +71,11 @@ const mobileMenuOpen = shallowRef(false);
                     </UserProfile>
 
                     <!-- 工作台按钮 -->
-                    <ClientOnly>
-                        <SmartLink v-if="userStore.userInfo?.permissions" :to="ROUTES.CONSOLE">
-                            <UButton :ui="{ base: 'rounded-full' }" color="primary">
-                                {{ $t("layouts.menu.workspace") }}
-                            </UButton>
-                        </SmartLink>
-                    </ClientOnly>
+                    <NuxtLink v-if="userStore.userInfo?.permissions" :to="ROUTES.CONSOLE">
+                        <UButton :ui="{ base: 'rounded-full' }" color="primary">
+                            {{ $t("layouts.menu.workspace") }}
+                        </UButton>
+                    </NuxtLink>
                 </div>
             </div>
         </header>

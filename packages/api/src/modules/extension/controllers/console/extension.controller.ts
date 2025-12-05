@@ -28,6 +28,8 @@ import {
 import { ExtensionMarketService } from "@modules/extension/services/extension-market.service";
 import { ExtensionOperationService } from "@modules/extension/services/extension-operation.service";
 import { Body, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import * as fs from "fs-extra";
+import * as path from "path";
 
 /**
  * Extension Console Controller
@@ -616,6 +618,93 @@ export class ExtensionConsoleController extends BaseController {
         return {
             message: `同步完成: 新增 ${result.added} 个, 更新 ${result.updated} 个, 移除 ${result.removed} 个`,
             ...result,
+        };
+    }
+
+    /**
+     * Get extension plugin layout configuration
+     * @description Returns router.options (consoleMenu) and manifest.json for plugin layout
+     * @param identifier Extension identifier
+     * @returns Plugin layout configuration
+     */
+    @Get(":identifier/plugin-layout")
+    @Permissions({
+        code: "get-plugin-layout",
+        name: "获取插件布局配置",
+    })
+    async getPluginLayout(@Param("identifier") identifier: string) {
+        const extension = await this.extensionsService.findByIdentifier(identifier);
+        if (!extension) {
+            throw HttpErrorFactory.notFound("Extension does not exist");
+        }
+
+        const rootDir = path.join(process.cwd(), "..", "..");
+        const extensionDir = path.join(rootDir, "extensions", identifier);
+
+        if (!(await fs.pathExists(extensionDir))) {
+            throw HttpErrorFactory.notFound("Extension directory does not exist");
+        }
+
+        // Read manifest.json - return as object directly
+        const manifestPath = path.join(extensionDir, "manifest.json");
+        let manifest = null;
+        if (await fs.pathExists(manifestPath)) {
+            manifest = await fs.readJson(manifestPath);
+        }
+
+        // Try to load consoleMenu from compiled router.options.js first
+        let consoleMenu = null;
+        const routerOptionsBuildPath = path.join(extensionDir, "build", "web", "router.options.js");
+        const routerOptionsSourcePath = path.join(extensionDir, "src", "web", "router.options.ts");
+
+        // Try to load from build output first (if exists)
+        if (await fs.pathExists(routerOptionsBuildPath)) {
+            try {
+                // Clear require cache to ensure fresh load
+                delete require.cache[require.resolve(routerOptionsBuildPath)];
+                const routerOptionsModule = require(routerOptionsBuildPath);
+                consoleMenu = routerOptionsModule.consoleMenu || null;
+            } catch (error) {
+                // If require fails, fall back to parsing source file
+                console.warn(`Failed to load router.options.js: ${error}`);
+            }
+        }
+
+        // If build file doesn't exist or load failed, parse source TypeScript file
+        if (!consoleMenu && (await fs.pathExists(routerOptionsSourcePath))) {
+            try {
+                const content = await fs.readFile(routerOptionsSourcePath, "utf-8");
+                
+                // Extract consoleMenu array using regex
+                const match = content.match(/export\s+(?:const|let)\s+consoleMenu[^=]*=\s*(\[[\s\S]*?\]);/);
+                
+                if (match && match[1]) {
+                    // Remove comments
+                    let arrayContent = match[1]
+                        .replace(/\/\*[\s\S]*?\*\//g, "")
+                        .replace(/\/\/.*$/gm, "");
+
+                    // Replace import() calls with null (we don't need component functions in backend)
+                    arrayContent = arrayContent.replace(
+                        /\(\)\s*=>\s*import\([^)]+\)/g,
+                        "null",
+                    );
+
+                    // Parse the array
+                    try {
+                        consoleMenu = new Function(`return ${arrayContent}`)();
+                    } catch (parseError) {
+                        console.warn("Failed to parse consoleMenu:", parseError);
+                    }
+                }
+            } catch (error) {
+                console.warn(`Failed to read router.options.ts: ${error}`);
+            }
+        }
+
+        return {
+            manifest,
+            consoleMenu,
         };
     }
 }

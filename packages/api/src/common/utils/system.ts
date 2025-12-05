@@ -156,7 +156,7 @@ export const setAssetsDir = async (app: NestExpressApplication) => {
         .map((item) => {
             return {
                 dir: path.join(rootDir, "extensions", item.identifier, ".output", "public"),
-                prefix: `/extensions/${item.identifier}`,
+                prefix: `/extension/${item.identifier}`,
             };
         });
 

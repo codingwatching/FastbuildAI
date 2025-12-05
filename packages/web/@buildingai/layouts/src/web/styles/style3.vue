@@ -15,7 +15,6 @@ const props = defineProps<{
 }>();
 
 const userStore = useUserStore();
-const { toAbsolutePath } = useSmartNavigate();
 
 // 移动端菜单状态
 const mobileMenuOpen = shallowRef(false);
@@ -28,19 +27,20 @@ const navigationItems = computed((): NavigationMenuItem[] => {
         label: item.title,
         icon: item.icon,
         badge: item.badge,
-        to: toAbsolutePath(item.link?.path || "/"),
+        // to: toAbsolutePath(item.link?.path || "/"),
+        to: item.link?.path || "/",
         active:
-            window.location.pathname === item.link?.path ||
             useRoute().path === item.link?.path ||
             useRoute().path.startsWith(item.link?.path + "/") ||
             useRoute().meta.activePath === item.link?.path,
-        target: item.link?.path?.startsWith("http") ? "_blank" : undefined,
+        // target: item.link?.path?.startsWith("http") ? "_blank" : undefined,
         children: item.children?.map((child: NavigationMenuItem) => ({
             label: child.title,
             description: `前往 ${child.title}`,
             icon: child.icon,
-            to: toAbsolutePath(child?.link?.path || "/"),
-            target: child?.link?.path?.startsWith("http") ? "_blank" : undefined,
+            to: child?.link?.path || "/",
+            // to: toAbsolutePath(child?.link?.path || "/"),
+            // target: child?.link?.path?.startsWith("http") ? "_blank" : undefined,
         })),
     }));
 });
@@ -84,13 +84,11 @@ const navigationItems = computed((): NavigationMenuItem[] => {
                     </UserProfile>
 
                     <!-- 工作台按钮 -->
-                    <ClientOnly>
-                        <SmartLink v-if="userStore.userInfo?.permissions" :to="ROUTES.CONSOLE">
-                            <UButton :ui="{ base: 'rounded-full' }" color="primary">
-                                {{ $t("layouts.menu.workspace") }}
-                            </UButton>
-                        </SmartLink>
-                    </ClientOnly>
+                    <NuxtLink v-if="userStore.userInfo?.permissions" :to="ROUTES.CONSOLE">
+                        <UButton :ui="{ base: 'rounded-full' }" color="primary">
+                            {{ $t("layouts.menu.workspace") }}
+                        </UButton>
+                    </NuxtLink>
                 </div>
             </div>
         </header>

@@ -382,8 +382,8 @@ function createPluginApiRequest(apiType: string = WEB_API_PREFIX) {
         try {
             if (typeof window !== "undefined" && window.location) {
                 const pathname = window.location.pathname;
-                // Match pattern: /extensions/{pluginKey}/
-                const match = pathname.match(/\/extensions\/([^/]+)/);
+                // Match pattern: /extension/{pluginKey}/
+                const match = pathname.match(/\/extension\/([^/]+)/);
                 if (match && match[1]) {
                     finalPluginKey = match[1];
                 }
