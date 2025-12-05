@@ -25,8 +25,8 @@ export interface MembershipOrderListItem {
     payType: number;
     payState: number;
     refundStatus: number;
-    planSnap: Record<string, any>;
-    levelSnap: Record<string, any>;
+    plan: Record<string, any>;
+    level: Record<string, any>;
     totalAmount: number;
     duration: string;
     payTime: string;

@@ -56,8 +56,8 @@ const isScrolling = ref(false);
 /** 会员等级列表 */
 const membershipLevels = shallowRef<MembershipLevel[]>([]);
 
-/** 用户当前有效的会员等级ID列表 */
-const userMembershipLevelIds = computed(() => userStore.userInfo?.membershipLevelIds ?? []);
+/** 用户当前最高会员等级ID */
+const userMembershipLevelId = computed(() => userStore.userInfo?.membershipLevelId ?? null);
 
 const allModels = computed(() => providers.value.flatMap((p) => p.models ?? []));
 const filteredProviders = computed(() => {
@@ -90,13 +90,16 @@ function requiresMembership(model: AiModel): boolean {
  * @returns 是否有权限访问
  */
 function hasModelAccess(model: AiModel): boolean {
+    // 超级管理员不受会员等级限制
+    if (userStore.userInfo?.isRoot === 1) return true;
+
     // 如果模型不需要会员权限，则所有人都可以访问
     if (!requiresMembership(model)) return true;
 
-    // 检查用户是否拥有任一所需的会员等级
+    // 检查用户的最高会员等级是否在模型所需等级列表中
     return (
-        model.membershipLevel?.some((levelId) => userMembershipLevelIds.value.includes(levelId)) ??
-        false
+        userMembershipLevelId.value !== null &&
+        (model.membershipLevel?.includes(userMembershipLevelId.value) ?? false)
     );
 }
 

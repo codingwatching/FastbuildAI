@@ -68,8 +68,8 @@ export interface UserInfo extends BaseEntity {
     realName?: string;
     /** Total recharge amount */
     totalRechargeAmount?: number;
-    /** 用户当前有效的会员等级ID列表 */
-    membershipLevelIds?: string[];
+    /** 用户当前最高会员等级ID */
+    membershipLevelId?: string | null;
 }
 
 /**

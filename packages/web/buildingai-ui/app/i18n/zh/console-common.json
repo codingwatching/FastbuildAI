@@ -36,6 +36,7 @@
     "batchEnableSuccess": "批量启用成功",
     "batchDisableSuccess": "批量禁用成功",
     "batchDeleteSuccess": "批量删除成功",
+    "batchEditSuccess": "批量编辑成功",
     "enabled": "启用",
     "disabled": "禁用",
     "show": "显示",

@@ -235,27 +235,27 @@ export class PlansService extends BaseService<MembershipPlans> {
             }),
         ]);
 
-        // 获取用户最高等级的订阅信息
+        // 获取用户未过期的最高等级订阅信息
         let userSubscription = null;
         if (subscriptions.length > 0) {
-            // 过滤出有效的订阅(有 level 信息的)
-            const validSubscriptions = subscriptions.filter((sub) => sub.level);
+            const now = new Date();
+
+            // 过滤出未过期且有 level 信息的订阅
+            const validSubscriptions = subscriptions.filter(
+                (sub) => sub.level && sub.endTime > now,
+            );
 
             if (validSubscriptions.length > 0) {
-                // 按等级级别降序排序,取最高等级
+                // 按等级级别降序排序，取最高等级
                 const highestSubscription = validSubscriptions.sort(
                     (a, b) => b.level!.level - a.level!.level,
                 )[0];
-
-                const now = new Date();
-                const isExpired = highestSubscription.endTime < now;
 
                 userSubscription = {
                     id: highestSubscription.id,
                     level: highestSubscription.level,
                     startTime: highestSubscription.startTime,
                     endTime: highestSubscription.endTime,
-                    isExpired,
                 };
             }
         }

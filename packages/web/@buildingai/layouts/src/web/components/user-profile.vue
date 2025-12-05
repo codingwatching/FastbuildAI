@@ -160,11 +160,11 @@ const handleMenuClick = (item: MenuItem) => {
                             size="xs"
                             @click="
                                 navigateTo(
-                                    `/profile/${userStore.userInfo?.id}/personal-rights/recharge-center`,
+                                    `/profile/${userStore.userInfo?.id}/personal-rights/member-center`,
                                 )
                             "
                         >
-                            {{ t("layouts.recharge") }}
+                            {{ t("layouts.memberSubscription") }}
                         </UButton>
                     </div>
 

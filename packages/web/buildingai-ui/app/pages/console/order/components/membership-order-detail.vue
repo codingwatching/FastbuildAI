@@ -83,7 +83,7 @@ const getOrderList = () => {
                     {{ t("order.backend.membership.list.planName") }}
                 </div>
                 <div class="text-secondary-foreground mt-1 truncate">
-                    {{ order?.planSnap?.name }}
+                    {{ order?.plan?.name }}
                 </div>
             </div>
             <!-- 会员等级 -->
@@ -92,7 +92,7 @@ const getOrderList = () => {
                     {{ t("order.backend.membership.list.levelName") }}
                 </div>
                 <div class="text-secondary-foreground mt-1 truncate">
-                    {{ order?.levelSnap?.name }}
+                    {{ order?.level?.name }}
                 </div>
             </div>
             <!-- 会员时长 -->

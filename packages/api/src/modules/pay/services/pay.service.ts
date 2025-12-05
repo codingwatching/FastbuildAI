@@ -20,7 +20,7 @@ import { PayfactoryService } from "@common/modules/pay/services/payfactory.servi
 import { WxPayService } from "@common/modules/pay/services/wxpay.service";
 import { PrepayDto } from "@modules/pay/dto/prepay.dto";
 import { Injectable } from "@nestjs/common";
-import { Repository } from "typeorm/repository/Repository";
+import { MoreThan, Repository } from "typeorm";
 @Injectable()
 export class PayService extends BaseService<Payconfig> {
     constructor(
@@ -264,7 +264,20 @@ export class PayService extends BaseService<Payconfig> {
             const durationConfig = planSnap?.durationConfig;
             const duration = planSnap?.duration;
 
-            let endTime = new Date(now);
+            // 查询用户当前该等级的最新有效订阅（用于时间叠加）
+            const existingSubscription = await entityManager.findOne(UserSubscription, {
+                where: {
+                    userId: order.userId,
+                    levelId: order.levelId,
+                    endTime: MoreThan(now),
+                },
+                order: { endTime: "DESC" },
+            });
+
+            // 如果存在有效订阅，新订阅从现有订阅结束时间开始（时间叠加）
+            // 否则从当前时间开始
+            const startTime = existingSubscription ? new Date(existingSubscription.endTime) : now;
+            let endTime = new Date(startTime);
 
             // 优先使用 durationConfig 枚举值
             if (durationConfig) {
@@ -317,13 +330,13 @@ export class PayService extends BaseService<Payconfig> {
                 endTime.setMonth(endTime.getMonth() + 1);
             }
 
-            // 创建用户订阅记录
+            // 创建用户订阅记录（每次购买都创建新记录，保留购买历史）
             await entityManager.save(UserSubscription, {
                 userId: order.userId,
                 levelId: order.levelId,
                 orderId: order.id,
-                startTime: now,
-                endTime: endTime,
+                startTime,
+                endTime,
                 source: 1,
             });
 

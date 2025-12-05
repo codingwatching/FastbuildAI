@@ -173,6 +173,7 @@ export class FinanceService extends BaseService<AccountLog> {
             "user.username",
             "user.userNo",
             "user.avatar",
+            "user.nickname",
         ]);
 
         // 设置排序规则

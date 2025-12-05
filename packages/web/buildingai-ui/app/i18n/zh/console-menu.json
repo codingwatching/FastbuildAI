@@ -71,7 +71,7 @@
     "membershipManagement": {
         "title": "会员管理",
         "levelsList": "等级列表",
-        "plansList": "套餐列表",
+        "plansList": "订阅计划",
         "membershipOrder": "会员订单"
     },
     "diyCenter": {

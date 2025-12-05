@@ -255,7 +255,7 @@ const mountSuccessModal = async (): Promise<void> => {
     paymentModal.close();
     const shouldRefresh = await instance.result;
     if (shouldRefresh) {
-        router.push(`/profile/${userStore.userInfo?.id}/power-detail`);
+        router.push(`/profile/${userStore.userInfo?.id}/purchase-record`);
     }
 };
 
@@ -427,11 +427,11 @@ definePageMeta({
                     <div
                         v-for="(item, index) in availableLevels"
                         :key="item.levelId"
-                        class="relative max-h-[360px] w-[240px] cursor-pointer rounded-xl border bg-white p-5 transition-all duration-200 dark:bg-gray-900/5"
+                        class="border-muted relative max-h-90 w-60 cursor-pointer rounded-xl border bg-white p-5 transition-all duration-200 dark:bg-gray-900/5"
                         :class="[
                             state.selectedLevelIndex === index
                                 ? 'border-primary shadow-primary/10 shadow-lg'
-                                : 'border-gray-100 hover:border-gray-200 dark:border-gray-800',
+                                : 'hover:border-primary border-muted',
                         ]"
                         @click="handleLevelSelect(index)"
                     >

@@ -1,5 +1,6 @@
 import { BusinessCode } from "@buildingai/constants/shared/business-code.constant";
-import { AiModel, UserSubscription } from "@buildingai/db/entities";
+import { BooleanNumber } from "@buildingai/constants/shared/status-codes.constant";
+import { AiModel, User, UserSubscription } from "@buildingai/db/entities";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -29,7 +30,23 @@ export class MembershipValidationCommandHandler {
     constructor(
         @InjectRepository(UserSubscription)
         private readonly userSubscriptionRepository: Repository<UserSubscription>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
     ) {}
+
+    /**
+     * 检查用户是否为超级管理员
+     *
+     * @param userId 用户ID
+     * @returns 是否为超级管理员
+     */
+    private async isUserSuperAdmin(userId: string): Promise<boolean> {
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+            select: ["id", "isRoot"],
+        });
+        return user?.isRoot === BooleanNumber.YES;
+    }
 
     /**
      * 获取用户当前有效的会员等级信息
@@ -77,6 +94,15 @@ export class MembershipValidationCommandHandler {
      * @returns 验证结果
      */
     async validateModelAccess(userId: string, model: AiModel): Promise<MembershipValidationResult> {
+        // 超级管理员不受会员等级限制
+        if (await this.isUserSuperAdmin(userId)) {
+            return {
+                hasAccess: true,
+                userLevelIds: [],
+                maxLevel: 0,
+            };
+        }
+
         // 如果模型没有设置会员等级限制，则所有用户都可以访问
         const requiredLevelIds = model.membershipLevel || [];
 

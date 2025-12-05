@@ -123,6 +123,7 @@ onMounted(async () => {
         :title="t('membership.frontend.center.subscriptionManagement')"
         width="sm"
         :show-footer="false"
+        :ui="{ content: 'h-[60vh]' }"
     >
         <template #trigger>
             <slot></slot>
@@ -151,13 +152,13 @@ onMounted(async () => {
         </div>
 
         <!-- 订阅列表 -->
-        <BdScrollArea v-else class="h-[600px] w-full" type="auto" ref="scrollAreaRef">
+        <BdScrollArea v-else class="w-full" type="auto" ref="scrollAreaRef">
             <BdInfiniteScroll
                 :loading="loading"
                 :has-more="hasMore"
                 :threshold="200"
                 loading-text="加载中..."
-                no-more-text="没有更多了"
+                no-more-text=""
                 class="space-y-3 px-1 py-4"
                 @load-more="loadMoreSubscriptions"
             >
@@ -178,12 +179,11 @@ onMounted(async () => {
                         </div>
                         <div class="text-right">
                             <div class="font-medium">{{ subscription.duration || "-" }}</div>
-                            <UBadge :color="subscription.isExpired ? 'error' : 'success'" size="sm">
-                                {{
-                                    subscription.isExpired
-                                        ? t("membership.frontend.center.expired")
-                                        : t("membership.frontend.center.active")
-                                }}
+                            <UBadge v-if="subscription.isActive" color="success" size="sm">
+                                {{ t("membership.frontend.center.active") }}
+                            </UBadge>
+                            <UBadge v-else-if="subscription.isExpired" color="error" size="sm">
+                                {{ t("membership.frontend.center.expired") }}
                             </UBadge>
                         </div>
                     </div>
@@ -201,7 +201,7 @@ onMounted(async () => {
                                 {{ t("membership.frontend.center.startTime") }}：
                             </span>
                             <span class="text-muted">{{
-                                formatDateTime(subscription.startTime)
+                                formatDateTime(subscription.createdAt)
                             }}</span>
                         </div>
                         <div class="text-sm">
