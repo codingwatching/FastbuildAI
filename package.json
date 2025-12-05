@@ -62,7 +62,9 @@
         "bd:update": "node packages/cli/bin/cli.js update",
         "bd:update-git": "node packages/cli/bin/cli.js update-git",
         "docker:up": "docker compose up -d",
-        "docker:down": "docker compose down"
+        "docker:down": "docker compose down",
+        "dev:desktop": "cd packages/desktop && pnpm run dev:desktop",
+        "build:desktop": "cd packages/desktop && pnpm run build:desktop"
     },
     "dependencies": {
         "@iconify-json/heroicons": "^1.2.3",
