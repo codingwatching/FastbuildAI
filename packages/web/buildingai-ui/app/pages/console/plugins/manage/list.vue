@@ -385,7 +385,7 @@ onMounted(() => getLists());
                                             :alt="extension.name"
                                             icon="i-lucide-puzzle"
                                             :ui="{
-                                                root: 'size-full rounded-md bg-primary',
+                                                root: `size-full rounded-md ${extension.icon ? '' : 'bg-primary'}`,
                                                 icon: 'size-7 text-white',
                                             }"
                                         />
