@@ -29,7 +29,8 @@ ArticleModule = _ts_decorate([
     imports: [
       typeorm.TypeOrmModule.forFeature([
         article_entity.Article,
-        entities.User
+        entities.User,
+        entities.UserSubscription
       ]),
       category_module.CategoryModule
     ],
