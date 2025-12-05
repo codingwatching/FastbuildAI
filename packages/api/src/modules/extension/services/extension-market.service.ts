@@ -22,7 +22,8 @@ export class ExtensionMarketService {
         private readonly extensionsService: ExtensionsService,
     ) {
         this.httpClient = createHttpClient({
-            baseURL: process.env.EXTENSION_API_URL || "https://cloud.buildingai.cc/api" + "/market",
+            baseURL:
+                (process.env.EXTENSION_API_URL || "https://cloud.buildingai.cc/api") + "/market",
             timeout: 20000,
             retryConfig: {
                 retries: 3,
@@ -38,6 +39,9 @@ export class ExtensionMarketService {
 
         // 添加请求拦截器,动态获取平台密钥
         this.httpClient.interceptors.request.use(async (config) => {
+            console.log(
+                (process.env.EXTENSION_API_URL || "https://cloud.buildingai.cc/api") + "/market",
+            );
             // 如果内存中没有，尝试从数据库加载一次
             if (!this.platformSecret) {
                 this.platformSecret = await this.dictService.get<string | null>(
