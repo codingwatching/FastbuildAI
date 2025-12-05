@@ -299,6 +299,21 @@ export class RedisService implements OnModuleDestroy {
     }
 
     /**
+     * Set value only if key does not exist (distributed lock)
+     * @param key Key
+     * @param value Value
+     * @param ttl Time to live in seconds
+     * @returns True if key was set, false if key already exists
+     */
+    async setnx(key: string, value: string, ttl?: number): Promise<boolean> {
+        const result = await this.redisClient.setNX(key, value);
+        if (result && ttl) {
+            await this.redisClient.expire(key, ttl);
+        }
+        return result;
+    }
+
+    /**
      * Close Redis connection
      */
     async onModuleDestroy() {

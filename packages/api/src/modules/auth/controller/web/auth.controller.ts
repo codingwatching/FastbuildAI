@@ -4,8 +4,6 @@ import { type UserPlayground } from "@buildingai/db";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
-import { HttpErrorFactory } from "@buildingai/errors";
-import { isEnabled } from "@buildingai/utils";
 import { WebController } from "@common/decorators";
 import { ChangePasswordDto } from "@common/modules/auth/dto/change-password.dto";
 import { LoginDto } from "@common/modules/auth/dto/login.dto";
