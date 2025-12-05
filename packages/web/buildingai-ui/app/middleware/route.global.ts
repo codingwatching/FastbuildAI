@@ -19,8 +19,21 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     const isConsoleMenuMatched = (path: string) =>
         router.resolve(path).matched.some((r) => r.path.startsWith(ROUTES.CONSOLE));
 
-    if (to.path.startsWith(`${ROUTES.EXTENSIONS}/`)) {
-        return;
+    // Handle extension routes
+    if (to.path.startsWith(`${ROUTES.EXTENSION}/`)) {
+        // Extract extension identifier from path
+        // Format: /extensions/{identifier} or /extensions/{identifier}/console/...
+        const pathParts = to.path.replace(`${ROUTES.EXTENSION}/`, "").split("/");
+
+        // If accessing extension console routes (extensions/xxx/console/...)
+        if (pathParts[1] === "console") {
+            // Set extension layout for extension console pages
+            setPageLayout("extension");
+            to.meta.auth = true;
+        } else {
+            // For extensions/xxx routes, use default layout and route to extensions/[id].vue
+            // No need to set layout explicitly, will use default
+        }
     }
 
     /**

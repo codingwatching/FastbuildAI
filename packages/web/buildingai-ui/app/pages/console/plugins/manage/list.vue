@@ -92,7 +92,7 @@ const handleTabChange = (value: string | number) => {
 };
 
 const handleNavigate = (extension: ExtensionFormData) => {
-    window.open(`${ROUTES.EXTENSIONS}/${extension.identifier}/buildingai-middleware`, "_blank");
+    window.open(`${ROUTES.EXTENSION}/${extension.identifier}/buildingai-middleware`, "_blank");
 };
 
 const installingMap = reactive<Record<string, boolean>>({});

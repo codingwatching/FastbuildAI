@@ -39,6 +39,10 @@ export class ExtensionGuard implements CanActivate {
             return true;
         }
 
+        if (request.path.startsWith("/extensions/")) {
+            return true;
+        }
+
         // 获取插件列表
         const extensionList = await getCachedExtensionList();
         const enabledExtensions = extensionList.filter((extension) => extension.enabled);
