@@ -37,7 +37,6 @@
     ],
     "scripts": {
         "build": "cross-env NODE_OPTIONS=--max-old-space-size=5120 turbo run build",
-        "build:web": "cd packages/web/buildingai-ui && pnpm run generate",
         "dev": "turbo run dev",
         "start": "pnpm i && cd packages/cli && pnpm run start",
         "predeploy": "pnpm i && cd packages/cli && pnpm run predeploy",
@@ -63,8 +62,13 @@
         "bd:update-git": "node packages/cli/bin/cli.js update-git",
         "docker:up": "docker compose up -d",
         "docker:down": "docker compose down",
-        "dev:desktop": "cd packages/desktop && pnpm run dev:desktop",
-        "build:desktop": "cd packages/desktop && pnpm run build:desktop"
+        "dev:desktop": "cd packages/desktop && pnpm run dev",
+        "dev:api": "cd packages/api && pnpm run dev",
+        "dev:web": "cd packages/web/buildingai-ui && pnpm run dev",
+        "dev:main": "cd packages/web/buildingai-ui && pnpm run dev && cd ../../api && pnpm run dev",
+        "build:desktop": "cd packages/desktop && pnpm run build:desktop",
+        "build:api": "cd packages/api && pnpm run build",
+        "build:web": "cd packages/web/buildingai-ui && pnpm run generate"
     },
     "dependencies": {
         "@iconify-json/heroicons": "^1.2.3",
