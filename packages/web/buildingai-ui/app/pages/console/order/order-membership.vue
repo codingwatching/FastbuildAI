@@ -97,14 +97,14 @@ const columns: TableColumn<MembershipOrderListItem>[] = [
             ]),
     },
     {
-        accessorKey: "planSnap",
+        accessorKey: "plan",
         header: t("order.backend.membership.list.planName"),
-        cell: ({ row }) => row.original.planSnap?.name || "-",
+        cell: ({ row }) => row.original.plan?.name || "-",
     },
     {
-        accessorKey: "levelSnap",
+        accessorKey: "level",
         header: t("order.backend.membership.list.levelName"),
-        cell: ({ row }) => row.original.levelSnap?.name || "-",
+        cell: ({ row }) => row.original.level?.name || "-",
     },
     {
         accessorKey: "duration",
@@ -120,10 +120,6 @@ const columns: TableColumn<MembershipOrderListItem>[] = [
                 currency: "CNY",
             }).format(amount);
         },
-    },
-    {
-        accessorKey: "payTypeDesc",
-        header: t("order.backend.membership.list.paymentMethod"),
     },
     {
         accessorKey: "payState",

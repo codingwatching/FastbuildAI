@@ -7,7 +7,7 @@ import {
 } from "@buildingai/constants/shared/account-log.constants";
 import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { Agent, UserSubscription } from "@buildingai/db/entities";
+import { Agent, MembershipLevels, UserSubscription } from "@buildingai/db/entities";
 import { AccountLog } from "@buildingai/db/entities";
 import {
     In,
@@ -61,6 +61,8 @@ export class UserWebController extends BaseController {
         private readonly accountLogRepository: Repository<AccountLog>,
         @InjectRepository(UserSubscription)
         private readonly userSubscriptionRepository: Repository<UserSubscription>,
+        @InjectRepository(MembershipLevels)
+        private readonly membershipLevelsRepository: Repository<MembershipLevels>,
     ) {
         super();
         this.accountLogService = new BaseService(accountLogRepository);
@@ -91,24 +93,26 @@ export class UserWebController extends BaseController {
         // 判断用户是否有权限：有权限就是1，没有权限就是0
         const hasPermissions = user.isRoot === 1 || permissionCodes.length > 0 ? 1 : 0;
 
-        // 获取用户当前有效的会员等级ID列表
-        const membershipLevelIds = await this.getUserMembershipLevelIds(user.id);
+        // 获取用户当前最高会员等级ID
+        const membershipLevelId = await this.getUserHighestMembershipLevelId(user.id);
 
         return {
             ...userInfo,
             permissions: hasPermissions,
-            membershipLevelIds,
+            membershipLevelId,
         };
     }
 
     /**
-     * 获取用户当前有效的会员等级ID列表
+     * 获取用户当前最高会员等级ID
      *
      * @param userId 用户ID
-     * @returns 会员等级ID列表
+     * @returns 最高会员等级ID，无有效会员则返回 null
      */
-    private async getUserMembershipLevelIds(userId: string): Promise<string[]> {
+    private async getUserHighestMembershipLevelId(userId: string): Promise<string | null> {
         const now = new Date();
+
+        // 查询用户所有有效订阅的等级ID
         const subscriptions = await this.userSubscriptionRepository.find({
             where: {
                 userId,
@@ -117,7 +121,20 @@ export class UserWebController extends BaseController {
             select: ["levelId"],
         });
 
-        return subscriptions.filter((sub) => sub.levelId).map((sub) => sub.levelId!);
+        const levelIds = subscriptions.filter((sub) => sub.levelId).map((sub) => sub.levelId!);
+
+        if (levelIds.length === 0) {
+            return null;
+        }
+
+        // 查询这些等级中 level 值最高的
+        const highestLevel = await this.membershipLevelsRepository.findOne({
+            where: { id: In(levelIds) },
+            order: { level: "DESC" },
+            select: ["id"],
+        });
+
+        return highestLevel?.id ?? null;
     }
 
     /**

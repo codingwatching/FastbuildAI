@@ -140,7 +140,7 @@ onMounted(async () => {
     <BdModal
         :title="t('system-perms.role.assignPermissions')"
         :description="t('system-perms.role.assignPermissionsDesc')"
-        :ui="{ container: 'max-w-5xl' }"
+        :ui="{ content: 'max-w-5xl' }"
         @close="emit('close', false)"
     >
         <div

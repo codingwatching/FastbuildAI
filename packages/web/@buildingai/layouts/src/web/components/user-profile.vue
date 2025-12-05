@@ -161,11 +161,11 @@ const handleMenuClick = (item: MenuItem) => {
                             size="xs"
                             @click="
                                 smartNavigate(
-                                    `/profile/${userStore.userInfo?.id}/personal-rights/recharge-center`,
+                                    `/profile/${userStore.userInfo?.id}/personal-rights/member-center`,
                                 )
                             "
                         >
-                            {{ t("layouts.recharge") }}
+                            {{ t("layouts.memberSubscription") }}
                         </UButton>
                     </div>
 

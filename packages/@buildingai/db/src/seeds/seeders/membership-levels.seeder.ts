@@ -9,6 +9,8 @@ interface MembershipLevelConfig {
     name: string;
     level: number;
     icon: string;
+    givePower: number;
+    description: string;
     benefits: Benefits[];
 }
 
@@ -26,35 +28,65 @@ export class MembershipLevelsSeeder extends BaseSeeder {
      */
     private readonly levelConfigs: MembershipLevelConfig[] = [
         {
-            name: "白银会员",
+            name: "基础会员",
             level: 1,
             icon: "/static/vip/1.jpg",
+            givePower: 100,
+            description: "约生成10个视频或100张图片",
             benefits: [
                 {
                     icon: "",
-                    content: "这是一个白银会员",
+                    content: "每月赠送积分",
+                },
+                {
+                    icon: "",
+                    content: "绘画生成",
+                },
+                {
+                    icon: "",
+                    content: "视频生成",
                 },
             ],
         },
         {
-            name: "黄金会员",
+            name: "标准会员",
             level: 2,
             icon: "/static/vip/2.jpg",
+            givePower: 500,
+            description: "约生成50个视频或500张图片",
             benefits: [
                 {
                     icon: "",
-                    content: "这是一个黄金会员",
+                    content: "每月赠送积分",
+                },
+                {
+                    icon: "",
+                    content: "绘画生成",
+                },
+                {
+                    icon: "",
+                    content: "视频生成",
                 },
             ],
         },
         {
-            name: "星耀会员",
+            name: "高级会员",
             level: 3,
             icon: "/static/vip/3.jpg",
+            givePower: 3000,
+            description: "约生成300个视频或3000张图片",
             benefits: [
                 {
                     icon: "",
-                    content: "这是一个星耀会员",
+                    content: "每月赠送积分",
+                },
+                {
+                    icon: "",
+                    content: "绘画生成",
+                },
+                {
+                    icon: "",
+                    content: "视频生成",
                 },
             ],
         },
@@ -78,6 +110,8 @@ export class MembershipLevelsSeeder extends BaseSeeder {
                     name: config.name,
                     level: config.level,
                     icon: config.icon,
+                    givePower: config.givePower,
+                    description: config.description,
                     benefits: config.benefits,
                 };
 

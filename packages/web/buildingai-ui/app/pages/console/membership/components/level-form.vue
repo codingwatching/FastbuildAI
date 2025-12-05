@@ -2,8 +2,6 @@
 import type { Benefit, LevelCreateRequest } from "@buildingai/service/consoleapi/membership-level";
 import { number, object, string } from "yup";
 
-const message = useMessage();
-
 const props = defineProps<{
     /** 等级 ID，编辑时传入 */
     id?: string | null;

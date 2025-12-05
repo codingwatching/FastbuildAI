@@ -7,19 +7,19 @@ const SubscriptionTable = defineAsyncComponent(
 const { t } = useI18n();
 
 /** 当前激活的 Tab */
-const activeTab = ref("recharge");
+const activeTab = ref("subscription");
 
 /**
  * Tab 选项配置
  */
 const tabItems = computed(() => [
     {
-        value: "recharge",
-        label: t("order.frontend.subscription.tab.recharge"),
-    },
-    {
         value: "subscription",
         label: t("order.frontend.subscription.tab.subscription"),
+    },
+    {
+        value: "recharge",
+        label: t("order.frontend.subscription.tab.recharge"),
     },
 ]);
 

@@ -19,12 +19,38 @@ const emits = defineEmits<{
 const { t } = useI18n();
 const toast = useMessage();
 
+const UIcon = resolveComponent("UIcon");
+const UPopover = resolveComponent("UPopover");
+
 const membershipLevels = ref<{ label: string; value: string }[]>([]);
 
 const columns = [
     { accessorKey: "name", header: t("ai-provider.backend.model.batchEdit.name") },
     { accessorKey: "billingRule", header: t("ai-provider.backend.model.batchEdit.billingRule") },
-    { accessorKey: "membershipLevel", header: "会员等级" },
+    {
+        accessorKey: "membershipLevel",
+        header: () =>
+            h("div", { class: "flex items-center gap-1" }, [
+                h("span", "会员等级"),
+                h(
+                    UPopover,
+                    { mode: "hover" },
+                    {
+                        default: () =>
+                            h(UIcon, {
+                                name: "i-lucide-circle-help",
+                                class: "size-4 cursor-pointer text-muted-foreground",
+                            }),
+                        content: () =>
+                            h(
+                                "p",
+                                { class: "text-sm py-2 px-4 w-64" },
+                                "指定某个会员等级可以使用该模型进行对话，不设置即表示全部用户都可使用",
+                            ),
+                    },
+                ),
+            ]),
+    },
 ];
 
 const models = computed(() => {
@@ -58,11 +84,10 @@ const { lockFn: handleSubmit, isLock } = useLockFn(async () => {
 const getMembershipLevels = async () => {
     try {
         const result = await apiGetLevelListAll();
-        membershipLevels.value =
-            result.map((item) => ({
-                label: item.name,
-                value: item.id,
-            })) || [];
+        membershipLevels.value = result.map((item) => ({
+            label: item.name,
+            value: item.id,
+        }));
     } catch (error) {
         console.error("获取会员等级失败:", error);
     }
@@ -147,7 +172,7 @@ onMounted(() => {
                                 multiple
                                 :items="membershipLevels"
                                 :searchInput="false"
-                                placeholder="选择会员等级"
+                                placeholder="全部用户"
                                 value-key="value"
                                 class="w-64"
                             />

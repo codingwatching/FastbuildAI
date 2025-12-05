@@ -233,6 +233,8 @@ export interface UserSubscriptionItem {
     duration: string | null;
     /** 是否过期 */
     isExpired: boolean;
+    /** 是否生效 */
+    isActive: boolean;
     /** 创建时间 */
     createdAt: string;
 }

@@ -150,9 +150,9 @@ onMounted(() => {
                         <UAvatar
                             v-else
                             icon="i-heroicons-user"
-                            :name="row.original.user?.username"
+                            :name="row.original.user?.nickname"
                         />
-                        {{ row.original.user?.username }}
+                        {{ row.original.user?.nickname }}
                     </template>
                     <template #changeAmount-cell="{ row }">
                         <span v-if="row.original.action === 1" class="text-green-500">

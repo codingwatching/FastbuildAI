@@ -90,14 +90,15 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
 
     /**
      * 会员订单列表
-     * @param queryMembershipOrderDto
-     * @returns
+     * @param queryMembershipOrderDto 查询参数
+     * @returns 订单列表及统计信息
      */
     async lists(queryMembershipOrderDto: QueryMembershipOrderDto) {
         const { orderNo, userKeyword, startTime, endTime, payType, payState, refundState } =
             queryMembershipOrderDto;
         const queryBuilder = this.membershipOrderRepository.createQueryBuilder("membership-order");
         queryBuilder.leftJoin("membership-order.user", "user");
+
         if (orderNo) {
             queryBuilder.andWhere("membership-order.orderNo ILIKE :orderNo", {
                 orderNo: `%${orderNo}%`,
@@ -136,14 +137,15 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
                 refundState,
             });
         }
+
         queryBuilder.select([
             "membership-order.id",
             "membership-order.orderNo",
+            "membership-order.planId",
+            "membership-order.levelId",
             "membership-order.payType",
             "membership-order.payState",
             "membership-order.refundStatus",
-            "membership-order.planSnap",
-            "membership-order.levelSnap",
             "membership-order.totalAmount",
             "membership-order.duration",
             "membership-order.payTime",
@@ -152,17 +154,50 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
             "user.nickname",
             "user.avatar",
         ]);
+
         const payWayList = await this.payconfigRepository.find({
             select: ["name", "payType"],
         });
         queryBuilder.orderBy("membership-order.createdAt", "DESC");
         const orderLists = await this.paginateQueryBuilder(queryBuilder, queryMembershipOrderDto);
-        orderLists.items = orderLists.items.map((order) => {
+
+        // 收集所有 planId 和 levelId 用于批量查询
+        const planIds = [...new Set(orderLists.items.map((o) => o.planId).filter(Boolean))];
+        const levelIds = [...new Set(orderLists.items.map((o) => o.levelId).filter(Boolean))];
+
+        // 批量查询套餐和等级信息
+        const plans =
+            planIds.length > 0
+                ? await this.membershipPlansRepository.find({
+                      where: { id: In(planIds) },
+                      select: ["id", "name", "label"],
+                  })
+                : [];
+        const levels =
+            levelIds.length > 0
+                ? await this.membershipLevelsRepository.find({
+                      where: { id: In(levelIds) },
+                      select: ["id", "name", "level", "icon"],
+                  })
+                : [];
+
+        // 构建映射
+        const planMap = new Map(plans.map((p) => [p.id, p] as const));
+        const levelMap = new Map(levels.map((l) => [l.id, l] as const));
+
+        // 组装返回数据
+        const items = orderLists.items.map((order) => {
             const payTypeDesc = payWayList.find((item) => item.payType == order.payType)?.name;
             const payStateDesc = order.payState == 1 ? "已支付" : "未支付";
             const refundStateDesc = order.refundStatus == 1 ? "已退款" : "未退款";
-            return { ...order, payTypeDesc, payStateDesc, refundStateDesc };
+            const plan = planMap.get(order.planId) || null;
+            const level = levelMap.get(order.levelId) || null;
+
+            // 移除 planId 和 levelId，替换为 plan 和 level 对象
+            const { planId: _planId, levelId: _levelId, ...rest } = order;
+            return { ...rest, plan, level, payTypeDesc, payStateDesc, refundStateDesc };
         });
+
         const totalOrder = await this.membershipOrderRepository.count({
             where: { payState: 1 },
         });
@@ -177,7 +212,7 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
             (await this.membershipOrderRepository.sum("orderAmount", {
                 refundStatus: 1,
             })) || 0;
-        console.log(totalAmount, totalRefundAmount);
+
         // 使用整数计算避免浮点数精度问题（乘以 100 转为分，计算后再转回元）
         const totalIncome = Math.round((totalAmount - totalRefundAmount) * 100) / 100;
         const statistics = {
@@ -187,8 +222,10 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
             totalRefundAmount,
             totalIncome,
         };
+
         return {
             ...orderLists,
+            items,
             extend: {
                 statistics,
                 payTypeLists: payWayList,
@@ -218,7 +255,7 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
             "membership-order.payTime",
             "membership-order.createdAt",
             "membership-order.orderAmount",
-            "user.username",
+            "user.nickname",
             "user.avatar",
         ]);
         const detail = await queryBuilder.getOne();
@@ -327,6 +364,40 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
     }
 
     /**
+     * 获取用户当前未过期的最高会员等级
+     * @param userId 用户ID
+     * @returns 用户当前最高等级信息，如果没有则返回 null
+     */
+    private async getUserCurrentHighestLevel(
+        userId: string,
+    ): Promise<{ level: number; name: string } | null> {
+        const now = new Date();
+
+        // 查询用户所有未过期的订阅记录，关联等级信息
+        const subscriptions = await this.userSubscriptionRepository.find({
+            where: { userId },
+            relations: ["level"],
+        });
+
+        // 过滤出未过期且有等级信息的订阅
+        const validSubscriptions = subscriptions.filter((sub) => sub.level && sub.endTime > now);
+
+        if (validSubscriptions.length === 0) {
+            return null;
+        }
+
+        // 找出最高等级
+        const highestSubscription = validSubscriptions.reduce((prev, current) => {
+            return (current.level?.level ?? 0) > (prev.level?.level ?? 0) ? current : prev;
+        });
+
+        return {
+            level: highestSubscription.level!.level,
+            name: highestSubscription.level!.name,
+        };
+    }
+
+    /**
      * 提交会员订单
      * @param planId 套餐ID
      * @param levelId 等级ID
@@ -374,19 +445,37 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
                 throw HttpErrorFactory.badRequest("会员等级不存在或已下架");
             }
 
+            // 检查用户当前会员等级，高等级会员不能购买低等级
+            const userCurrentHighestLevel = await this.getUserCurrentHighestLevel(userId);
+            if (userCurrentHighestLevel && level.level < userCurrentHighestLevel.level) {
+                throw HttpErrorFactory.badRequest(
+                    `您当前是${userCurrentHighestLevel.name}，无法购买更低等级的会员`,
+                );
+            }
+
             // 从套餐的 billing 中找到对应等级的价格信息
             const billingItem = plan.billing?.find((item) => item.levelId === levelId);
             if (!billingItem || !billingItem.status) {
                 throw HttpErrorFactory.badRequest("该等级在此套餐中不可用");
             }
 
-            // 格式化会员时长
+            // 格式化会员时长（中文）
             let durationText = "";
             if (plan.duration?.value && plan.duration?.unit) {
-                durationText = `${plan.duration.value}${plan.duration.unit}`;
+                // 单位转中文
+                const unitMap: Record<string, string> = {
+                    day: "天",
+                    天: "天",
+                    month: "个月",
+                    月: "个月",
+                    year: "年",
+                    年: "年",
+                };
+                const unitCn = unitMap[plan.duration.unit] || plan.duration.unit;
+                durationText = `${plan.duration.value}${unitCn}`;
             } else {
                 // 根据 durationConfig 生成默认文本
-                const durationMap = {
+                const durationMap: Record<number, string> = {
                     1: "1个月",
                     2: "3个月",
                     3: "6个月",
@@ -567,23 +656,59 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
         }
 
         const now = new Date();
-        const items = subscriptions.map((subscription) => {
-            const isExpired = subscription.endTime < now;
-            const sourceDesc = SUBSCRIPTION_SOURCE_DESC[subscription.source] || "未知来源";
-            const duration = subscription.orderId ? orderMap.get(subscription.orderId) : null;
 
-            return {
-                id: subscription.id,
-                level: subscription.level,
-                startTime: subscription.startTime,
-                endTime: subscription.endTime,
-                source: subscription.source,
-                sourceDesc,
-                duration,
-                isExpired,
-                createdAt: subscription.createdAt,
-            };
-        });
+        // 找出所有未过期的订阅
+        const validSubscriptions = subscriptions.filter((sub) => sub.endTime > now);
+
+        // 确定生效中的订阅ID
+        let activeSubscriptionId: string | null = null;
+
+        if (validSubscriptions.length > 0) {
+            // 找出最高等级
+            const maxLevel = Math.max(...validSubscriptions.map((sub) => sub.level?.level ?? 0));
+
+            // 筛选出最高等级的未过期订阅
+            const highestLevelSubscriptions = validSubscriptions.filter(
+                (sub) => (sub.level?.level ?? 0) === maxLevel,
+            );
+
+            // 在最高等级中，取最早订阅的那条（按 startTime 升序）
+            const activeSubscription = highestLevelSubscriptions.sort(
+                (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+            )[0];
+
+            activeSubscriptionId = activeSubscription?.id ?? null;
+        }
+
+        const items = subscriptions
+            .map((subscription) => {
+                const isExpired = subscription.endTime < now;
+                const isActive = subscription.id === activeSubscriptionId;
+                const sourceDesc = SUBSCRIPTION_SOURCE_DESC[subscription.source] || "未知来源";
+                const duration = subscription.orderId ? orderMap.get(subscription.orderId) : null;
+
+                return {
+                    id: subscription.id,
+                    level: subscription.level,
+                    startTime: subscription.startTime,
+                    endTime: subscription.endTime,
+                    source: subscription.source,
+                    sourceDesc,
+                    duration,
+                    isExpired,
+                    isActive,
+                    createdAt: subscription.createdAt,
+                };
+            })
+            // 排序：生效中 > 未过期 > 已过期，同状态下按创建时间倒序
+            .sort((a, b) => {
+                // 生效中的最先
+                if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
+                // 未过期的在已过期前面
+                if (a.isExpired !== b.isExpired) return a.isExpired ? 1 : -1;
+                // 同状态按创建时间倒序
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            });
 
         return {
             items,
