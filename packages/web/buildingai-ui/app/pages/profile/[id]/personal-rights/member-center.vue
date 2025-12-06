@@ -403,18 +403,20 @@ definePageMeta({
                         :content="false"
                         variant="pill"
                         :ui="{
-                            label: 'text-muted-foreground dark:text-white',
+                            label: 'text-muted-foreground dark:text-white px-2',
                             list: 'gap-4 rounded-full',
-                            indicator:
-                                'rounded-full bg-muted dark:bg-muted-foreground font-extrabold',
+                            indicator: 'rounded-full bg-white dark:bg-black font-extrabold',
                             trigger:
                                 'px-2 py-1.5 text-sm font-normal data-[state=active]:font-extrabold',
                         }"
                     >
                         <template #default="{ item }">
-                            <div class="flex items-center gap-2">
+                            <div
+                                class="flex items-center gap-2"
+                                :class="{ 'text-primary': item.value === selectedPlanId }"
+                            >
                                 <span>{{ item.label }}</span>
-                                <span v-if="item.discount" class="text-info text-xs font-medium">
+                                <span v-if="item.discount" class="text-primary text-xs font-normal">
                                     {{ item.discount }}
                                 </span>
                             </div>

@@ -70,6 +70,8 @@ export interface ExtensionFormData extends BaseEntity {
     user?: string;
     /** Extension describe */
     describe?: string;
+    /** Extension alias */
+    alias?: string;
 }
 
 /**
@@ -286,12 +288,9 @@ export interface PluginLayoutConfig {
  * @param identifier Extension identifier
  * @returns Promise with plugin layout configuration
  */
-export function apiGetExtensionPluginLayout(
-    identifier: string,
-): Promise<PluginLayoutConfig> {
+export function apiGetExtensionPluginLayout(identifier: string): Promise<PluginLayoutConfig> {
     return useConsoleGet(`/extensions/${identifier}/plugin-layout`);
 }
-
 
 /**
  * Check extension identifier existence

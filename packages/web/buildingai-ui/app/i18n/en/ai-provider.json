@@ -87,7 +87,12 @@
                 "model": "Model ID",
                 "maxContext": "Max Context",
                 "isActive": "Enabled",
-                "billingRule": "Chat Cost"
+                "billingRule": "Chat Cost",
+                "membershipLevel": "Membership Level",
+                "membershipLevelTip": "Specify which membership levels can use this model. Leave empty to allow all users.",
+                "membershipLevelAll": "All Users",
+                "dialogTitle": "Batch Billing Settings",
+                "dialogDescription": "Applies only to conversation mode"
             },
             "validation": {
                 "nameRequired": "Model name required",

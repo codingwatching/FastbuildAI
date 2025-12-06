@@ -89,14 +89,19 @@
                 "modelTypePlaceholder": "请输入模型类型",
                 "billing": "计费规则",
                 "power": "积分",
-                "billingHelp": "每多少 tokens 消耗多少积分"
+                "billingHelp": "每1K Tokens 消耗多少积分"
             },
             "batchEdit": {
                 "name": "名称",
                 "model": "模型标识",
                 "maxContext": "最大上下文",
                 "isActive": "是否启用",
-                "billingRule": "对话消耗"
+                "billingRule": "对话消耗",
+                "membershipLevel": "会员等级",
+                "membershipLevelTip": "指定某个会员等级可以使用该模型进行对话，不设置即表示全部用户都可使用",
+                "membershipLevelAll": "全部用户",
+                "dialogTitle": "批量设置计费",
+                "dialogDescription": "此配置仅在对话模式下生效"
             },
             "validation": {
                 "nameRequired": "请输入模型名称",

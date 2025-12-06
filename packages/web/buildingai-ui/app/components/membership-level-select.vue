@@ -9,8 +9,8 @@ import type { ButtonProps } from "#ui/types";
  */
 const props = withDefaults(
     defineProps<{
-        /** 绑定值（会员等级ID） */
-        modelValue?: string;
+        /** 绑定值（会员等级ID，多选模式下为数组） */
+        modelValue?: string | string[];
         /** 是否禁用 */
         disabled?: boolean;
         /** 是否显示描述 */
@@ -170,13 +170,17 @@ async function loadLevels() {
                 selectedIds.value = new Set([props.modelValue]);
             }
         } else {
-            // 单选模式
+            // 单选模式：确保取单个字符串值
+            const singleValue = Array.isArray(props.modelValue)
+                ? props.modelValue[0]
+                : props.modelValue;
+
             if (!props.defaultSelected) {
-                selected.value = findLevel(props.modelValue) ?? null;
+                selected.value = findLevel(singleValue) ?? null;
                 return;
             }
 
-            selected.value = findLevel(props.modelValue) ?? levels.value[0] ?? null;
+            selected.value = findLevel(singleValue) ?? levels.value[0] ?? null;
 
             if (selected.value) {
                 selectLevel(selected.value);
@@ -224,7 +228,9 @@ watch(
                 selectedIds.value = new Set();
             }
         } else {
-            const level = levels.value.find((l) => l.id === newValue);
+            // 单选模式：确保取单个字符串值
+            const singleValue = Array.isArray(newValue) ? newValue[0] : newValue;
+            const level = levels.value.find((l) => l.id === singleValue);
             if (level) {
                 selected.value = level;
             }
@@ -282,7 +288,7 @@ onMounted(loadLevels);
                     {{ props.placeholder || t("common.placeholder.levelSelect") }}
                 </span>
             </div>
-            <div class="ml-2 flex shrink-0 items-center gap-2">
+            <div class="ml-1 flex shrink-0 items-center gap-2">
                 <UIcon
                     name="i-lucide-chevron-down"
                     class="text-muted-foreground h-4 w-4"

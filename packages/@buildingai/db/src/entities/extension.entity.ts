@@ -26,6 +26,12 @@ export class Extension extends BaseEntity {
     name: string;
 
     /**
+     * 应用别名（用于前台显示）
+     */
+    @Column({ length: 100, nullable: true, comment: "应用别名" })
+    alias?: string;
+
+    /**
      * 应用标识符
      */
     @Column({ length: 100, unique: true, comment: "应用标识符" })

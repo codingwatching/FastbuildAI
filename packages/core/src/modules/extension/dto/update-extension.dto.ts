@@ -3,14 +3,21 @@ import {
     type ExtensionStatusType,
 } from "@buildingai/constants/shared/extension.constant";
 import { PartialType } from "@nestjs/mapped-types";
-import { ArrayNotEmpty, IsArray, IsEnum, IsString } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsEnum, IsOptional, IsString } from "class-validator";
 
 import { CreateExtensionDto } from "./create-extension.dto";
 
 /**
  * Update Extension DTO
  */
-export class UpdateExtensionDto extends PartialType(CreateExtensionDto) {}
+export class UpdateExtensionDto extends PartialType(CreateExtensionDto) {
+    /**
+     * alias
+     */
+    @IsString({ message: "alias must be a string" })
+    @IsOptional()
+    alias?: string;
+}
 
 /**
  * Batch Update Extension Status DTO

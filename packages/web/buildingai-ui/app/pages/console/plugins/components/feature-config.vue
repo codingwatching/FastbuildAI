@@ -173,7 +173,7 @@ onMounted(loadFeatures);
         </template>
 
         <template #footer>
-            <div class="flex justify-end">
+            <div class="flex w-full justify-end">
                 <UButton color="neutral" variant="outline" @click="handleClose">
                     {{ t("console-common.close") }}
                 </UButton>

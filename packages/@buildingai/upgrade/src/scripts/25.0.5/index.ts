@@ -31,6 +31,10 @@ import { BaseUpgradeScript, UpgradeContext } from "../../index";
  * 添加财务管理下的会员订单菜单：
  * - financial (财务管理) <- 父菜单
  *   - membership-order (会员订单)
+ *
+ * 添加装修中心下的应用中心菜单：
+ * - diy-center (装修中心) <- 父菜单
+ *   - apps-center (应用中心)
  */
 export class Upgrade extends BaseUpgradeScript {
     readonly version = "25.0.5";
@@ -57,6 +61,9 @@ export class Upgrade extends BaseUpgradeScript {
 
             // 添加会员订单菜单
             await this.addMembershipOrderMenu(menuRepository);
+
+            // 添加应用中心菜单
+            await this.addAppsCenterMenu(menuRepository);
 
             this.success("版本 25.0.5 升级完成");
         } catch (error) {
@@ -406,6 +413,51 @@ export class Upgrade extends BaseUpgradeScript {
 
         await menuRepository.save(membershipOrderMenu);
         console.log("成功添加菜单项 membership-order");
+    }
+
+    /**
+     * 添加应用中心菜单
+     *
+     * @param menuRepository 菜单仓库
+     */
+    private async addAppsCenterMenu(menuRepository: Repository<Menu>): Promise<void> {
+        // 查找父菜单 - 装修中心 (code: "diy-center")
+        const diyCenterMenu = await menuRepository.findOne({
+            where: { code: "diy-center" },
+        });
+
+        if (!diyCenterMenu) {
+            console.log("未找到父菜单 diy-center (装修中心)，跳过应用中心菜单添加");
+            return;
+        }
+
+        // 检查应用中心菜单是否已存在
+        const existingMenu = await menuRepository.findOne({
+            where: { code: "apps-center" },
+        });
+
+        if (existingMenu) {
+            console.log("菜单 apps-center 已存在，跳过添加");
+            return;
+        }
+
+        // 创建应用中心菜单
+        const appsCenterMenu = menuRepository.create({
+            name: "console-menu.diyCenter.appCenter",
+            code: "apps-center",
+            path: "apps",
+            icon: "",
+            component: "/console/decorate/apps/list",
+            permissionCode: "extensions:list",
+            parentId: diyCenterMenu.id,
+            sort: 2,
+            isHidden: 0,
+            type: MenuType.MENU,
+            sourceType: MenuSourceType.SYSTEM,
+        } as Partial<Menu>);
+
+        await menuRepository.save(appsCenterMenu);
+        console.log("成功添加菜单项 apps-center");
     }
 }
 

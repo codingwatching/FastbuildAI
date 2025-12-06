@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { apiBatchUpdateAiModel } from "@buildingai/service/consoleapi/ai-model";
 import type { AiModelInfo } from "@buildingai/service/consoleapi/ai-provider";
-import { apiGetLevelListAll } from "@buildingai/service/consoleapi/membership-level";
 
 const props = defineProps<{
     models: Set<AiModelInfo>;
@@ -22,16 +21,15 @@ const toast = useMessage();
 const UIcon = resolveComponent("UIcon");
 const UPopover = resolveComponent("UPopover");
 
-const membershipLevels = ref<{ label: string; value: string }[]>([]);
-
 const columns = [
     { accessorKey: "name", header: t("ai-provider.backend.model.batchEdit.name") },
+    { accessorKey: "modelType", header: t("ai-provider.backend.model.form.modelType") },
     { accessorKey: "billingRule", header: t("ai-provider.backend.model.batchEdit.billingRule") },
     {
         accessorKey: "membershipLevel",
         header: () =>
             h("div", { class: "flex items-center gap-1" }, [
-                h("span", "会员等级"),
+                h("span", t("ai-provider.backend.model.batchEdit.membershipLevel")),
                 h(
                     UPopover,
                     { mode: "hover" },
@@ -45,7 +43,7 @@ const columns = [
                             h(
                                 "p",
                                 { class: "text-sm py-2 px-4 w-64" },
-                                "指定某个会员等级可以使用该模型进行对话，不设置即表示全部用户都可使用",
+                                t("ai-provider.backend.model.batchEdit.membershipLevelTip"),
                             ),
                     },
                 ),
@@ -77,25 +75,6 @@ const { lockFn: handleSubmit, isLock } = useLockFn(async () => {
         console.error("批量编辑失败:", error);
     }
 });
-
-/**
- * 获取会员等级
- */
-const getMembershipLevels = async () => {
-    try {
-        const result = await apiGetLevelListAll();
-        membershipLevels.value = result.map((item) => ({
-            label: item.name,
-            value: item.id,
-        }));
-    } catch (error) {
-        console.error("获取会员等级失败:", error);
-    }
-};
-
-onMounted(() => {
-    getMembershipLevels();
-});
 </script>
 <template>
     <BdModal
@@ -107,8 +86,12 @@ onMounted(() => {
         <template #title>
             <div>
                 <div class="flex flex-row items-center gap-4">
-                    <h3 class="text-lg font-semibold">批量设置计费</h3>
-                    <p class="text-muted-foreground text-sm">此配置仅在对话模式下生效</p>
+                    <h3 class="text-lg font-semibold">
+                        {{ t("ai-provider.backend.model.batchEdit.dialogTitle") }}
+                    </h3>
+                    <p class="text-muted-foreground text-sm">
+                        {{ t("ai-provider.backend.model.batchEdit.dialogDescription") }}
+                    </p>
                 </div>
                 <div class="text-muted-foreground flex items-center gap-2 text-sm">
                     <div v-if="provider?.iconUrl" class="flex-none">
@@ -135,7 +118,7 @@ onMounted(() => {
                     base: 'table-fixed border-separate border-spacing-0',
                     thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
                     tbody: '[&>tr]:last:[&>td]:border-b-0',
-                    th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r [&:nth-child(4)]:min-w-22',
+                    th: 'py-2 whitespace-nowrap first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r [&:nth-child(4)]:min-w-22',
                     td: 'border-b border-default cursor-pointer [&:nth-child(4)]:min-w-22',
                     tr: '[&:has(>td[colspan])]:hidden',
                 }"
@@ -167,14 +150,16 @@ onMounted(() => {
                 <template #membershipLevel-cell="{ row }">
                     <div class="flex w-full items-center gap-2">
                         <UFormField :name="`rows.${row.index}.membershipLevel`" class="flex-1">
-                            <USelectMenu
+                            <MembershipLevelSelect
                                 v-model="row.original.membershipLevel"
-                                multiple
-                                :items="membershipLevels"
-                                :searchInput="false"
-                                placeholder="全部用户"
-                                value-key="value"
-                                class="w-64"
+                                :multiple="true"
+                                :placeholder="
+                                    t('ai-provider.backend.model.batchEdit.membershipLevelAll')
+                                "
+                                :button-ui="{
+                                    variant: 'outline',
+                                    class: 'w-full',
+                                }"
                             />
                         </UFormField>
                     </div>

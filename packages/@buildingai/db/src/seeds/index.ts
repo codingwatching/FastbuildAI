@@ -8,4 +8,5 @@ export { MembershipLevelsSeeder } from "./seeders/membership-levels.seeder";
 export { MembershipPlansSeeder } from "./seeders/membership-plans.seeder";
 export { PageSeeder } from "./seeders/page.seeder";
 export { PayConfigSeeder } from "./seeders/payconfig.seeder";
+export { RechargeCenterSeeder } from "./seeders/recharge-center.seeder";
 export { SecretTemplateSeeder } from "./seeders/secret-template.seeder";

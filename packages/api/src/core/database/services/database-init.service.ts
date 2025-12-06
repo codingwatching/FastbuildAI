@@ -11,6 +11,7 @@ import {
     PageSeeder,
     PayConfigSeeder,
     PermissionSeeder,
+    RechargeCenterSeeder,
     SecretTemplateSeeder,
     SeedRunner,
 } from "@buildingai/db/seeds";
@@ -126,6 +127,7 @@ export class DatabaseInitService implements OnModuleInit {
             new SecretTemplateSeeder(), // Secret templates
             new MembershipLevelsSeeder(), // Membership levels
             new MembershipPlansSeeder(), // Membership plans
+            new RechargeCenterSeeder(), // Recharge center configuration
         ]);
     }
 

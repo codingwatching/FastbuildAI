@@ -1070,6 +1070,18 @@
                         "isHidden": 0,
                         "type": 2,
                         "sourceType": 1
+                    },
+                    {
+                        "name": "console-menu.diyCenter.appCenter",
+                        "code": "apps-center",
+                        "path": "apps",
+                        "icon": "",
+                        "component": "/console/decorate/apps/list",
+                        "permissionCode": "extensions:list",
+                        "sort": 2,
+                        "isHidden": 0,
+                        "type": 2,
+                        "sourceType": 1
                     }
                 ]
             },

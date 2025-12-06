@@ -16,6 +16,7 @@ import { ModuleRef } from "@nestjs/core";
 import { AuthModule } from "../auth/auth.module";
 import { Pm2Module } from "../pm2/pm2.module";
 import { ExtensionConsoleController } from "./controllers/console/extension.controller";
+import { ExtensionWebController } from "./controllers/web/extension.controller";
 import { ExtensionMarketService } from "./services/extension-market.service";
 import { ExtensionOperationService } from "./services/extension-operation.service";
 import { ExtensionSeedService } from "./services/extension-seed.service";
@@ -64,7 +65,7 @@ export class ExtensionCoreModule implements OnModuleInit {
                 ExtensionOperationService,
                 ExtensionSeedService,
             ],
-            controllers: [ExtensionConsoleController],
+            controllers: [ExtensionConsoleController, ExtensionWebController],
             exports: [],
         };
     }

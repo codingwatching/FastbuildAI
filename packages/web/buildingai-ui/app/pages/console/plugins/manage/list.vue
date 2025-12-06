@@ -309,7 +309,7 @@ onMounted(() => getLists());
                 class="absolute top-0 right-0 bottom-0 left-0 flex h-[calc(100vh-12rem)] items-center justify-center"
             >
                 <span class="text-muted-foreground text-sm font-medium">
-                    {{ t("extensions.manage.empty.title") }}
+                    {{ t("extensions.manage.empty.description") }}
                 </span>
             </div>
         </div>

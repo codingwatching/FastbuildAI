@@ -1,0 +1,67 @@
+<script setup lang="ts">
+import type { ExtensionFormData } from "@buildingai/service/consoleapi/extensions";
+
+/**
+ * 应用卡片组件 Props
+ */
+const props = defineProps<{
+    /** 应用数据 */
+    extension: ExtensionFormData;
+}>();
+
+/**
+ * 应用卡片组件 Emits
+ */
+const emit = defineEmits<{
+    /** 点击事件 */
+    click: [extension: ExtensionFormData];
+}>();
+
+/**
+ * 处理卡片点击事件
+ */
+const handleClick = () => {
+    emit("click", props.extension);
+};
+</script>
+
+<template>
+    <div
+        class="group bg-muted border-border cursor-pointer rounded-lg border px-4 py-6 transition-all duration-200 hover:shadow-md"
+        @click="handleClick"
+    >
+        <div class="flex flex-row justify-between gap-3">
+            <div class="min-w-0 flex-1">
+                <h3 class="text-foreground truncate text-lg font-semibold">
+                    {{ extension.name }}
+                </h3>
+                <p class="text-muted-foreground mt-1 line-clamp-2 h-10 text-sm">
+                    {{ extension.description || $t("extensions.manage.noDescription") }}
+                </p>
+            </div>
+            <div
+                class="border-default bg-background flex size-18 flex-none items-center justify-center overflow-hidden rounded-lg border"
+            >
+                <NuxtImg
+                    v-if="extension.icon"
+                    :src="extension.icon"
+                    :alt="extension.name"
+                    class="size-18 rounded-lg object-contain"
+                />
+                <UIcon v-else name="i-lucide-box" class="text-muted-foreground size-8" />
+            </div>
+        </div>
+
+        <!-- 底部信息 -->
+        <div class="mt-3 flex items-center justify-between">
+            <div class="text-muted-foreground flex items-center gap-2 text-xs">
+                <span v-if="extension.version" class="bg-muted-foreground/10 rounded px-1.5 py-0.5">
+                    v{{ extension.version }}
+                </span>
+                <span v-if="extension.author?.name">
+                    {{ extension.author.name }}
+                </span>
+            </div>
+        </div>
+    </div>
+</template>

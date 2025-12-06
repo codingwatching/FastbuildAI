@@ -127,12 +127,12 @@ watch(
             formData.value = {
                 ...formData.value,
                 ...newData,
-                duration: newData.duration || { value: 1, unit: "day" },
+                duration: newData.duration ? { ...newData.duration } : { value: 1, unit: "day" },
             };
-            billingList.value = newData.billing || [];
+            billingList.value = newData.billing ? [...newData.billing] : [];
         }
     },
-    { immediate: true, deep: true },
+    { immediate: true },
 );
 
 /**
