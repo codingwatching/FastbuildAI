@@ -28,6 +28,16 @@
             "username": "账号注册",
             "unknown": "未知来源"
         },
+        "list": {
+            "nickname": "用户信息",
+            "username": "用户账号",
+            "userNo": "用户编号",
+            "status": "状态",
+            "source": "来源",
+            "createdAt": "创建时间",
+            "lastLoginAt": "最后登录时间",
+            "actions": "操作"
+        },
         "form": {
             "username": "账号",
             "usernameInput": "请输入账号",

@@ -8,6 +8,7 @@ import type { UserInfo, UserQueryRequest } from "@buildingai/service/webapi/user
 
 const EditPower = defineAsyncComponent(() => import("./components/edit-power.vue"));
 const UserCard = defineAsyncComponent(() => import("./components/user-card.vue"));
+const UserList = defineAsyncComponent(() => import("./components/user-list.vue"));
 
 const router = useRouter();
 const toast = useMessage();
@@ -19,6 +20,12 @@ const searchForm = shallowReactive<UserQueryRequest>({
     startTime: "",
     endTime: "",
 });
+
+const viewTab = ref(2);
+const viewTabs = [
+    { value: 2, icon: "i-tabler-list" },
+    { value: 1, icon: "i-tabler-layout-grid" },
+];
 
 const selectedUsers = shallowRef<Set<string>>(new Set());
 
@@ -185,6 +192,17 @@ onMounted(() => getLists());
                         {{ t("user.backend.add") }}
                     </UButton>
                 </AccessControl>
+
+                <UTabs
+                    v-model="viewTab"
+                    :items="viewTabs"
+                    size="xs"
+                    :ui="{
+                        root: 'gap-0',
+                        indicator: 'bg-background dark:bg-primary',
+                        leadingIcon: 'bg-black dark:bg-white',
+                    }"
+                ></UTabs>
             </div>
         </div>
 
@@ -192,6 +210,7 @@ onMounted(() => getLists());
         <template v-if="!paging.loading && paging.items.length > 0">
             <BdScrollArea class="h-[calc(100vh-13rem)]" :shadow="false">
                 <div
+                    v-show="viewTab === 1"
                     class="grid grid-cols-1 gap-6 py-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
                 >
                     <UserCard
@@ -204,6 +223,8 @@ onMounted(() => getLists());
                         @delete="handleDeleteUser"
                     />
                 </div>
+                <!-- 表格 -->
+                <UserList v-show="viewTab === 2" :usersList="paging.items" />
             </BdScrollArea>
         </template>
 
