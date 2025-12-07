@@ -33,7 +33,7 @@ const handleClick = () => {
         <div class="flex flex-row justify-between gap-3">
             <div class="min-w-0 flex-1">
                 <h3 class="text-foreground truncate text-lg font-semibold">
-                    {{ extension.name }}
+                    {{ extension.alias || extension.name }}
                 </h3>
                 <p class="text-muted-foreground mt-1 line-clamp-2 h-10 text-sm">
                     {{ extension.description || $t("extensions.manage.noDescription") }}

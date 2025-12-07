@@ -2,6 +2,7 @@ import { AppConfig } from "@buildingai/config/app.config";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { Menu } from "@buildingai/db/entities";
 import {
+    AgentSquareSeeder,
     AiModelSeeder,
     AiProviderSeeder,
     ExtensionSeeder,
@@ -128,6 +129,7 @@ export class DatabaseInitService implements OnModuleInit {
             new MembershipLevelsSeeder(), // Membership levels
             new MembershipPlansSeeder(), // Membership plans
             new RechargeCenterSeeder(), // Recharge center configuration
+            new AgentSquareSeeder(), // Agent square configuration
         ]);
     }
 

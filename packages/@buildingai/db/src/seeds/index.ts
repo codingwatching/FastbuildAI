@@ -1,6 +1,7 @@
 export { MenuSeeder } from "./runtime-seeders/menu.seeder";
 export { PermissionSeeder } from "./runtime-seeders/permission.seeder";
 export { SeedRunner } from "./seed-runner";
+export { AgentSquareSeeder } from "./seeders/agent.square.seeder";
 export { AiModelSeeder } from "./seeders/ai-model.seeder";
 export { AiProviderSeeder } from "./seeders/ai-provider.seeder";
 export { ExtensionSeeder } from "./seeders/extension.seeder";
