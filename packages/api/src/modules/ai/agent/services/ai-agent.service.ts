@@ -107,11 +107,70 @@ export class AiAgentService extends BaseService<Agent> {
     }
 
     /**
-     * Create agent from template
-     * Alias for createAgent to support template-based agent creation
+     * 从模板或DSL导入创建智能体
+     * 支持完整的智能体配置导入，包括角色设定、开场白、快捷指令等
+     *
+     * @param dto 导入的智能体配置数据
+     * @param user 当前用户信息
+     * @returns 创建的智能体
      */
     async createAgentFromTemplate(dto: any, user: UserPlayground): Promise<Agent> {
-        return this.createAgent(dto, user);
+        const {
+            name,
+            description,
+            avatar,
+            chatAvatar,
+            rolePrompt,
+            openingStatement,
+            openingQuestions,
+            showContext,
+            showReference,
+            enableFeedback,
+            enableWebSearch,
+            createMode = "direct",
+            thirdPartyIntegration = {},
+            quickCommands,
+            autoQuestions,
+            formFields,
+            billingConfig,
+            modelConfig,
+            tagIds,
+        } = dto;
+
+        await this.checkNameUniqueness(name);
+
+        return this.withErrorHandling(async () => {
+            const agent = await this.create({
+                name,
+                description,
+                avatar: avatar || this.defaultAvatar,
+                chatAvatar: chatAvatar || null,
+                rolePrompt: rolePrompt || null,
+                openingStatement: openingStatement || null,
+                openingQuestions: openingQuestions || [],
+                showContext: showContext ?? true,
+                showReference: showReference ?? true,
+                enableFeedback: enableFeedback ?? false,
+                enableWebSearch: enableWebSearch ?? false,
+                createMode,
+                thirdPartyIntegration: thirdPartyIntegration || {},
+                quickCommands: quickCommands || [],
+                autoQuestions: autoQuestions || [],
+                formFields: formFields || [],
+                billingConfig: billingConfig || null,
+                modelConfig: modelConfig || null,
+                userCount: 0,
+                isPublic: false,
+                createBy: user.id,
+            });
+
+            if (tagIds && tagIds.length > 0) {
+                await this.syncAgentTags(agent.id, tagIds);
+            }
+
+            this.logger.log(`[+] 智能体导入成功: ${agent.id} - ${name}`);
+            return this.getAgentDetail(agent.id);
+        }, "智能体导入失败");
     }
 
     // 获取智能体详情
@@ -618,6 +677,7 @@ export class AiAgentService extends BaseService<Agent> {
                 "agent.enableFeedback",
                 "agent.showContext",
                 "agent.formFields",
+                "agent.quickCommands",
             ])
             .leftJoin("agent.tags", "tag")
             .addSelect(["tag.id", "tag.name", "tag.type", "tag.createdAt", "tag.updatedAt"])

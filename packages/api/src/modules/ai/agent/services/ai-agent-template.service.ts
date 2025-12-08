@@ -237,7 +237,6 @@ export class AiAgentTemplateService {
             if (!agentData || typeof agentData !== "object") {
                 throw new Error("DSL 配置格式错误");
             }
-
             // 构建导入数据对象，允许通过参数覆盖 DSL 中的值
             let agentName = dto.name || agentData.name;
 
@@ -251,13 +250,19 @@ export class AiAgentTemplateService {
                 chatAvatar: agentData.chatAvatar,
                 rolePrompt: agentData.rolePrompt,
                 openingStatement: agentData.openingStatement,
-                openingQuestions: agentData.openingQuestions,
+                openingQuestions: agentData.openingQuestions || [],
                 showContext: agentData.showContext,
                 showReference: agentData.showReference,
                 enableFeedback: agentData.enableFeedback,
                 enableWebSearch: agentData.enableWebSearch,
                 createMode: agentData.createMode,
                 thirdPartyIntegration: agentData.thirdPartyIntegration,
+                // 快捷指令、自动问题、表单字段
+                quickCommands: agentData.quickCommands || [],
+                autoQuestions: agentData.autoQuestions || [],
+                formFields: agentData.formFields || [],
+                // 计费配置
+                billingConfig: agentData.billingConfig || null,
                 // 导入时清空这些关联配置
                 datasetIds: [],
                 mcpServerIds: [],
