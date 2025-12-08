@@ -254,6 +254,8 @@ const mountSuccessModal = async (): Promise<void> => {
     const instance = modal.open();
     paymentModal.close();
     const shouldRefresh = await instance.result;
+    // 关闭弹窗后刷新会员中心信息
+    await refreshMemberCenterInfo();
     if (shouldRefresh) {
         router.push(`/profile/${userStore.userInfo?.id}/purchase-record`);
     }
