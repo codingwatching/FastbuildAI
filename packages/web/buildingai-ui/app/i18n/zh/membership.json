@@ -119,7 +119,7 @@
             "table": {
                 "name": "计划名称",
                 "durationConfig": "订阅时长",
-                "levelCount": "等级数量",
+                "levels": "会员等级",
                 "status": "状态",
                 "sort": "排序",
                 "actions": "操作"

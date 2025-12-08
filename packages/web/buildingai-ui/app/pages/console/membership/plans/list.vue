@@ -19,6 +19,7 @@ const message = useMessage();
 
 const UButton = resolveComponent("UButton");
 const USwitch = resolveComponent("USwitch");
+const UBadge = resolveComponent("UBadge");
 
 const planStatus = ref<boolean>(false);
 const planList = ref<Plan[]>();
@@ -36,8 +37,18 @@ const columns: TableColumn<Plan>[] = [
         },
     },
     {
-        accessorKey: "levelCount",
-        header: $t("membership.console-membership.plan.table.levelCount"),
+        accessorKey: "levels",
+        header: $t("membership.console-membership.plan.table.levels"),
+        cell: ({ row }) => {
+            const levelList = row.original.levels;
+            return h(
+                "div",
+                { class: "flex items-center gap-1 w-36 flex-wrap" },
+                levelList?.map((item) => {
+                    return h(UBadge, { color: "primary", variant: "soft" }, () => item.name);
+                }),
+            );
+        },
     },
     {
         accessorKey: "status",

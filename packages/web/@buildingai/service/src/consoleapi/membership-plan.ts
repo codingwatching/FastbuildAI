@@ -7,6 +7,7 @@
  */
 
 import type { BaseEntity } from "../models/globals";
+import type { LevelFormData } from "./membership-level";
 
 export enum MembershipPlanDuration {
     MONTH = 1,
@@ -38,6 +39,7 @@ export interface Plan {
     status: boolean;
     sort: number;
     duration: Duration;
+    levels: LevelFormData[];
 }
 
 export interface PlanFormData {

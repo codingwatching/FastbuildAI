@@ -79,16 +79,30 @@ export class PlansService extends BaseService<MembershipPlans> {
             order: { sort: "DESC", createdAt: "DESC" },
         });
 
-        // 动态计算 levelCount
-        const plansWithLevelCount = plans.map((plan) => ({
-            id: plan.id,
-            name: plan.name,
-            durationConfig: plan.durationConfig,
-            duration: plan.duration,
-            status: plan.status,
-            sort: plan.sort,
-            levelCount: plan.billing?.length ?? 0,
-        }));
+        // 动态计算 levelCount，并拉平 levels 的 Promise
+        const plansWithLevelCount = await Promise.all(
+            plans.map(async (plan) => {
+                const levels =
+                    (await Promise.all(
+                        plan.billing?.map((item) =>
+                            this.membershipLevelsRepository.findOne({
+                                where: { id: item.levelId },
+                            }),
+                        ) ?? [],
+                    )) ?? [];
+
+                return {
+                    id: plan.id,
+                    name: plan.name,
+                    durationConfig: plan.durationConfig,
+                    duration: plan.duration,
+                    status: plan.status,
+                    sort: plan.sort,
+                    levelCount: plan.billing?.length ?? 0,
+                    levels,
+                };
+            }),
+        );
 
         return {
             plansStatus,
