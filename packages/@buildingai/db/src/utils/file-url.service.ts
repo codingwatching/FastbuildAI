@@ -179,9 +179,10 @@ export class FileUrlService {
         try {
             // 尝试创建URL对象
             const urlObj = new URL(url);
+            const baseDomainObj = new URL(baseDomain);
 
-            // 如果URL的域名与基础域名匹配，则只返回路径部分
-            if (baseDomain.includes(urlObj.hostname)) {
+            // Compare origin (protocol + hostname + port) to ensure exact domain match
+            if (urlObj.origin === baseDomainObj.origin) {
                 // 移除开头的斜杠，确保返回的是相对路径
                 return urlObj.pathname.replace(/^\//, "");
             }
