@@ -74,6 +74,22 @@ const levelOptions = computed(() =>
     })),
 );
 
+/**
+ * 获取指定行可用的会员等级选项
+ * 排除已被其他行选中的等级，保留当前行已选的等级
+ * @param currentLevelId 当前行已选中的等级ID
+ */
+const getAvailableLevelOptions = (currentLevelId: string) => {
+    const selectedLevelIds = billingList.value
+        .map((item) => item.levelId)
+        .filter((id) => id && id !== currentLevelId);
+
+    return levelOptions.value.map((option) => ({
+        ...option,
+        disabled: selectedLevelIds.includes(option.value),
+    }));
+};
+
 /** 计费规则列表 */
 const billingList = ref<Billing[]>([]);
 
@@ -322,7 +338,7 @@ onMounted(() => {
                         <template #levelId-cell="{ row }">
                             <USelect
                                 v-model="row.original.levelId"
-                                :items="levelOptions"
+                                :items="getAvailableLevelOptions(row.original.levelId)"
                                 :placeholder="
                                     $t(
                                         'membership.console-membership.plan.form.selectLevelPlaceholder',
