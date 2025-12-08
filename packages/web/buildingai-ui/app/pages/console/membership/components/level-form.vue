@@ -1,3 +1,5 @@
+<!-- eslint-disable @typescript-eslint/no-unused-vars -->
+
 <script lang="ts" setup>
 import type { Benefit, LevelCreateRequest } from "@buildingai/service/consoleapi/membership-level";
 import { number, object, string } from "yup";
