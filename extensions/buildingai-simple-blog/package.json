@@ -58,5 +58,8 @@
         "@buildingai/typescript-config": "workspace:*",
         "@buildingai/nuxt": "workspace:*",
         "@buildingai/i18n-config": "workspace:*"
+    },
+    "engine": {
+        "buildingai": ">=25.1.0"
     }
 }

@@ -9,5 +9,8 @@
         "name": "BuildingAI Teams",
         "homepage": ""
     },
-    "changelog": []
+    "changelog": [],
+    "engine": {
+        "buildingai": ">=25.1.0"
+    }
 }
