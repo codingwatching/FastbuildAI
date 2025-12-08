@@ -852,7 +852,6 @@
                 "isHidden": 0,
                 "type": 1,
                 "sourceType": 1,
-                "pluginPackName": "",
                 "children": [
                     {
                         "name": "console-menu.membershipManagement.levelsList",
@@ -865,7 +864,6 @@
                         "isHidden": 0,
                         "type": 2,
                         "sourceType": 1,
-                        "pluginPackName": null,
                         "children": [
                             {
                                 "name": "console-common.edit",
@@ -877,8 +875,7 @@
                                 "sort": 0,
                                 "isHidden": 1,
                                 "type": 2,
-                                "sourceType": 1,
-                                "pluginPackName": null
+                                "sourceType": 1
                             },
                             {
                                 "name": "console-common.add",
@@ -890,8 +887,7 @@
                                 "sort": 0,
                                 "isHidden": 1,
                                 "type": 2,
-                                "sourceType": 1,
-                                "pluginPackName": null
+                                "sourceType": 1
                             }
                         ]
                     },
@@ -906,7 +902,6 @@
                         "isHidden": 0,
                         "type": 2,
                         "sourceType": 1,
-                        "pluginPackName": null,
                         "children": [
                             {
                                 "name": "console-common.edit",
@@ -918,8 +913,7 @@
                                 "sort": 0,
                                 "isHidden": 1,
                                 "type": 2,
-                                "sourceType": 1,
-                                "pluginPackName": null
+                                "sourceType": 1
                             },
                             {
                                 "name": "console-common.add",
@@ -970,8 +964,7 @@
                         "sort": 0,
                         "isHidden": 0,
                         "type": 2,
-                        "sourceType": 1,
-                        "pluginPackName": null
+                        "sourceType": 1
                     }
                 ]
             },
