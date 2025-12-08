@@ -129,7 +129,7 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
 
 <template>
     <BdModal
-        :title="$t('extensions.modal.addExtension')"
+        :title="$t('extensions.modal.editExtension')"
         :description="$t('extensions.modal.addExtensionDescription')"
         :ui="{ content: 'max-w-xl' }"
         @close="emits('close', false)"
@@ -144,7 +144,6 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
             <UFormField :label="t('extensions.develop.form.name')" required name="name">
                 <UInput
                     v-model="formData.name"
-                    :disabled="true"
                     variant="subtle"
                     :placeholder="t('extensions.develop.form.nameInput')"
                     size="lg"
@@ -152,7 +151,7 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
                 />
             </UFormField>
 
-            <UFormField label="显示名称" required name="alias">
+            <UFormField label="显示名称" name="alias">
                 <UInput
                     v-model="formData.alias"
                     placeholder="请输入显示名称"
@@ -165,10 +164,12 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
                 :label="t('extensions.develop.form.description')"
                 required
                 name="description"
+                :disabled="true"
             >
                 <UTextarea
                     v-model="formData.description"
                     :placeholder="t('extensions.develop.form.descriptionInput')"
+                    :disabled="true"
                     size="lg"
                     :rows="2"
                     :ui="{ root: 'w-full' }"
@@ -177,6 +178,8 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
 
             <UFormField :label="t('extensions.develop.form.icon')" required name="icon">
                 <BdUploader
+                    :showReplaceButton="false"
+                    :showRemoveButton="false"
                     v-model="formData.icon"
                     class="size-20"
                     :text="t('extensions.develop.form.addIcon')"

@@ -28,7 +28,7 @@ export class MembershipLevelsSeeder extends BaseSeeder {
      */
     private readonly levelConfigs: MembershipLevelConfig[] = [
         {
-            name: "示例—基础会员",
+            name: "基础会员（示例）",
             level: 1,
             icon: "/static/vip/1.jpg",
             givePower: 100,
@@ -49,7 +49,7 @@ export class MembershipLevelsSeeder extends BaseSeeder {
             ],
         },
         {
-            name: "示例—标准会员",
+            name: "标准会员（示例）",
             level: 2,
             icon: "/static/vip/2.jpg",
             givePower: 500,
@@ -70,7 +70,7 @@ export class MembershipLevelsSeeder extends BaseSeeder {
             ],
         },
         {
-            name: "示例—高级会员",
+            name: "高级会员（示例）",
             level: 3,
             icon: "/static/vip/3.jpg",
             givePower: 3000,

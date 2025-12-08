@@ -25,7 +25,7 @@ const defaultFormData: Partial<LevelCreateRequest> = {
     icon: "",
     givePower: undefined,
     description: "",
-    benefits: [{ icon: "", content: "" }],
+    benefits: [],
 };
 
 /** 表单数据 */

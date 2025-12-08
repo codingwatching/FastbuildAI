@@ -34,7 +34,7 @@ export class MembershipPlansSeeder extends BaseSeeder {
      */
     private readonly planConfigs: MembershipPlanConfig[] = [
         {
-            name: "示例—7天体验",
+            name: "7天体验",
             durationConfig: MembershipPlanDuration.CUSTOM,
             sort: 4,
             duration: {
@@ -43,18 +43,18 @@ export class MembershipPlansSeeder extends BaseSeeder {
             },
         },
         {
-            name: "示例—单月购买",
+            name: "单月购买",
             durationConfig: MembershipPlanDuration.MONTH,
             sort: 3,
         },
         {
-            name: "示例—按季",
+            name: "按季",
             durationConfig: MembershipPlanDuration.QUARTER,
             label: "5折",
             sort: 2,
         },
         {
-            name: "示例—按年",
+            name: "按年",
             durationConfig: MembershipPlanDuration.YEAR,
             label: "",
             sort: 1,
@@ -80,22 +80,22 @@ export class MembershipPlansSeeder extends BaseSeeder {
 
             // 不同订阅计划与会员等级对应的售价配置
             const priceTable: Record<string, Record<number, number>> = {
-                "示例—7天体验": {
+                "7天体验": {
                     1: 0.01,
                     2: 0.02,
                     3: 0.03,
                 },
-                单月购买: {
+                "单月购买": {
                     1: 19,
                     2: 59,
                     3: 199,
                 },
-                按季: {
+                "按季": {
                     1: 49,
                     2: 99,
                     3: 299,
                 },
-                按年: {
+                "按年": {
                     1: 79,
                     2: 239,
                     3: 649,
@@ -117,9 +117,9 @@ export class MembershipPlansSeeder extends BaseSeeder {
                     // - 单月购买、按季：所有等级为“推荐”
                     // - 按年：仅等级 3 为“推荐”，其余为空
                     let label = "";
-                    if (config.name === "示例—单月购买" || config.name === "示例—按季") {
+                    if (config.name === "单月购买" || config.name === "按季") {
                         label = "推荐";
-                    } else if (config.name === "示例—按年" && level.level === 3) {
+                    } else if (config.name === "按年" && level.level === 3) {
                         label = "推荐";
                     }
 

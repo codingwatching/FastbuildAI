@@ -2,7 +2,7 @@ import { DictService } from "@buildingai/dict";
 import { Injectable } from "@nestjs/common";
 
 const GROUP = "apps-decorate";
-const KEY = "config";
+const KEY = "apps_decorate_config";
 const FILE_URL_FIELDS = ["heroImageUrl"];
 
 /**

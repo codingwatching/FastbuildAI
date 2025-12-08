@@ -163,6 +163,7 @@
     },
     "modal": {
         "addExtension": "添加应用",
+        "editExtension": "编辑应用",
         "addExtensionDescription": "本地应用，仅供本地开发使用",
         "extensionTypes": {
             "application": "应用插件",
