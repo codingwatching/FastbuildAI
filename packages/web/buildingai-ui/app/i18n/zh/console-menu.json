@@ -69,8 +69,8 @@
         "userRecharge": "充值管理"
     },
     "membershipManagement": {
-        "title": "会员管理",
-        "levelsList": "等级列表",
+        "title": "订阅会员",
+        "levelsList": "会员等级",
         "plansList": "订阅计划",
         "membershipOrder": "会员订单"
     },
