@@ -123,6 +123,7 @@
         "manage": "Management",
         "more": "More",
         "install": "Install",
+        "incompatible": "Version incompatible",
         "enable": "Enable",
         "disable": "Disable",
         "uninstall": "Uninstall",

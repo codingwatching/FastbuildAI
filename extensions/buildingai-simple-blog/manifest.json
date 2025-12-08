@@ -6,6 +6,7 @@
     "description": "A simple blog application",
     "homepage": "",
     "author": {
+        "avatar": "/static/avatars/buildingai.png",
         "name": "BuildingAI Teams",
         "homepage": ""
     },

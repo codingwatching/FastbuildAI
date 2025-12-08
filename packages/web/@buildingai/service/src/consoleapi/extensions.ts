@@ -63,7 +63,8 @@ export interface ExtensionFormData extends BaseEntity {
     installedAt?: string;
     /** Whether it is a local development plugin */
     isLocal?: boolean;
-
+    /** Extension version compatible */
+    isCompatible?: boolean;
     /** Extension version list */
     versionLists?: ExtensionVersion[];
     /** Extension user */

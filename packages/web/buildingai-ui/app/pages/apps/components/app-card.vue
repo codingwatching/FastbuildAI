@@ -42,13 +42,16 @@ const handleClick = () => {
             <div
                 class="border-default bg-background flex size-18 flex-none items-center justify-center overflow-hidden rounded-lg border"
             >
-                <NuxtImg
-                    v-if="extension.icon"
+                <UAvatar
                     :src="extension.icon"
                     :alt="extension.name"
-                    class="size-18 rounded-lg object-contain"
-                />
-                <UIcon v-else name="i-lucide-box" class="text-muted-foreground size-8" />
+                    icon="i-lucide-puzzle"
+                    :ui="{
+                        root: `size-full rounded-md ${extension.icon ? '' : 'bg-primary'}`,
+                        icon: 'size-7 text-white',
+                    }"
+                >
+                </UAvatar>
             </div>
         </div>
 

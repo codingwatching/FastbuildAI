@@ -1,6 +1,7 @@
+import { AppConfig } from "@buildingai/config";
 import { ExtensionDownloadType, ExtensionStatus } from "@buildingai/constants";
 import { DICT_GROUP_KEYS, DICT_KEYS } from "@buildingai/constants/server/dict-key.constant";
-import { ApplicationListItem } from "@buildingai/core/modules";
+import { ApplicationListItem, isExtensionCompatible } from "@buildingai/core/modules";
 import { ExtensionDetailType, ExtensionsService, PlatformInfo } from "@buildingai/core/modules";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
@@ -34,6 +35,7 @@ export class ExtensionMarketService {
             },
             headers: {
                 Domain: process.env.APP_DOMAIN,
+                "platform-version": AppConfig.version,
             },
         });
 
@@ -57,6 +59,14 @@ export class ExtensionMarketService {
 
             return config;
         });
+    }
+
+    isVersionInRange(version: string, range: string): boolean {
+        if (!semver.valid(version)) return false;
+
+        if (!semver.validRange(range)) return false;
+
+        return semver.satisfies(version, range);
     }
 
     /**
@@ -207,6 +217,7 @@ export class ExtensionMarketService {
                 identifier: item.identifier,
                 version: item.version,
                 description: item.description,
+                isCompatible: item.isCompatible || null,
                 icon: item.icon,
                 type: item.type,
                 supportTerminal: item.supportTerminal,
@@ -224,30 +235,36 @@ export class ExtensionMarketService {
                 hasUpdate: false,
             }));
 
-        // Map installed extensions with update check
-        const installedExtensionsList = installedExtensions.map((ext) => {
-            let hasUpdate = false;
-            let latestVersion: string | null = null;
+        // Map installed extensions with update check and compatibility check
+        const installedExtensionsList = await Promise.all(
+            installedExtensions.map(async (ext) => {
+                let hasUpdate = false;
+                let latestVersion: string | null = null;
 
-            // Only check updates for non-local extensions
-            if (!ext.isLocal) {
-                const marketVersion = marketVersionMap.get(ext.identifier);
-                if (marketVersion) {
-                    latestVersion = marketVersion;
-                    // Use semver to compare versions
-                    if (semver.valid(marketVersion) && semver.valid(ext.version)) {
-                        hasUpdate = semver.gt(marketVersion, ext.version);
+                // Only check updates for non-local extensions
+                if (!ext.isLocal) {
+                    const marketVersion = marketVersionMap.get(ext.identifier);
+                    if (marketVersion) {
+                        latestVersion = marketVersion;
+                        // Use semver to compare versions
+                        if (semver.valid(marketVersion) && semver.valid(ext.version)) {
+                            hasUpdate = semver.gt(marketVersion, ext.version);
+                        }
                     }
                 }
-            }
 
-            return {
-                ...ext,
-                isInstalled: true,
-                latestVersion,
-                hasUpdate,
-            };
-        });
+                // Check version compatibility for installed extensions
+                const isCompatible = await isExtensionCompatible(ext.identifier);
+
+                return {
+                    ...ext,
+                    isInstalled: true,
+                    isCompatible,
+                    latestVersion,
+                    hasUpdate,
+                };
+            }),
+        );
 
         const mergedList = installedExtensionsList.concat(marketExtensions);
 

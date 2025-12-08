@@ -123,6 +123,7 @@
         "manage": "管理",
         "more": "更多",
         "install": "安装",
+        "incompatible": "版本不兼容",
         "enable": "启用",
         "disable": "禁用",
         "uninstall": "卸载",

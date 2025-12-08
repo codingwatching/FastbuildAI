@@ -48,6 +48,8 @@ export interface ExtensionInfo {
     version: string;
     /** 插件描述 */
     description?: string;
+    /** 平台版本兼容范围 */
+    engine: string;
     /** 插件作者 */
     author?: {
         avatar?: string;
@@ -69,6 +71,7 @@ export interface ApplicationListItem {
     supportTerminal: ExtensionSupportTerminalType[];
     isLocal: boolean;
     status: number;
+    isCompatible: boolean | null;
     author: {
         avatar: string;
         name: string;

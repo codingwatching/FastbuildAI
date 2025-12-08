@@ -27,11 +27,16 @@ const selectExtension = () => {
                 <div
                     class="border-default bg-muted flex size-18 flex-none items-center justify-center rounded-lg border"
                 >
-                    <NuxtImg
-                        :src="props.extension.icon"
-                        :alt="props.extension.name"
-                        class="size-18 rounded-lg object-contain"
-                    />
+                    <UAvatar
+                        :src="extension.icon"
+                        :alt="extension.name"
+                        icon="i-lucide-puzzle"
+                        :ui="{
+                            root: `size-full rounded-md ${extension.icon ? '' : 'bg-primary'}`,
+                            icon: 'size-7 text-white',
+                        }"
+                    >
+                    </UAvatar>
                 </div>
             </div>
             <div>

@@ -193,7 +193,7 @@ export class ExtensionConsoleController extends BaseController {
         code: "list",
         name: "查看应用列表",
     })
-    @BuildFileUrl(["**.icon"])
+    @BuildFileUrl(["**.icon", "**.avatar"])
     async lists(@Query() query: QueryExtensionDto) {
         // Check if platform secret is configured
         const platformSecret = await this.dictService.get<string | null>(
@@ -674,10 +674,12 @@ export class ExtensionConsoleController extends BaseController {
         if (!consoleMenu && (await fs.pathExists(routerOptionsSourcePath))) {
             try {
                 const content = await fs.readFile(routerOptionsSourcePath, "utf-8");
-                
+
                 // Extract consoleMenu array using regex
-                const match = content.match(/export\s+(?:const|let)\s+consoleMenu[^=]*=\s*(\[[\s\S]*?\]);/);
-                
+                const match = content.match(
+                    /export\s+(?:const|let)\s+consoleMenu[^=]*=\s*(\[[\s\S]*?\]);/,
+                );
+
                 if (match && match[1]) {
                     // Remove comments
                     let arrayContent = match[1]
@@ -685,10 +687,7 @@ export class ExtensionConsoleController extends BaseController {
                         .replace(/\/\/.*$/gm, "");
 
                     // Replace import() calls with null (we don't need component functions in backend)
-                    arrayContent = arrayContent.replace(
-                        /\(\)\s*=>\s*import\([^)]+\)/g,
-                        "null",
-                    );
+                    arrayContent = arrayContent.replace(/\(\)\s*=>\s*import\([^)]+\)/g, "null");
 
                     // Parse the array
                     try {
