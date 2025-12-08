@@ -238,6 +238,8 @@ pnpm dev:desktop
 
 Note: You can only build installers for the platform you are currently on. For example, on macOS you can only build `.dmg` or `.zip` files, and on Windows you can only build `.exe` files.
 
+For more details, see the [build guide](./build.md).
+
 ```bash
 pnpm build:desktop
 ```

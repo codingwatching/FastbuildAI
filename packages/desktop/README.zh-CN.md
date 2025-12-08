@@ -238,6 +238,8 @@ pnpm dev:desktop
 
 注意：当前设备只能打包本设备平台的安装包，例如在 macOS 上只能打包 .dmg 或 .zip 文件，在 Windows 上只能打包 .exe 文件。
 
+详细文档查看 [《打包文档》](./build.zh-CN.md)
+
 ```bash
 pnpm build:desktop
 ```
