@@ -3,7 +3,7 @@ import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { User } from "@buildingai/db/entities";
 import { Payconfig } from "@buildingai/db/entities";
 import { Dict } from "@buildingai/db/entities";
-import { AccountLog } from "@buildingai/db/entities";
+import { AccountLog, MembershipLevels, UserSubscription } from "@buildingai/db/entities";
 import { Permission } from "@buildingai/db/entities";
 import { Role } from "@buildingai/db/entities";
 import { UserToken } from "@buildingai/db/entities";
@@ -26,7 +26,17 @@ import { WebsiteService } from "./services/website.service";
 @Module({
     imports: [
         AuthModule,
-        TypeOrmModule.forFeature([Dict, Permission, UserToken, User, AccountLog, Role, Payconfig]),
+        TypeOrmModule.forFeature([
+            Dict,
+            Permission,
+            UserToken,
+            User,
+            AccountLog,
+            Role,
+            Payconfig,
+            UserSubscription,
+            MembershipLevels,
+        ]),
         forwardRef(() => PayModule),
     ],
     controllers: [WebsiteConsoleController, SystemConsoleController, PayconfigConsoleController],

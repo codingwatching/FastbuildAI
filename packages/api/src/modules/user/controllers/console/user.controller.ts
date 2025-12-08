@@ -465,7 +465,15 @@ export class UserConsoleController extends BaseController {
         if (!result) {
             throw HttpErrorFactory.notFound("用户不存在");
         }
-        return result;
+
+        // 获取用户会员等级信息
+        const membershipLevel = await this.userService.getUserMembershipLevel(id);
+
+        return {
+            ...result,
+            level: membershipLevel?.name || null,
+            levelEndTime: membershipLevel?.endTime || null,
+        };
     }
 
     /**

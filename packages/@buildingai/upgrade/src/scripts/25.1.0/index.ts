@@ -1,4 +1,5 @@
 import {
+    DecoratePageEntity,
     Menu,
     MenuSourceType,
     MenuType,
@@ -10,7 +11,7 @@ import { Repository } from "@buildingai/db/typeorm";
 import { BaseUpgradeScript, UpgradeContext } from "../../index";
 
 /**
- * 升级脚本 25.0.5
+ * 升级脚本 25.1.0
  *
  * 添加会员管理相关权限和菜单：
  *
@@ -35,9 +36,12 @@ import { BaseUpgradeScript, UpgradeContext } from "../../index";
  * 添加装修中心下的应用中心菜单：
  * - diy-center (装修中心) <- 父菜单
  *   - apps-center (应用中心)
+ *
+ * 添加前端首页应用中心菜单项：
+ * - 在 decorate_page 表的 web 配置中添加应用中心菜单
  */
 export class Upgrade extends BaseUpgradeScript {
-    readonly version = "25.0.5";
+    readonly version = "25.1.0";
 
     /**
      * 执行升级逻辑
@@ -45,7 +49,7 @@ export class Upgrade extends BaseUpgradeScript {
      * @param context 升级上下文
      */
     async execute(context: UpgradeContext): Promise<void> {
-        console.log("开始升级到版本 25.0.5");
+        console.log("开始升级到版本 25.1.0");
 
         try {
             const { dataSource } = context;
@@ -65,7 +69,10 @@ export class Upgrade extends BaseUpgradeScript {
             // 添加应用中心菜单
             await this.addAppsCenterMenu(menuRepository);
 
-            this.success("版本 25.0.5 升级完成");
+            // 添加前端首页应用中心菜单项
+            await this.addWebAppsMenuItem(dataSource);
+
+            this.success("版本 25.1.0 升级完成");
         } catch (error) {
             console.log("升级失败", error);
             throw error;
@@ -458,6 +465,63 @@ export class Upgrade extends BaseUpgradeScript {
 
         await menuRepository.save(appsCenterMenu);
         console.log("成功添加菜单项 apps-center");
+    }
+
+    /**
+     * 添加前端首页应用中心菜单项
+     *
+     * @param dataSource 数据源
+     */
+    private async addWebAppsMenuItem(dataSource: any): Promise<void> {
+        const repository = dataSource.getRepository(DecoratePageEntity);
+
+        // 查找 web 页面配置
+        const webPage = await repository.findOne({
+            where: { name: "web" },
+        });
+
+        if (!webPage) {
+            console.log("未找到 web 页面配置，跳过应用中心菜单项添加");
+            return;
+        }
+
+        // 检查是否已存在应用中心菜单项
+        const data = webPage.data as { menus?: any[]; layout?: string };
+        const menus = data?.menus ?? [];
+
+        const existingAppsMenu = menus.find(
+            (menu: any) => menu.link?.path === "/apps" || menu.link?.name === "menu.apps",
+        );
+
+        if (existingAppsMenu) {
+            console.log("应用中心菜单项已存在，跳过添加");
+            return;
+        }
+
+        // 添加应用中心菜单项
+        const appsMenuItem = {
+            id: "menu_1764936950052-28ca0576-854a-4272-8e26-7c1dc1159ca1",
+            icon: "i-tabler-apps",
+            link: {
+                name: "menu.apps",
+                path: "/apps",
+                type: "system",
+                query: {},
+            },
+            title: "应用中心",
+        };
+
+        menus.push(appsMenuItem);
+
+        // 更新页面配置
+        await repository.update(webPage.id, {
+            data: {
+                ...data,
+                menus,
+            },
+        });
+
+        console.log("成功添加前端首页应用中心菜单项");
     }
 }
 

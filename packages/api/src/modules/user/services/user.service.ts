@@ -10,9 +10,9 @@ import {
 import { AppBillingService } from "@buildingai/core/modules";
 import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { User } from "@buildingai/db/entities";
+import { MembershipLevels, User, UserSubscription } from "@buildingai/db/entities";
 import { Role } from "@buildingai/db/entities";
-import { Between, DeepPartial, In, Like, Repository } from "@buildingai/db/typeorm";
+import { Between, DeepPartial, In, Like, MoreThan, Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { generateNo } from "@buildingai/utils";
 import { isEnabled } from "@buildingai/utils";
@@ -24,6 +24,24 @@ import { BatchUpdateUserDto } from "../dto/batch-update-user.dto";
 import { CreateUserDto } from "../dto/create-user.dto";
 import { QueryUserDto } from "../dto/query-user.dto";
 import { UpdateUserBalanceDto, UpdateUserDto } from "../dto/update-user.dto";
+
+/**
+ * 用户会员等级信息（包含订阅时间）
+ */
+export interface UserMembershipInfo {
+    /** 等级ID */
+    id: string;
+    /** 等级名称 */
+    name: string;
+    /** 等级图标 */
+    icon: string;
+    /** 等级级别 */
+    level: number;
+    /** 订阅开始时间 */
+    startTime: Date;
+    /** 订阅到期时间 */
+    endTime: Date;
+}
 
 /**
  * 用户服务
@@ -41,6 +59,10 @@ export class UserService extends BaseService<User> {
         private readonly userRepository: Repository<User>,
         @InjectRepository(Role)
         private readonly roleRepository: Repository<Role>,
+        @InjectRepository(UserSubscription)
+        private readonly userSubscriptionRepository: Repository<UserSubscription>,
+        @InjectRepository(MembershipLevels)
+        private readonly membershipLevelsRepository: Repository<MembershipLevels>,
         @Inject(RolePermissionService)
         private readonly rolePermissionService: RolePermissionService,
     ) {
@@ -118,7 +140,117 @@ export class UserService extends BaseService<User> {
             excludeFields: ["password", "openid"],
         });
 
+        // 批量查询用户的最高会员等级
+        if (result.items?.length) {
+            const userIds = result.items.map((item) => item.id);
+            const membershipMap = await this.batchGetUserHighestMembershipLevel(userIds);
+            result.items = result.items.map((item) => ({
+                ...item,
+                membershipLevel: membershipMap.get(item.id) ?? null,
+            }));
+        }
+
         return result;
+    }
+
+    /**
+     * 批量获取用户的最高会员等级信息
+     *
+     * @param userIds 用户ID列表
+     * @returns Map<userId, UserMembershipInfo | null>
+     */
+    private async batchGetUserHighestMembershipLevel(
+        userIds: string[],
+    ): Promise<Map<string, UserMembershipInfo | null>> {
+        const resultMap = new Map<string, UserMembershipInfo | null>();
+
+        if (userIds.length === 0) {
+            return resultMap;
+        }
+
+        // 批量查询所有用户订阅（包含开始和结束时间）
+        const subscriptions = await this.userSubscriptionRepository.find({
+            where: {
+                userId: In(userIds),
+            },
+            select: ["userId", "levelId", "startTime", "endTime"],
+        });
+
+        // 按用户分组订阅信息
+        const userSubscriptionsMap = new Map<
+            string,
+            { levelId: string; startTime: Date; endTime: Date }[]
+        >();
+        subscriptions.forEach((sub) => {
+            if (sub.levelId) {
+                const subs = userSubscriptionsMap.get(sub.userId) ?? [];
+                subs.push({
+                    levelId: sub.levelId,
+                    startTime: sub.startTime,
+                    endTime: sub.endTime,
+                });
+                userSubscriptionsMap.set(sub.userId, subs);
+            }
+        });
+
+        // 收集所有需要查询的等级ID
+        const allLevelIds = new Set<string>();
+        userSubscriptionsMap.forEach((subs) => {
+            subs.forEach((sub) => allLevelIds.add(sub.levelId));
+        });
+
+        if (allLevelIds.size === 0) {
+            // 所有用户都没有有效会员
+            userIds.forEach((userId) => resultMap.set(userId, null));
+            return resultMap;
+        }
+
+        // 批量查询所有等级信息
+        const levels = await this.membershipLevelsRepository.find({
+            where: { id: In([...allLevelIds]) },
+            select: ["id", "name", "icon", "level"],
+        });
+        const levelMap = new Map(levels.map((l) => [l.id, l]));
+
+        // 为每个用户找出最高等级及其订阅时间
+        userIds.forEach((userId) => {
+            const subs = userSubscriptionsMap.get(userId);
+            if (!subs || subs.length === 0) {
+                resultMap.set(userId, null);
+                return;
+            }
+
+            // 找出该用户订阅中最高等级的
+            let highestInfo: UserMembershipInfo | null = null;
+            subs.forEach((sub) => {
+                const level = levelMap.get(sub.levelId);
+                if (level && (!highestInfo || level.level > highestInfo.level)) {
+                    highestInfo = {
+                        id: level.id,
+                        name: level.name,
+                        icon: level.icon,
+                        level: level.level,
+                        startTime: sub.startTime,
+                        endTime: sub.endTime,
+                    };
+                }
+            });
+
+            resultMap.set(userId, highestInfo);
+        });
+
+        return resultMap;
+    }
+
+    /**
+     * 获取单个用户的最高会员等级信息
+     *
+     * @param userId 用户ID
+     * @returns 用户会员等级信息或 null
+     */
+    async getUserMembershipLevel(userId: string): Promise<UserMembershipInfo | null> {
+        const resultMap = await this.batchGetUserHighestMembershipLevel([userId]);
+        return resultMap.get(userId) ?? null;
     }
 
     /**

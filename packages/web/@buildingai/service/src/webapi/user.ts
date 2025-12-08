@@ -70,6 +70,22 @@ export interface UserInfo extends BaseEntity {
     totalRechargeAmount?: number;
     /** 用户当前最高会员等级ID */
     membershipLevelId?: string | null;
+    membershipLevel?: MembershipLevelInfo;
+}
+
+export interface MembershipLevelInfo {
+    /** 等级ID */
+    id: string;
+    /** 等级名称 */
+    name: string;
+    /** 等级图标 */
+    icon: string;
+    /** 等级级别 */
+    level: number;
+    /** 订阅开始时间 */
+    startTime: Date;
+    /** 订阅到期时间 */
+    endTime: Date;
 }
 
 /**
@@ -134,6 +150,8 @@ export type BaseUserInfo = Omit<
 export interface UserCreateRequest extends BaseUserInfo {
     /** Role ID */
     roleId?: string;
+    level?: string;
+    levelEndTime?: string;
 }
 
 /**

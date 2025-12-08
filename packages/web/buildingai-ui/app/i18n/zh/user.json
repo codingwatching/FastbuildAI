@@ -14,6 +14,7 @@
         "neverLogin": "从未登录",
         "editProfile": "编辑资料",
         "adjustBalance": "调整余额",
+        "expired": "已过期",
         "deleteUser": "删除用户",
         "status": {
             "active": "正常",
@@ -36,7 +37,9 @@
             "source": "来源",
             "createdAt": "创建时间",
             "lastLoginAt": "最后登录时间",
-            "actions": "操作"
+            "actions": "操作",
+            "level": "会员等级",
+            "endTime": "会员有效期"
         },
         "form": {
             "username": "账号",

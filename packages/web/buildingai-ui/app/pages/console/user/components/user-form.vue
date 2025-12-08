@@ -53,6 +53,8 @@ const formData = shallowReactive<UserCreateRequest>({
     roleId: undefined,
     status: 1,
     source: 0,
+    level: "",
+    levelEndTime: "",
     ...filteredInitialData,
 });
 
@@ -402,6 +404,33 @@ onMounted(() => getRoleList());
                                 :placeholder="t('user.backend.form.realNameInput')"
                                 size="xl"
                                 class="w-full"
+                            />
+                        </UFormField>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <!-- 角色 -->
+                        <UFormField label="会员等级" name="roleId">
+                            <USelect
+                                v-model="formData.level"
+                                placeholder="普通用户"
+                                size="xl"
+                                class="w-full"
+                                variant="subtle"
+                                :disabled="true"
+                            />
+                        </UFormField>
+
+                        <!-- 有效期 -->
+                        <UFormField label="有效期" name="levelEndTime">
+                            <BdDatePicker
+                                :disabled="true"
+                                v-model="formData.levelEndTime"
+                                show-time
+                                size="xl"
+                                class="w-full"
+                                variant="subtle"
+                                :ui="{ root: 'w-full' }"
                             />
                         </UFormField>
                     </div>

@@ -20,6 +20,7 @@ const UAvatar = resolveComponent("UAvatar");
 const TimeDisplay = resolveComponent("TimeDisplay");
 const UDropdownMenu = resolveComponent("UDropdownMenu");
 const UButton = resolveComponent("UButton");
+const UBadge = resolveComponent("UBadge");
 
 const columnLabels = computed<Record<string, string>>(() => {
     return {
@@ -31,6 +32,8 @@ const columnLabels = computed<Record<string, string>>(() => {
         createdAt: t("user.backend.list.createdAt"),
         lastLoginAt: t("user.backend.list.lastLoginAt"),
         actions: t("user.backend.list.actions"),
+        membershipLevel: t("user.backend.list.level"),
+        endTime: t("user.backend.list.endTime"),
     };
 });
 
@@ -113,14 +116,41 @@ const columns = ref<TableColumn<UserInfo>[]>([
         header: columnLabels.value.username,
     },
     {
-        accessorKey: "status",
-        header: columnLabels.value.status,
-        cell: ({ row }) => getUserStatusInfo(row.original.status).label,
-    },
-    {
         accessorKey: "source",
         header: columnLabels.value.source,
         cell: ({ row }) => getUserSourceInfo(row.original.source).label,
+    },
+    {
+        accessorKey: "membershipLevel",
+        header: columnLabels.value.membershipLevel,
+        cell: ({ row }) => {
+            const membershipLevel = row.original.membershipLevel;
+            if (!membershipLevel) {
+                return h("span", "-");
+            }
+            return h("span", membershipLevel.name);
+        },
+    },
+    {
+        accessorKey: "endTime",
+        header: columnLabels.value.endTime,
+        cell: ({ row }) => {
+            const endTime = row.original.membershipLevel?.endTime;
+            if (!endTime) {
+                return h("span", "-");
+            }
+            const endDate = new Date(endTime);
+            const now = new Date();
+            return h("span", { class: "flex items-center flex-col gap-2" }, [
+                h(TimeDisplay, { datetime: endTime, mode: "datetime" }),
+                endDate > now ? "" : h(UBadge, { color: "error" }, t("user.backend.expired")),
+            ]);
+        },
+    },
+    {
+        accessorKey: "status",
+        header: columnLabels.value.status,
+        cell: ({ row }) => getUserStatusInfo(row.original.status).label,
     },
     {
         accessorKey: "createdAt",
