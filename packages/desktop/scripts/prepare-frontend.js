@@ -9,16 +9,24 @@ const customIconsPath = resolve(__dirname, '../../../storage/desktop_icons')
 const tauriIconsPath = resolve(__dirname, '../src-tauri/icons')
 
 const config = JSON.parse(readFileSync(tauriConfigPath, 'utf-8'))
+const currentFrontendDist = config.build.frontendDist
 
-// Fallback to public/ if public/web/ does not exist
-const frontendDist = existsSync(publicWebPath) ? '../../../public/web' : '../../../public'
+// Skip if frontendDist is a remote URL
+const isRemoteUrl = /^https?:\/\//i.test(currentFrontendDist)
 
-if (config.build.frontendDist !== frontendDist) {
-    config.build.frontendDist = frontendDist
-    writeFileSync(tauriConfigPath, JSON.stringify(config, null, 4) + '\n')
-    console.log(`[prepare-frontend] frontendDist set to: ${frontendDist}`)
+if (isRemoteUrl) {
+    console.log(`[prepare-frontend] frontendDist is remote URL: ${currentFrontendDist}, skipping...`)
 } else {
-    console.log(`[prepare-frontend] frontendDist already set to: ${frontendDist}`)
+    // Fallback to public/ if public/web/ does not exist
+    const frontendDist = existsSync(publicWebPath) ? '../../../public/web' : '../../../public'
+
+    if (currentFrontendDist !== frontendDist) {
+        config.build.frontendDist = frontendDist
+        writeFileSync(tauriConfigPath, JSON.stringify(config, null, 4) + '\n')
+        console.log(`[prepare-frontend] frontendDist set to: ${frontendDist}`)
+    } else {
+        console.log(`[prepare-frontend] frontendDist already set to: ${frontendDist}`)
+    }
 }
 
 // Override icons from storage/desktop_icons if exists
