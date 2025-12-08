@@ -10,6 +10,7 @@ import {
     CreateExtensionDto,
     ExtensionConfigService,
     ExtensionsService,
+    isExtensionCompatible,
     PlatformInfo,
     QueryExtensionDto,
     UpdateExtensionDto,
@@ -210,10 +211,13 @@ export class ExtensionConsoleController extends BaseController {
         } else {
             // If no platform secret, only fetch local installed extensions
             const installedExtensions = await this.extensionsService.findAll();
-            extensionsList = installedExtensions.map((ext) => ({
-                ...ext,
-                isInstalled: true,
-            }));
+            extensionsList = await Promise.all(
+                installedExtensions.map(async (ext) => ({
+                    ...ext,
+                    isInstalled: true,
+                    isCompatible: await isExtensionCompatible(ext.identifier),
+                })),
+            );
         }
 
         // Extension filter conditions
