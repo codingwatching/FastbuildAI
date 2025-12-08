@@ -1,7 +1,11 @@
 import { AppConfig } from "@buildingai/config";
 import { ExtensionDownloadType, ExtensionStatus } from "@buildingai/constants";
 import { DICT_GROUP_KEYS, DICT_KEYS } from "@buildingai/constants/server/dict-key.constant";
-import { ApplicationListItem, isExtensionCompatible } from "@buildingai/core/modules";
+import {
+    ApplicationListItem,
+    getExtensionEnabledStatus,
+    isExtensionCompatible,
+} from "@buildingai/core/modules";
 import { ExtensionDetailType, ExtensionsService, PlatformInfo } from "@buildingai/core/modules";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
@@ -256,8 +260,18 @@ export class ExtensionMarketService {
                 // Check version compatibility for installed extensions
                 const isCompatible = await isExtensionCompatible(ext.identifier);
 
+                // Get enabled status from extensions.json (true -> 1, false -> 0)
+                const enabledStatus = await getExtensionEnabledStatus(ext.identifier);
+                const status =
+                    enabledStatus === null
+                        ? ext.status
+                        : enabledStatus
+                          ? ExtensionStatus.ENABLED
+                          : ExtensionStatus.DISABLED;
+
                 return {
                     ...ext,
+                    status,
                     isInstalled: true,
                     isCompatible,
                     latestVersion,

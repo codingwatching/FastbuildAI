@@ -7,7 +7,11 @@ import { readdir, readFile, writeFile } from "fs/promises";
 import { basename, join, normalize, sep } from "path";
 import { pathToFileURL } from "url";
 
-import { ExtensionInfo, ExtensionsJsonConfig } from "../interfaces/extension.interface";
+import {
+    ExtensionInfo,
+    ExtensionManifest,
+    ExtensionsJsonConfig,
+} from "../interfaces/extension.interface";
 
 /**
  * 堆栈查找函数类型
@@ -97,9 +101,7 @@ export async function isExtensionCompatible(
  * @param extensionPath Extension directory path
  * @returns Manifest content or null if not found
  */
-async function readExtensionManifest(
-    extensionPath: string,
-): Promise<{ engine?: ExtensionEngine } | null> {
+async function readExtensionManifest(extensionPath: string): Promise<ExtensionManifest | null> {
     try {
         const manifestPath = join(extensionPath, "manifest.json");
 
@@ -108,7 +110,7 @@ async function readExtensionManifest(
         }
 
         const content = await readFile(manifestPath, "utf-8");
-        return JSON.parse(content) as { engine?: ExtensionEngine };
+        return JSON.parse(content);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         TerminalLogger.warn("Extension Manifest", `Failed to read manifest: ${errorMessage}`);
@@ -714,6 +716,41 @@ export function getExtensionIdentifierFromStack(suffixes: string[]): string | nu
     }
 
     return extensionDir;
+}
+
+/**
+ * Get extension enabled status from extensions.json
+ *
+ * @param identifier - Extension identifier (directory name)
+ * @param extensionsDir - Extensions directory path (optional)
+ * @returns Enabled status (true/false), or null if not found
+ */
+export async function getExtensionEnabledStatus(
+    identifier: string,
+    extensionsDir?: string,
+): Promise<boolean | null> {
+    try {
+        const dir = extensionsDir || join(process.cwd(), "..", "..", "extensions");
+        const config = await readExtensionsConfig(dir);
+
+        if (!config) {
+            return null;
+        }
+
+        // Search in applications
+        if (config.applications?.[identifier]) {
+            return config.applications[identifier].enabled;
+        }
+
+        return null;
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        TerminalLogger.error(
+            "Extension Utils",
+            `Failed to get extension enabled status for ${identifier}: ${errorMessage}`,
+        );
+        return null;
+    }
 }
 
 /**

@@ -89,12 +89,22 @@ export interface ApplicationListItem {
 export interface ExtensionManifest {
     identifier: string;
     name: string;
+    type: string;
     version: string;
     description: string;
+    homepage: string;
     author: {
         avatar: string;
         name: string;
         homepage: string;
+    };
+    changelog: {
+        version: string;
+        date: string;
+        changes: string[];
+    }[];
+    engine: {
+        buildingai: string;
     };
 }
 
