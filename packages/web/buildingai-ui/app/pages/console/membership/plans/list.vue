@@ -43,7 +43,7 @@ const columns: TableColumn<Plan>[] = [
             const levelList = row.original.levels;
             return h(
                 "div",
-                { class: "flex items-center gap-1 w-36 flex-wrap" },
+                { class: "flex items-center gap-1 max-w-52 flex-wrap" },
                 levelList?.map((item) => {
                     return h(UBadge, { color: "primary", variant: "soft" }, () => item.name);
                 }),

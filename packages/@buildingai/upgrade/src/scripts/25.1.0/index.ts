@@ -1,5 +1,7 @@
 import {
     DecoratePageEntity,
+    MembershipLevels,
+    MembershipPlans,
     Menu,
     MenuSourceType,
     MenuType,
@@ -39,6 +41,10 @@ import { BaseUpgradeScript, UpgradeContext } from "../../index";
  *
  * 添加前端首页应用中心菜单项：
  * - 在 decorate_page 表的 web 配置中添加应用中心菜单
+ *
+ * 初始化会员等级和套餐数据：
+ * - 执行 MembershipLevelsSeeder 逻辑
+ * - 执行 MembershipPlansSeeder 逻辑
  */
 export class Upgrade extends BaseUpgradeScript {
     readonly version = "25.1.0";
@@ -71,6 +77,12 @@ export class Upgrade extends BaseUpgradeScript {
 
             // 添加前端首页应用中心菜单项
             await this.addWebAppsMenuItem(dataSource);
+
+            // 初始化会员等级数据
+            await this.seedMembershipLevels(dataSource);
+
+            // 初始化会员套餐数据
+            await this.seedMembershipPlans(dataSource);
 
             this.success("版本 25.1.0 升级完成");
         } catch (error) {
@@ -522,6 +534,177 @@ export class Upgrade extends BaseUpgradeScript {
         });
 
         console.log("成功添加前端首页应用中心菜单项");
+    }
+
+    /**
+     * 初始化会员等级数据
+     *
+     * @param dataSource 数据源
+     */
+    private async seedMembershipLevels(dataSource: any): Promise<void> {
+        const repository = dataSource.getRepository(MembershipLevels);
+
+        const levelConfigs = [
+            {
+                name: "示例—基础会员",
+                level: 1,
+                icon: "/static/vip/1.jpg",
+                givePower: 100,
+                description: "约生成10个视频或100张图片",
+                benefits: [
+                    { icon: "", content: "每月赠送积分" },
+                    { icon: "", content: "绘画生成" },
+                    { icon: "", content: "视频生成" },
+                ],
+            },
+            {
+                name: "示例—标准会员",
+                level: 2,
+                icon: "/static/vip/2.jpg",
+                givePower: 500,
+                description: "约生成50个视频或500张图片",
+                benefits: [
+                    { icon: "", content: "每月赠送积分" },
+                    { icon: "", content: "绘画生成" },
+                    { icon: "", content: "视频生成" },
+                ],
+            },
+            {
+                name: "示例—高级会员",
+                level: 3,
+                icon: "/static/vip/3.jpg",
+                givePower: 3000,
+                description: "约生成300个视频或3000张图片",
+                benefits: [
+                    { icon: "", content: "每月赠送积分" },
+                    { icon: "", content: "绘画生成" },
+                    { icon: "", content: "视频生成" },
+                ],
+            },
+        ];
+
+        let createdCount = 0;
+
+        for (const config of levelConfigs) {
+            // 检查会员等级是否已存在
+            const existingLevel = await repository.findOne({
+                where: { level: config.level },
+            });
+
+            if (!existingLevel) {
+                await repository.save(config);
+                console.log(`成功创建会员等级: ${config.name}`);
+                createdCount++;
+            } else {
+                console.log(`会员等级 ${config.name} 已存在，跳过创建`);
+            }
+        }
+
+        console.log(`会员等级初始化完成: 创建 ${createdCount} 个`);
+    }
+
+    /**
+     * 初始化会员套餐数据
+     *
+     * @param dataSource 数据源
+     */
+    private async seedMembershipPlans(dataSource: any): Promise<void> {
+        const planRepository = dataSource.getRepository(MembershipPlans);
+        const levelRepository = dataSource.getRepository(MembershipLevels);
+
+        // 获取所有会员等级
+        const levels = await levelRepository.find({
+            order: { level: "ASC" },
+        });
+
+        if (levels.length === 0) {
+            console.log("未找到会员等级数据，跳过套餐初始化");
+            return;
+        }
+
+        // MembershipPlanDuration 枚举值: MONTH=1, QUARTER=2, HALF=3, YEAR=4, FOREVER=5, CUSTOM=6
+        const planConfigs = [
+            {
+                name: "示例—7天体验",
+                durationConfig: 6, // CUSTOM
+                sort: 4,
+                duration: { value: 7, unit: "day" },
+            },
+            {
+                name: "示例—单月购买",
+                durationConfig: 1, // MONTH
+                sort: 3,
+            },
+            {
+                name: "示例—按季",
+                durationConfig: 2, // QUARTER
+                label: "5折",
+                sort: 2,
+            },
+            {
+                name: "示例—按年",
+                durationConfig: 4, // YEAR
+                label: "",
+                sort: 1,
+            },
+        ];
+
+        // 不同订阅计划与会员等级对应的售价配置
+        const priceTable: Record<string, Record<number, number>> = {
+            "示例—7天体验": { 1: 0.01, 2: 0.02, 3: 0.03 },
+            "示例—单月购买": { 1: 19, 2: 59, 3: 199 },
+            "示例—按季": { 1: 49, 2: 99, 3: 299 },
+            "示例—按年": { 1: 79, 2: 239, 3: 649 },
+        };
+
+        let createdCount = 0;
+
+        for (const config of planConfigs) {
+            // 检查订阅计划是否已存在
+            const existingPlan = await planRepository.findOne({
+                where: { name: config.name },
+            });
+
+            if (existingPlan) {
+                console.log(`会员套餐 ${config.name} 已存在，跳过创建`);
+                continue;
+            }
+
+            // 为每个会员等级生成 billing 配置
+            const billing = levels.map((level: any) => {
+                const planPrices = priceTable[config.name] || {};
+                const salesPrice = planPrices[level.level] ?? 0;
+
+                let label = "";
+                if (config.name === "示例—单月购买" || config.name === "示例—按季") {
+                    label = "推荐";
+                } else if (config.name === "示例—按年" && level.level === 3) {
+                    label = "推荐";
+                }
+
+                return {
+                    levelId: level.id,
+                    salesPrice,
+                    status: true,
+                    label,
+                };
+            });
+
+            const planData = {
+                name: config.name,
+                durationConfig: config.durationConfig,
+                label: config.label,
+                sort: config.sort,
+                billing,
+                duration: config.duration,
+            };
+
+            await planRepository.save(planData);
+            console.log(`成功创建会员套餐: ${config.name}`);
+            createdCount++;
+        }
+
+        console.log(`会员套餐初始化完成: 创建 ${createdCount} 个`);
     }
 }
 
