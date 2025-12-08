@@ -546,7 +546,7 @@ export class Upgrade extends BaseUpgradeScript {
 
         const levelConfigs = [
             {
-                name: "示例—基础会员",
+                name: "基础会员（示例）",
                 level: 1,
                 icon: "/static/vip/1.jpg",
                 givePower: 100,
@@ -558,7 +558,7 @@ export class Upgrade extends BaseUpgradeScript {
                 ],
             },
             {
-                name: "示例—标准会员",
+                name: "标准会员（示例）",
                 level: 2,
                 icon: "/static/vip/2.jpg",
                 givePower: 500,
@@ -570,7 +570,7 @@ export class Upgrade extends BaseUpgradeScript {
                 ],
             },
             {
-                name: "示例—高级会员",
+                name: "高级会员（示例）",
                 level: 3,
                 icon: "/static/vip/3.jpg",
                 givePower: 3000,
@@ -625,24 +625,24 @@ export class Upgrade extends BaseUpgradeScript {
         // MembershipPlanDuration 枚举值: MONTH=1, QUARTER=2, HALF=3, YEAR=4, FOREVER=5, CUSTOM=6
         const planConfigs = [
             {
-                name: "示例—7天体验",
+                name: "7天体验",
                 durationConfig: 6, // CUSTOM
                 sort: 4,
                 duration: { value: 7, unit: "day" },
             },
             {
-                name: "示例—单月购买",
+                name: "单月购买",
                 durationConfig: 1, // MONTH
                 sort: 3,
             },
             {
-                name: "示例—按季",
+                name: "按季",
                 durationConfig: 2, // QUARTER
                 label: "5折",
                 sort: 2,
             },
             {
-                name: "示例—按年",
+                name: "按年",
                 durationConfig: 4, // YEAR
                 label: "",
                 sort: 1,
@@ -651,10 +651,10 @@ export class Upgrade extends BaseUpgradeScript {
 
         // 不同订阅计划与会员等级对应的售价配置
         const priceTable: Record<string, Record<number, number>> = {
-            "示例—7天体验": { 1: 0.01, 2: 0.02, 3: 0.03 },
-            "示例—单月购买": { 1: 19, 2: 59, 3: 199 },
-            "示例—按季": { 1: 49, 2: 99, 3: 299 },
-            "示例—按年": { 1: 79, 2: 239, 3: 649 },
+            "7天体验": { 1: 0.01, 2: 0.02, 3: 0.03 },
+            "单月购买": { 1: 19, 2: 59, 3: 199 },
+            "按季": { 1: 49, 2: 99, 3: 299 },
+            "按年": { 1: 79, 2: 239, 3: 649 },
         };
 
         let createdCount = 0;
@@ -676,9 +676,9 @@ export class Upgrade extends BaseUpgradeScript {
                 const salesPrice = planPrices[level.level] ?? 0;
 
                 let label = "";
-                if (config.name === "示例—单月购买" || config.name === "示例—按季") {
+                if (config.name === "单月购买" || config.name === "按季") {
                     label = "推荐";
-                } else if (config.name === "示例—按年" && level.level === 3) {
+                } else if (config.name === "按年" && level.level === 3) {
                     label = "推荐";
                 }
 

@@ -51,17 +51,5 @@ const handleClick = () => {
                 <UIcon v-else name="i-lucide-box" class="text-muted-foreground size-8" />
             </div>
         </div>
-
-        <!-- 底部信息 -->
-        <div class="mt-3 flex items-center justify-between">
-            <div class="text-muted-foreground flex items-center gap-2 text-xs">
-                <span v-if="extension.version" class="bg-muted-foreground/10 rounded px-1.5 py-0.5">
-                    v{{ extension.version }}
-                </span>
-                <span v-if="extension.author?.name">
-                    {{ extension.author.name }}
-                </span>
-            </div>
-        </div>
     </div>
 </template>

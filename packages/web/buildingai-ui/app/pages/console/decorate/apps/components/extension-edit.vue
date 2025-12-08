@@ -129,7 +129,7 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
 
 <template>
     <BdModal
-        :title="$t('extensions.modal.addExtension')"
+        :title="$t('extensions.modal.editExtension')"
         :description="$t('extensions.modal.addExtensionDescription')"
         :ui="{ content: 'max-w-xl' }"
         @close="emits('close', false)"
