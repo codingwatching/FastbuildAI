@@ -178,7 +178,8 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
 
             <UFormField :label="t('extensions.develop.form.icon')" required name="icon">
                 <BdUploader
-                    :disabled="true"
+                    :showReplaceButton="false"
+                    :showRemoveButton="false"
                     v-model="formData.icon"
                     class="size-20"
                     :text="t('extensions.develop.form.addIcon')"
