@@ -1,5 +1,6 @@
 import { ExtensionStatus } from "@buildingai/constants/shared/extension.constant";
 import {
+    AiModel,
     DecoratePageEntity,
     Extension,
     MembershipLevels,
@@ -10,7 +11,7 @@ import {
     Permission,
     PermissionType,
 } from "@buildingai/db/entities";
-import { DataSource, Repository } from "@buildingai/db/typeorm";
+import { DataSource, MoreThan, Repository } from "@buildingai/db/typeorm";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -49,6 +50,7 @@ export class Upgrade extends BaseUpgradeScript {
             await this.seedMembershipLevels(dataSource);
             await this.seedMembershipPlans(dataSource);
             await this.disableAllExtensions(dataSource);
+            await this.fixAiModelConfig(dataSource);
 
             this.success("Upgrade to version 25.1.0 completed.");
         } catch (error) {
@@ -450,6 +452,15 @@ export class Upgrade extends BaseUpgradeScript {
         } catch (err) {
             this.error("Failed to update extensions.json.", err);
         }
+    }
+
+    private async fixAiModelConfig(dataSource: DataSource): Promise<void> {
+        const repo = dataSource.getRepository(AiModel);
+
+        // Fix maxContext field: values > 99 should be reset to 5
+        const result = await repo.update({ maxContext: MoreThan(99) }, { maxContext: 5 });
+
+        this.log(`Fixed ${result.affected || 0} AI model(s) with invalid maxContext values.`);
     }
 }
 
