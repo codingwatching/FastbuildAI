@@ -194,16 +194,29 @@ export class ExtensionMarketService {
         }
     }
 
+    /**
+     * Get extension list with market data if platform secret is configured
+     * Handles both scenarios: with/without platform secret
+     */
     async getMixedApplicationList() {
-        let extensionList: ApplicationListItem[] = [];
-        try {
-            extensionList = await this.getApplicationList();
-        } catch (error) {
-            this.logger.error(`Failed to get application list: ${error}`);
-            extensionList = [];
-        }
+        const platformSecret = await this.dictService.get<string | null>(
+            DICT_KEYS.PLATFORM_SECRET,
+            null,
+            DICT_GROUP_KEYS.APPLICATION,
+        );
 
         const installedExtensions = await this.extensionsService.findAll();
+
+        // Fetch market list only if platform secret is configured
+        let extensionList: ApplicationListItem[] = [];
+        if (platformSecret) {
+            try {
+                extensionList = await this.getApplicationList();
+            } catch (error) {
+                this.logger.error(`Failed to get application list: ${error}`);
+                extensionList = [];
+            }
+        }
 
         const installedIdentifiers = new Set(installedExtensions.map((ext) => ext.identifier));
 

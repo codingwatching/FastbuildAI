@@ -10,7 +10,6 @@ import {
     CreateExtensionDto,
     ExtensionConfigService,
     ExtensionsService,
-    isExtensionCompatible,
     PlatformInfo,
     QueryExtensionDto,
     UpdateExtensionDto,
@@ -196,29 +195,8 @@ export class ExtensionConsoleController extends BaseController {
     })
     @BuildFileUrl(["**.icon", "**.avatar"])
     async lists(@Query() query: QueryExtensionDto) {
-        // Check if platform secret is configured
-        const platformSecret = await this.dictService.get<string | null>(
-            DICT_KEYS.PLATFORM_SECRET,
-            null,
-            DICT_GROUP_KEYS.APPLICATION,
-        );
-
-        let extensionsList;
-
-        if (platformSecret) {
-            // If platform secret is configured, fetch mixed list (local + market)
-            extensionsList = await this.extensionMarketService.getMixedApplicationList();
-        } else {
-            // If no platform secret, only fetch local installed extensions
-            const installedExtensions = await this.extensionsService.findAll();
-            extensionsList = await Promise.all(
-                installedExtensions.map(async (ext) => ({
-                    ...ext,
-                    isInstalled: true,
-                    isCompatible: await isExtensionCompatible(ext.identifier),
-                })),
-            );
-        }
+        // Get extension list (handles platformSecret check internally)
+        let extensionsList = await this.extensionMarketService.getMixedApplicationList();
 
         // Extension filter conditions
         if (query.name) {
