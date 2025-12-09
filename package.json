@@ -38,8 +38,8 @@
     "scripts": {
         "build": "cross-env NODE_OPTIONS=--max-old-space-size=5120 turbo run build",
         "dev": "turbo run dev",
-        "start": "pnpm i && cd packages/cli && pnpm run start",
-        "predeploy": "pnpm i && cd packages/cli && pnpm run predeploy",
+        "start": "pnpm i && pnpm sync-env && cd packages/cli && pnpm run start",
+        "predeploy": "pnpm i && pnpm sync-env && cd packages/cli && pnpm run predeploy",
         "stop": "node packages/cli/bin/cli.js pm2:stop",
         "restart": "node packages/cli/bin/cli.js pm2:restart",
         "delete": "node packages/cli/bin/cli.js pm2:delete",
