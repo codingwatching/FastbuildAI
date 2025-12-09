@@ -80,6 +80,8 @@
                 "setAsDefault": "Set as system default",
                 "modelType": "Model Type",
                 "modelTypePlaceholder": "Enter model type",
+                "multimodal": "Multimodal",
+                "multimodalPlaceholder": "Enter multimodal configuration",
                 "billing": "Billing Rules",
                 "power": "Credits",
                 "billingHelp": "Credits per tokens"

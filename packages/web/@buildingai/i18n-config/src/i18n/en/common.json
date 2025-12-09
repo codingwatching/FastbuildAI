@@ -171,9 +171,15 @@
         "provider": "vendor",
         "model": "model",
         "multimodalCapabilities": "Multimodal capability",
-        "video": "video",
+        "agentThought": "Agent Thought",
         "audio": "Audio",
-        "vision": "Visual"
+        "document": "Document",
+        "multiToolCall": "Multi Tool Call",
+        "streamToolCall": "Stream Tool Call",
+        "structuredOutput": "Structured Output",
+        "toolCall": "Tool Call",
+        "video": "Video",
+        "vision": "Vision"
     },
     "theme": {
         "dark": "Dark",

@@ -80,6 +80,8 @@
                 "setAsDefault": "システムデフォルトモデルに設定",
                 "modelType": "モデルタイプ",
                 "modelTypePlaceholder": "モデルタイプを入力",
+                "multimodal": "マルチモーダル",
+                "multimodalPlaceholder": "Enter multimodal configuration",
                 "billing": "課金ルール",
                 "power": "ポイント",
                 "billingHelp": "1 K Tokensあたりのポイント消費量"

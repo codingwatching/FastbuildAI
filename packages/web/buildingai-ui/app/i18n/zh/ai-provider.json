@@ -87,6 +87,8 @@
                 "setAsDefault": "设置为系统默认模型",
                 "modelType": "模型类型",
                 "modelTypePlaceholder": "请输入模型类型",
+                "multimodal": "多模态配置",
+                "multimodalPlaceholder": "请输入多模态配置",
                 "billing": "计费规则",
                 "power": "积分",
                 "billingHelp": "每1K Tokens 消耗多少积分"

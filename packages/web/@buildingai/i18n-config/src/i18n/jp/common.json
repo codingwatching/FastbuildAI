@@ -171,9 +171,15 @@
         "provider": "供給者",
         "model": "模型",
         "multimodalCapabilities": "マルチモーダル能力",
-        "video": "ビデオ",
+        "agentThought": "思考チェーン",
         "audio": "オーディオ",
-        "vision": "視覚"
+        "document": "ドキュメント",
+        "multiToolCall": "マルチツール呼び出し",
+        "streamToolCall": "ストリームツール呼び出し",
+        "structuredOutput": "構造化出力",
+        "toolCall": "ツール呼び出し",
+        "video": "ビデオ",
+        "vision": "ビジョン"
     },
     "theme": {
         "dark": "ダーク",
