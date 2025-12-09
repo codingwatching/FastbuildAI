@@ -235,7 +235,7 @@ export function transformMenuToNavigation(
                     isActive = true;
                     navItem.active = true;
                 }
-                navItem.defaultOpen = isActive || hasActive;
+                navItem.defaultOpen = item.defaultOpen || isActive || hasActive;
             }
 
             return navItem;
