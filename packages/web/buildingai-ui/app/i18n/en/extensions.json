@@ -148,7 +148,7 @@
             "uninstallError": "Uninstall failed"
         },
         "empty": {
-            "title": "No installed apps",
+            "title": "No apps",
             "description": "No apps installed, check app market",
             "action": "Go to App Market"
         }
