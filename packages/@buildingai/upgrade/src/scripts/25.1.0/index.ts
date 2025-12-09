@@ -1,5 +1,7 @@
+import { ExtensionStatus } from "@buildingai/constants/shared/extension.constant";
 import {
     DecoratePageEntity,
+    Extension,
     MembershipLevels,
     MembershipPlans,
     Menu,
@@ -8,141 +10,95 @@ import {
     Permission,
     PermissionType,
 } from "@buildingai/db/entities";
-import { Repository } from "@buildingai/db/typeorm";
+import { DataSource, Repository } from "@buildingai/db/typeorm";
+import * as fs from "fs";
+import * as path from "path";
 
 import { BaseUpgradeScript, UpgradeContext } from "../../index";
 
+/** Menu configuration for batch creation */
+interface MenuConfig {
+    name: string;
+    code: string;
+    path: string;
+    icon?: string;
+    component: string;
+    permissionCode?: string;
+    sort: number;
+    isHidden: 0 | 1;
+    type: MenuType;
+}
+
 /**
- * 升级脚本 25.1.0
- *
- * 添加会员管理相关权限和菜单：
- *
- * 权限：
- * - levels:list, levels:update, levels:create (等级管理)
- * - plans:list, plans:update, plans:create (套餐管理)
- * - membership-order:list (会员订单)
- *
- * 菜单：
- * - membership (会员管理)
- *   - levels-list (等级列表)
- *     - levels-list-update (编辑)
- *     - levels-list-add (添加)
- *   - plans-list (套餐列表)
- *     - plans-list-update (编辑)
- *     - plans-list-add (添加)
- *
- * 添加财务管理下的会员订单菜单：
- * - financial (财务管理) <- 父菜单
- *   - membership-order (会员订单)
- *
- * 添加装修中心下的应用中心菜单：
- * - diy-center (装修中心) <- 父菜单
- *   - apps-center (应用中心)
- *
- * 添加前端首页应用中心菜单项：
- * - 在 decorate_page 表的 web 配置中添加应用中心菜单
- *
- * 初始化会员等级和套餐数据：
- * - 执行 MembershipLevelsSeeder 逻辑
- * - 执行 MembershipPlansSeeder 逻辑
+ * Upgrade script 25.1.0
  */
 export class Upgrade extends BaseUpgradeScript {
     readonly version = "25.1.0";
 
-    /**
-     * 执行升级逻辑
-     *
-     * @param context 升级上下文
-     */
     async execute(context: UpgradeContext): Promise<void> {
-        console.log("开始升级到版本 25.1.0");
+        this.log("Starting upgrade to version 25.1.0...");
 
         try {
             const { dataSource } = context;
-            const menuRepository: Repository<Menu> = dataSource.getRepository(Menu);
-            const permissionRepository: Repository<Permission> =
-                dataSource.getRepository(Permission);
 
-            // 先添加权限
-            await this.addPermissions(permissionRepository);
-
-            // 添加会员管理菜单
-            await this.addMembershipMenus(menuRepository);
-
-            // 添加会员订单菜单
-            await this.addMembershipOrderMenu(menuRepository);
-
-            // 添加应用中心菜单
-            await this.addAppsCenterMenu(menuRepository);
-
-            // 添加前端首页应用中心菜单项
+            await this.addPermissions(dataSource);
+            await this.addMembershipMenus(dataSource);
+            await this.addMembershipOrderMenu(dataSource);
+            await this.addAppsCenterMenu(dataSource);
             await this.addWebAppsMenuItem(dataSource);
-
-            // 初始化会员等级数据
             await this.seedMembershipLevels(dataSource);
-
-            // 初始化会员套餐数据
             await this.seedMembershipPlans(dataSource);
+            await this.disableAllExtensions(dataSource);
 
-            this.success("版本 25.1.0 升级完成");
+            this.success("Upgrade to version 25.1.0 completed.");
         } catch (error) {
-            console.log("升级失败", error);
+            this.error("Upgrade to version 25.1.0 failed.", error);
             throw error;
         }
     }
 
     /**
-     * 添加会员管理相关权限
-     *
-     * @param permissionRepository 权限仓库
+     * Create or find a menu by code.
      */
-    private async addPermissions(permissionRepository: Repository<Permission>): Promise<void> {
+    private async findOrCreateMenu(
+        repo: Repository<Menu>,
+        code: string,
+        config: MenuConfig,
+        parentId: string,
+    ): Promise<Menu> {
+        const existing = await repo.findOne({ where: { code } });
+        if (existing) {
+            this.log(`Menu ${code} already exists, skipping creation.`);
+            return existing;
+        }
+
+        const menu = repo.create({
+            ...config,
+            icon: config.icon ?? "",
+            parentId,
+            sourceType: MenuSourceType.SYSTEM,
+        } as Partial<Menu>);
+
+        await repo.save(menu);
+        this.log(`Menu ${code} created successfully.`);
+        return menu;
+    }
+
+    private async addPermissions(dataSource: DataSource): Promise<void> {
+        const repo = dataSource.getRepository(Permission);
+
+        const membershipPerms = ["list", "update", "create"].flatMap((action) =>
+            ["levels", "plans"].map((resource) => ({
+                code: `${resource}:${action}`,
+                name: `permission.${resource}.${action}`,
+                description: `${action === "list" ? "查看" : action === "update" ? "编辑" : "创建"}会员${resource === "levels" ? "等级" : "套餐"}`,
+                group: "membership",
+                groupName: "permission.group.membership",
+            })),
+        );
+
         const permissions = [
-            // 等级管理权限
-            {
-                code: "levels:list",
-                name: "permission.levels.list",
-                description: "查看会员等级列表",
-                group: "membership",
-                groupName: "permission.group.membership",
-            },
-            {
-                code: "levels:update",
-                name: "permission.levels.update",
-                description: "编辑会员等级",
-                group: "membership",
-                groupName: "permission.group.membership",
-            },
-            {
-                code: "levels:create",
-                name: "permission.levels.create",
-                description: "创建会员等级",
-                group: "membership",
-                groupName: "permission.group.membership",
-            },
-            // 套餐管理权限
-            {
-                code: "plans:list",
-                name: "permission.plans.list",
-                description: "查看会员套餐列表",
-                group: "membership",
-                groupName: "permission.group.membership",
-            },
-            {
-                code: "plans:update",
-                name: "permission.plans.update",
-                description: "编辑会员套餐",
-                group: "membership",
-                groupName: "permission.group.membership",
-            },
-            {
-                code: "plans:create",
-                name: "permission.plans.create",
-                description: "创建会员套餐",
-                group: "membership",
-                groupName: "permission.group.membership",
-            },
-            // 会员订单权限
+            ...membershipPerms,
             {
                 code: "membership-order:list",
                 name: "permission.membershipOrder.list",
@@ -152,559 +108,348 @@ export class Upgrade extends BaseUpgradeScript {
             },
         ];
 
-        for (const perm of permissions) {
-            const existing = await permissionRepository.findOne({
-                where: { code: perm.code },
-            });
+        const existingCodes = new Set((await repo.find({ select: ["code"] })).map((p) => p.code));
 
-            if (!existing) {
-                const newPermission = permissionRepository.create({
-                    ...perm,
+        const newPerms = permissions
+            .filter((p) => !existingCodes.has(p.code))
+            .map((p) =>
+                repo.create({
+                    ...p,
                     type: PermissionType.SYSTEM,
                     isDeprecated: false,
-                } as Partial<Permission>);
+                } as Partial<Permission>),
+            );
 
-                await permissionRepository.save(newPermission);
-                console.log(`成功添加权限 ${perm.code}`);
-            } else {
-                console.log(`权限 ${perm.code} 已存在，跳过添加`);
-            }
+        if (newPerms.length > 0) {
+            await repo.save(newPerms);
+            newPerms.forEach((p) => this.log(`Permission ${p.code} created.`));
         }
+
+        permissions
+            .filter((p) => existingCodes.has(p.code))
+            .forEach((p) => this.log(`Permission ${p.code} already exists, skipping.`));
     }
 
-    /**
-     * 添加会员管理菜单及其子菜单
-     *
-     * @param menuRepository 菜单仓库
-     */
-    private async addMembershipMenus(menuRepository: Repository<Menu>): Promise<void> {
-        // 查找父菜单 - 系统管理 (code: "system-manage")
-        const systemManageMenu = await menuRepository.findOne({
-            where: { code: "system-manage" },
-        });
+    private async addMembershipMenus(dataSource: DataSource): Promise<void> {
+        const repo = dataSource.getRepository(Menu);
 
+        const systemManageMenu = await repo.findOne({ where: { code: "system-manage" } });
         if (!systemManageMenu) {
-            console.log("未找到父菜单 system-manage (系统管理)，跳过会员管理菜单添加");
+            this.log("Parent menu system-manage not found, skipping membership menu creation.");
             return;
         }
 
-        // 检查会员管理菜单是否已存在
-        let membershipMenu = await menuRepository.findOne({
-            where: { code: "membership" },
-        });
-
-        if (!membershipMenu) {
-            // 创建会员管理主菜单（在系统管理下）
-            membershipMenu = menuRepository.create({
+        const membershipMenu = await this.findOrCreateMenu(
+            repo,
+            "membership",
+            {
                 name: "console-menu.membershipManagement.title",
                 code: "membership",
                 path: "membership",
                 icon: "i-lucide-crown",
                 component: "",
-                permissionCode: undefined,
-                parentId: systemManageMenu.id,
                 sort: 650,
                 isHidden: 0,
                 type: MenuType.DIRECTORY,
-                sourceType: MenuSourceType.SYSTEM,
-            } as Partial<Menu>);
+            },
+            systemManageMenu.id,
+        );
 
-            await menuRepository.save(membershipMenu);
-            console.log("成功添加菜单项 membership");
-        } else {
-            console.log("菜单 membership 已存在，跳过添加");
-        }
-
-        // 添加等级列表菜单
-        await this.addLevelsMenus(menuRepository, membershipMenu.id);
-
-        // 添加套餐列表菜单
-        await this.addPlansMenus(menuRepository, membershipMenu.id);
+        await this.addResourceMenus(repo, membershipMenu.id, "levels", "levelsList");
+        await this.addResourceMenus(repo, membershipMenu.id, "plans", "plansList");
     }
 
     /**
-     * 添加等级列表菜单及其子菜单
-     *
-     * @param menuRepository 菜单仓库
-     * @param parentId 父菜单ID
+     * Add resource menus (list, update, add) for a given resource type.
      */
-    private async addLevelsMenus(
-        menuRepository: Repository<Menu>,
+    private async addResourceMenus(
+        repo: Repository<Menu>,
         parentId: string,
+        resource: "levels" | "plans",
+        i18nKey: string,
     ): Promise<void> {
-        // 检查等级列表菜单是否已存在
-        let levelsMenu = await menuRepository.findOne({
-            where: { code: "levels-list" },
-        });
-
-        if (!levelsMenu) {
-            levelsMenu = menuRepository.create({
-                name: "console-menu.membershipManagement.levelsList",
-                code: "levels-list",
-                path: "levels",
-                icon: "",
-                component: "/console/membership/levels/list",
-                permissionCode: "levels:list",
-                parentId,
+        const listMenu = await this.findOrCreateMenu(
+            repo,
+            `${resource}-list`,
+            {
+                name: `console-menu.membershipManagement.${i18nKey}`,
+                code: `${resource}-list`,
+                path: resource,
+                component: `/console/membership/${resource}/list`,
+                permissionCode: `${resource}:list`,
                 sort: 0,
                 isHidden: 0,
                 type: MenuType.MENU,
-                sourceType: MenuSourceType.SYSTEM,
-            } as Partial<Menu>);
+            },
+            parentId,
+        );
 
-            await menuRepository.save(levelsMenu);
-            console.log("成功添加菜单项 levels-list");
-        } else {
-            console.log("菜单 levels-list 已存在，跳过添加");
-        }
-
-        // 添加编辑按钮
-        const levelsUpdateMenu = await menuRepository.findOne({
-            where: { code: "levels-list-update" },
-        });
-
-        if (!levelsUpdateMenu) {
-            const updateMenu = menuRepository.create({
+        const subMenus: MenuConfig[] = [
+            {
                 name: "console-common.edit",
-                code: "levels-list-update",
-                path: "levels/edit",
-                icon: "",
-                component: "/console/membership/levels/edit",
-                permissionCode: "levels:update",
-                parentId: levelsMenu.id,
+                code: `${resource}-list-update`,
+                path: `${resource}/edit`,
+                component: `/console/membership/${resource}/edit`,
+                permissionCode: `${resource}:update`,
                 sort: 0,
                 isHidden: 1,
                 type: MenuType.MENU,
-                sourceType: MenuSourceType.SYSTEM,
-            } as Partial<Menu>);
-
-            await menuRepository.save(updateMenu);
-            console.log("成功添加菜单项 levels-list-update");
-        }
-
-        // 添加新增按钮
-        const levelsAddMenu = await menuRepository.findOne({
-            where: { code: "levels-list-add" },
-        });
-
-        if (!levelsAddMenu) {
-            const addMenu = menuRepository.create({
+            },
+            {
                 name: "console-common.add",
-                code: "levels-list-add",
-                path: "levels/add",
-                icon: "",
-                component: "/console/membership/levels/add",
-                permissionCode: "levels:create",
-                parentId: levelsMenu.id,
+                code: `${resource}-list-add`,
+                path: `${resource}/add`,
+                component: `/console/membership/${resource}/add`,
+                permissionCode: `${resource}:create`,
                 sort: 0,
                 isHidden: 1,
                 type: MenuType.MENU,
-                sourceType: MenuSourceType.SYSTEM,
-            } as Partial<Menu>);
+            },
+        ];
 
-            await menuRepository.save(addMenu);
-            console.log("成功添加菜单项 levels-list-add");
+        for (const config of subMenus) {
+            await this.findOrCreateMenu(repo, config.code, config, listMenu.id);
         }
     }
 
-    /**
-     * 添加套餐列表菜单及其子菜单
-     *
-     * @param menuRepository 菜单仓库
-     * @param parentId 父菜单ID
-     */
-    private async addPlansMenus(menuRepository: Repository<Menu>, parentId: string): Promise<void> {
-        // 检查套餐列表菜单是否已存在
-        let plansMenu = await menuRepository.findOne({
-            where: { code: "plans-list" },
-        });
+    private async addMembershipOrderMenu(dataSource: DataSource): Promise<void> {
+        const repo = dataSource.getRepository(Menu);
 
-        if (!plansMenu) {
-            plansMenu = menuRepository.create({
-                name: "console-menu.membershipManagement.plansList",
-                code: "plans-list",
-                path: "plans",
-                icon: "",
-                component: "/console/membership/plans/list",
-                permissionCode: "plans:list",
-                parentId,
-                sort: 0,
-                isHidden: 0,
-                type: MenuType.MENU,
-                sourceType: MenuSourceType.SYSTEM,
-            } as Partial<Menu>);
-
-            await menuRepository.save(plansMenu);
-            console.log("成功添加菜单项 plans-list");
-        } else {
-            console.log("菜单 plans-list 已存在，跳过添加");
-        }
-
-        // 添加编辑按钮
-        const plansUpdateMenu = await menuRepository.findOne({
-            where: { code: "plans-list-update" },
-        });
-
-        if (!plansUpdateMenu) {
-            const updateMenu = menuRepository.create({
-                name: "console-common.edit",
-                code: "plans-list-update",
-                path: "plans/edit",
-                icon: "",
-                component: "/console/membership/plans/edit",
-                permissionCode: "plans:update",
-                parentId: plansMenu.id,
-                sort: 0,
-                isHidden: 1,
-                type: MenuType.MENU,
-                sourceType: MenuSourceType.SYSTEM,
-            } as Partial<Menu>);
-
-            await menuRepository.save(updateMenu);
-            console.log("成功添加菜单项 plans-list-update");
-        }
-
-        // 添加新增按钮
-        const plansAddMenu = await menuRepository.findOne({
-            where: { code: "plans-list-add" },
-        });
-
-        if (!plansAddMenu) {
-            const addMenu = menuRepository.create({
-                name: "console-common.add",
-                code: "plans-list-add",
-                path: "plans/add",
-                icon: "",
-                component: "/console/membership/plans/add",
-                permissionCode: "plans:create",
-                parentId: plansMenu.id,
-                sort: 0,
-                isHidden: 1,
-                type: MenuType.MENU,
-                sourceType: MenuSourceType.SYSTEM,
-            } as Partial<Menu>);
-
-            await menuRepository.save(addMenu);
-            console.log("成功添加菜单项 plans-list-add");
-        }
-    }
-
-    /**
-     * 添加会员订单菜单
-     *
-     * @param menuRepository 菜单仓库
-     */
-    private async addMembershipOrderMenu(menuRepository: Repository<Menu>): Promise<void> {
-        // 查找父菜单 - 订单管理菜单 (path: "order", code: null)
-        const orderMenu = await menuRepository.findOne({
+        const orderMenu = await repo.findOne({
             where: { path: "order", type: MenuType.DIRECTORY },
         });
 
         if (!orderMenu) {
-            console.log("未找到父菜单 order (订单管理)，跳过会员订单菜单添加");
+            this.log("Parent menu order not found, skipping membership order menu creation.");
             return;
         }
 
-        // 检查会员订单菜单是否已存在
-        const existingMenu = await menuRepository.findOne({
-            where: { code: "membership-order" },
-        });
-
-        if (existingMenu) {
-            console.log("菜单 membership-order 已存在，跳过添加");
-            return;
-        }
-
-        // 创建会员订单菜单
-        const membershipOrderMenu = menuRepository.create({
-            name: "console-menu.financial.orderMembership",
-            code: "membership-order",
-            path: "order-membership",
-            icon: "",
-            component: "/console/order/order-membership",
-            permissionCode: "membership-order:list",
-            parentId: orderMenu.id,
-            sort: 1,
-            isHidden: 0,
-            type: MenuType.MENU,
-            sourceType: MenuSourceType.SYSTEM,
-        } as Partial<Menu>);
-
-        await menuRepository.save(membershipOrderMenu);
-        console.log("成功添加菜单项 membership-order");
+        await this.findOrCreateMenu(
+            repo,
+            "membership-order",
+            {
+                name: "console-menu.financial.orderMembership",
+                code: "membership-order",
+                path: "order-membership",
+                component: "/console/order/order-membership",
+                permissionCode: "membership-order:list",
+                sort: 1,
+                isHidden: 0,
+                type: MenuType.MENU,
+            },
+            orderMenu.id,
+        );
     }
 
-    /**
-     * 添加应用中心菜单
-     *
-     * @param menuRepository 菜单仓库
-     */
-    private async addAppsCenterMenu(menuRepository: Repository<Menu>): Promise<void> {
-        // 查找父菜单 - 装修中心 (code: "diy-center")
-        const diyCenterMenu = await menuRepository.findOne({
-            where: { code: "diy-center" },
-        });
+    private async addAppsCenterMenu(dataSource: DataSource): Promise<void> {
+        const repo = dataSource.getRepository(Menu);
 
+        const diyCenterMenu = await repo.findOne({ where: { code: "diy-center" } });
         if (!diyCenterMenu) {
-            console.log("未找到父菜单 diy-center (装修中心)，跳过应用中心菜单添加");
+            this.log("Parent menu diy-center not found, skipping apps center menu creation.");
             return;
         }
 
-        // 检查应用中心菜单是否已存在
-        const existingMenu = await menuRepository.findOne({
-            where: { code: "apps-center" },
-        });
-
-        if (existingMenu) {
-            console.log("菜单 apps-center 已存在，跳过添加");
-            return;
-        }
-
-        // 创建应用中心菜单
-        const appsCenterMenu = menuRepository.create({
-            name: "console-menu.diyCenter.appCenter",
-            code: "apps-center",
-            path: "apps",
-            icon: "",
-            component: "/console/decorate/apps/list",
-            permissionCode: "extensions:list",
-            parentId: diyCenterMenu.id,
-            sort: 2,
-            isHidden: 0,
-            type: MenuType.MENU,
-            sourceType: MenuSourceType.SYSTEM,
-        } as Partial<Menu>);
-
-        await menuRepository.save(appsCenterMenu);
-        console.log("成功添加菜单项 apps-center");
+        await this.findOrCreateMenu(
+            repo,
+            "apps-center",
+            {
+                name: "console-menu.diyCenter.appCenter",
+                code: "apps-center",
+                path: "apps",
+                component: "/console/decorate/apps/list",
+                permissionCode: "extensions:list",
+                sort: 2,
+                isHidden: 0,
+                type: MenuType.MENU,
+            },
+            diyCenterMenu.id,
+        );
     }
 
-    /**
-     * 添加前端首页应用中心菜单项
-     *
-     * @param dataSource 数据源
-     */
-    private async addWebAppsMenuItem(dataSource: any): Promise<void> {
-        const repository = dataSource.getRepository(DecoratePageEntity);
-
-        // 查找 web 页面配置
-        const webPage = await repository.findOne({
-            where: { name: "web" },
-        });
+    private async addWebAppsMenuItem(dataSource: DataSource): Promise<void> {
+        const repo: Repository<DecoratePageEntity> = dataSource.getRepository(DecoratePageEntity);
+        const webPage = await repo.findOne({ where: { name: "web" } });
 
         if (!webPage) {
-            console.log("未找到 web 页面配置，跳过应用中心菜单项添加");
+            this.log("Web page configuration not found, skipping apps menu item creation.");
             return;
         }
 
-        // 检查是否已存在应用中心菜单项
         const data = webPage.data as { menus?: any[]; layout?: string };
         const menus = data?.menus ?? [];
 
-        const existingAppsMenu = menus.find(
-            (menu: any) => menu.link?.path === "/apps" || menu.link?.name === "menu.apps",
-        );
-
-        if (existingAppsMenu) {
-            console.log("应用中心菜单项已存在，跳过添加");
+        if (menus.some((m: any) => m.link?.path === "/apps" || m.link?.name === "menu.apps")) {
+            this.log("Apps menu item already exists, skipping creation.");
             return;
         }
 
-        // 添加应用中心菜单项
-        const appsMenuItem = {
+        menus.push({
             id: "menu_1764936950052-28ca0576-854a-4272-8e26-7c1dc1159ca1",
             icon: "i-tabler-apps",
-            link: {
-                name: "menu.apps",
-                path: "/apps",
-                type: "system",
-                query: {},
-            },
+            link: { name: "menu.apps", path: "/apps", type: "system", query: {} },
             title: "应用中心",
-        };
-
-        menus.push(appsMenuItem);
-
-        // 更新页面配置
-        await repository.update(webPage.id, {
-            data: {
-                ...data,
-                menus,
-            },
         });
 
-        console.log("成功添加前端首页应用中心菜单项");
+        await repo.update(webPage.id, { data: { ...data, menus } } as any);
+        this.log("Apps menu item added to web homepage configuration.");
     }
 
-    /**
-     * 初始化会员等级数据
-     *
-     * @param dataSource 数据源
-     */
-    private async seedMembershipLevels(dataSource: any): Promise<void> {
-        const repository = dataSource.getRepository(MembershipLevels);
+    private async seedMembershipLevels(dataSource: DataSource): Promise<void> {
+        const repo = dataSource.getRepository(MembershipLevels);
+
+        const defaultBenefits = [
+            { icon: "", content: "每月赠送积分" },
+            { icon: "", content: "绘画生成" },
+            { icon: "", content: "视频生成" },
+        ];
 
         const levelConfigs = [
             {
                 name: "基础会员（示例）",
                 level: 1,
-                icon: "/static/vip/1.jpg",
                 givePower: 100,
                 description: "约生成10个视频或100张图片",
-                benefits: [
-                    { icon: "", content: "每月赠送积分" },
-                    { icon: "", content: "绘画生成" },
-                    { icon: "", content: "视频生成" },
-                ],
             },
             {
                 name: "标准会员（示例）",
                 level: 2,
-                icon: "/static/vip/2.jpg",
                 givePower: 500,
                 description: "约生成50个视频或500张图片",
-                benefits: [
-                    { icon: "", content: "每月赠送积分" },
-                    { icon: "", content: "绘画生成" },
-                    { icon: "", content: "视频生成" },
-                ],
             },
             {
                 name: "高级会员（示例）",
                 level: 3,
-                icon: "/static/vip/3.jpg",
                 givePower: 3000,
                 description: "约生成300个视频或3000张图片",
-                benefits: [
-                    { icon: "", content: "每月赠送积分" },
-                    { icon: "", content: "绘画生成" },
-                    { icon: "", content: "视频生成" },
-                ],
             },
-        ];
+        ].map((c) => ({
+            ...c,
+            icon: `/static/vip/${c.level}.jpg`,
+            benefits: defaultBenefits,
+        }));
 
-        let createdCount = 0;
+        const existingLevels = new Set(
+            (await repo.find({ select: ["level"] })).map((l) => l.level),
+        );
 
-        for (const config of levelConfigs) {
-            // 检查会员等级是否已存在
-            const existingLevel = await repository.findOne({
-                where: { level: config.level },
-            });
+        const newLevels = levelConfigs.filter((c) => !existingLevels.has(c.level));
 
-            if (!existingLevel) {
-                await repository.save(config);
-                console.log(`成功创建会员等级: ${config.name}`);
-                createdCount++;
-            } else {
-                console.log(`会员等级 ${config.name} 已存在，跳过创建`);
-            }
+        if (newLevels.length > 0) {
+            await repo.save(newLevels);
+            newLevels.forEach((c) => this.log(`Membership level created: ${c.name}`));
         }
 
-        console.log(`会员等级初始化完成: 创建 ${createdCount} 个`);
+        levelConfigs
+            .filter((c) => existingLevels.has(c.level))
+            .forEach((c) => this.log(`Membership level ${c.name} already exists, skipping.`));
+
+        this.log(`Membership level seeding completed. Created ${newLevels.length} level(s).`);
     }
 
-    /**
-     * 初始化会员套餐数据
-     *
-     * @param dataSource 数据源
-     */
-    private async seedMembershipPlans(dataSource: any): Promise<void> {
-        const planRepository = dataSource.getRepository(MembershipPlans);
-        const levelRepository = dataSource.getRepository(MembershipLevels);
+    private async seedMembershipPlans(dataSource: DataSource): Promise<void> {
+        const planRepo = dataSource.getRepository(MembershipPlans);
+        const levelRepo = dataSource.getRepository(MembershipLevels);
 
-        // 获取所有会员等级
-        const levels = await levelRepository.find({
-            order: { level: "ASC" },
-        });
-
+        const levels = await levelRepo.find({ order: { level: "ASC" } });
         if (levels.length === 0) {
-            console.log("未找到会员等级数据，跳过套餐初始化");
+            this.log("No membership levels found, skipping plan seeding.");
             return;
         }
 
-        // MembershipPlanDuration 枚举值: MONTH=1, QUARTER=2, HALF=3, YEAR=4, FOREVER=5, CUSTOM=6
+        // MembershipPlanDuration: MONTH=1, QUARTER=2, HALF=3, YEAR=4, FOREVER=5, CUSTOM=6
         const planConfigs = [
-            {
-                name: "7天体验",
-                durationConfig: 6, // CUSTOM
-                sort: 4,
-                duration: { value: 7, unit: "day" },
-            },
-            {
-                name: "单月购买",
-                durationConfig: 1, // MONTH
-                sort: 3,
-            },
-            {
-                name: "按季",
-                durationConfig: 2, // QUARTER
-                label: "5折",
-                sort: 2,
-            },
-            {
-                name: "按年",
-                durationConfig: 4, // YEAR
-                label: "",
-                sort: 1,
-            },
+            { name: "7天体验", durationConfig: 6, sort: 4, duration: { value: 7, unit: "day" } },
+            { name: "单月购买", durationConfig: 1, sort: 3 },
+            { name: "按季", durationConfig: 2, label: "5折", sort: 2 },
+            { name: "按年", durationConfig: 4, label: "", sort: 1 },
         ];
 
-        // 不同订阅计划与会员等级对应的售价配置
         const priceTable: Record<string, Record<number, number>> = {
             "7天体验": { 1: 0.01, 2: 0.02, 3: 0.03 },
-            "单月购买": { 1: 19, 2: 59, 3: 199 },
-            "按季": { 1: 49, 2: 99, 3: 299 },
-            "按年": { 1: 79, 2: 239, 3: 649 },
+            单月购买: { 1: 19, 2: 59, 3: 199 },
+            按季: { 1: 49, 2: 99, 3: 299 },
+            按年: { 1: 79, 2: 239, 3: 649 },
         };
 
-        let createdCount = 0;
+        const recommendedPlans = new Set(["单月购买", "按季"]);
 
-        for (const config of planConfigs) {
-            // 检查订阅计划是否已存在
-            const existingPlan = await planRepository.findOne({
-                where: { name: config.name },
-            });
+        const existingNames = new Set(
+            (await planRepo.find({ select: ["name"] })).map((p) => p.name),
+        );
 
-            if (existingPlan) {
-                console.log(`会员套餐 ${config.name} 已存在，跳过创建`);
-                continue;
-            }
-
-            // 为每个会员等级生成 billing 配置
-            const billing = levels.map((level: any) => {
-                const planPrices = priceTable[config.name] || {};
-                const salesPrice = planPrices[level.level] ?? 0;
-
-                let label = "";
-                if (config.name === "单月购买" || config.name === "按季") {
-                    label = "推荐";
-                } else if (config.name === "按年" && level.level === 3) {
-                    label = "推荐";
-                }
-
-                return {
+        const newPlans = planConfigs
+            .filter((c) => !existingNames.has(c.name))
+            .map((config) => ({
+                ...config,
+                billing: levels.map((level: any) => ({
                     levelId: level.id,
-                    salesPrice,
+                    salesPrice: priceTable[config.name]?.[level.level] ?? 0,
                     status: true,
-                    label,
-                };
-            });
+                    label:
+                        recommendedPlans.has(config.name) ||
+                        (config.name === "按年" && level.level === 3)
+                            ? "推荐"
+                            : "",
+                })),
+            }));
 
-            const planData = {
-                name: config.name,
-                durationConfig: config.durationConfig,
-                label: config.label,
-                sort: config.sort,
-                billing,
-                duration: config.duration,
-            };
-
-            await planRepository.save(planData);
-            console.log(`成功创建会员套餐: ${config.name}`);
-            createdCount++;
+        if (newPlans.length > 0) {
+            await planRepo.save(newPlans);
+            newPlans.forEach((p) => this.log(`Membership plan created: ${p.name}`));
         }
 
-        console.log(`会员套餐初始化完成: 创建 ${createdCount} 个`);
+        planConfigs
+            .filter((c) => existingNames.has(c.name))
+            .forEach((c) => this.log(`Membership plan ${c.name} already exists, skipping.`));
+
+        this.log(`Membership plan seeding completed. Created ${newPlans.length} plan(s).`);
+    }
+
+    /**
+     * Disable all extensions in database and extensions.json file.
+     */
+    private async disableAllExtensions(dataSource: DataSource): Promise<void> {
+        // Disable extensions in database
+        const repo = dataSource.getRepository(Extension);
+        const result = await repo.update(
+            { status: ExtensionStatus.ENABLED },
+            { status: ExtensionStatus.DISABLED },
+        );
+        this.log(`Disabled ${result.affected ?? 0} extension(s) in database.`);
+
+        // Disable extensions in extensions.json (resolve from api package to project root)
+        const extensionsJsonPath = path.resolve(process.cwd(), "../../extensions/extensions.json");
+
+        if (!fs.existsSync(extensionsJsonPath)) {
+            this.log("extensions.json not found, skipping file update.");
+            return;
+        }
+
+        try {
+            const content = fs.readFileSync(extensionsJsonPath, "utf-8");
+            const data = JSON.parse(content) as {
+                applications?: Record<string, { enabled?: boolean }>;
+                functionals?: Record<string, { enabled?: boolean }>;
+            };
+
+            let updatedCount = 0;
+
+            // Disable all applications
+            if (data.applications) {
+                for (const key of Object.keys(data.applications)) {
+                    if (data.applications[key] && data.applications[key].enabled !== false) {
+                        data.applications[key].enabled = false;
+                        updatedCount++;
+                    }
+                }
+            }
+
+            fs.writeFileSync(extensionsJsonPath, JSON.stringify(data, null, 4), "utf-8");
+            this.log(`Disabled ${updatedCount} extension(s) in extensions.json.`);
+        } catch (err) {
+            this.error("Failed to update extensions.json.", err);
+        }
     }
 }
 

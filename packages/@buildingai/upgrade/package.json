@@ -37,7 +37,8 @@
     },
     "dependencies": {
         "@buildingai/db": "workspace:*",
-        "@buildingai/logger": "workspace:*"
+        "@buildingai/logger": "workspace:*",
+        "@buildingai/constants": "workspace:*"
     },
     "devDependencies": {
         "@buildingai/eslint-config": "workspace:*",
