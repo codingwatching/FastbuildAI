@@ -119,19 +119,20 @@ function syncEnvFile(examplePath, envPath, rootVersion) {
         existingVariables = buildExistingVariablesMap(parsedEnv);
     }
 
+    // Track changes
+    const addedKeys = [];
+    const removedKeys = [];
+    const keptKeys = [];
+    const migratedKeys = []; // Version-specific migrations
+
     // Version-specific tweak: for 25.1.0, bump JWT_EXPIRES_IN from 1d to 30d
     if (rootVersion === "25.1.0") {
         const jwtExpiresIn = existingVariables.get("JWT_EXPIRES_IN");
         if (jwtExpiresIn === "1d") {
             existingVariables.set("JWT_EXPIRES_IN", "30d");
-            console.log(chalk.blue("ℹ Adjusted JWT_EXPIRES_IN from 1d to 30d for version 25.1.0"));
+            migratedKeys.push({ key: "JWT_EXPIRES_IN", from: "1d", to: "30d", reason: "version 25.1.0" });
         }
     }
-
-    // Track changes
-    const addedKeys = [];
-    const removedKeys = [];
-    const keptKeys = [];
 
     // Find removed keys (exist in .env but not in .env.example)
     for (const [key] of existingVariables) {
@@ -140,34 +141,52 @@ function syncEnvFile(examplePath, envPath, rootVersion) {
         }
     }
 
-    // Build result by iterating through .env.example
+    // Build result: preserve .env structure (comments, empty lines, order)
+    // Only modify variables: update values, remove obsolete, append new
     const result = [];
+    const processedKeys = new Set();
 
-    for (const item of parsedExample) {
+    // First pass: keep .env structure, update variable values, skip removed keys
+    for (const item of parsedEnv) {
         if (item.type === "variable") {
-            // Check if variable exists in .env
-            if (existingVariables.has(item.key)) {
-                // IMPORTANT: Use existing value from .env, never overwrite
-                const existingValue = existingVariables.get(item.key);
-                result.push(`${item.key}=${existingValue}`);
-                keptKeys.push(item.key);
-            } else {
-                // New variable from .env.example
-                result.push(item.content);
-                addedKeys.push(item.key);
+            if (removedKeys.includes(item.key)) {
+                // Skip removed variables
+                continue;
             }
+            // Use migrated value if available, otherwise keep existing
+            const value = existingVariables.get(item.key);
+            result.push(`${item.key}=${value}`);
+            processedKeys.add(item.key);
+            keptKeys.push(item.key);
         } else {
-            // Keep comments and empty lines from .env.example
+            // Keep all comments and empty lines from .env
             result.push(item.content);
         }
     }
 
+    // Second pass: append new variables from .env.example (not in .env)
+    for (const item of parsedExample) {
+        if (item.type === "variable" && !processedKeys.has(item.key)) {
+            result.push(item.content);
+            addedKeys.push(item.key);
+        }
+    }
+
     // Check if there are any changes
-    const hasChanges = addedKeys.length > 0 || removedKeys.length > 0;
+    const hasChanges = addedKeys.length > 0 || removedKeys.length > 0 || migratedKeys.length > 0;
 
     if (!hasChanges) {
         console.log(chalk.blue("ℹ No changes detected. .env is already in sync with .env.example"));
         return;
+    }
+
+    // Display migration summary first
+    if (migratedKeys.length > 0) {
+        console.log("");
+        console.log(chalk.cyan(`⚙ Migrated ${migratedKeys.length} variable(s) for version compatibility:`));
+        migratedKeys.forEach(({ key, from, to, reason }) => {
+            console.log(chalk.cyan(`  ~ ${key}: ${from} → ${to} (${reason})`));
+        });
     }
 
     // Display changes summary
