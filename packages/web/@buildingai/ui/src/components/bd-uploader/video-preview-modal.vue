@@ -36,4 +36,3 @@ const emits = defineEmits<{
         </div>
     </BdModal>
 </template>
-

@@ -194,7 +194,9 @@ onMounted(async () => {
                     </div>
 
                     <!-- 权限列表 -->
-                    <div class="ml-6 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    <div
+                        class="ml-6 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                    >
                         <div
                             v-for="permission in group.permissions"
                             :key="permission.id"

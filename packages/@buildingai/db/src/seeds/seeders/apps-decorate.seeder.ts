@@ -1,21 +1,21 @@
-import { BaseSeeder } from "./base.seeder";
-import { DataSource } from "../../typeorm";
 import { Dict } from "../../entities/dict.entity";
+import { DataSource } from "../../typeorm";
+import { BaseSeeder } from "./base.seeder";
 
 export class AppsDecorateSeeder extends BaseSeeder {
     readonly name = "AppsDecorateSeeder";
     readonly priority = 90;
 
     private readonly appsDecorateConfig = {
-        "enabled": true,
-        "title": "广告",
-        "link": {
-            "type": "custom",
-            "path": "https://www.baidu.com/",
-            "name": "https://www.baidu.com/"
+        enabled: true,
+        title: "广告",
+        link: {
+            type: "custom",
+            path: "https://www.baidu.com/",
+            name: "https://www.baidu.com/",
         },
-        "heroImageUrl": "static/images/apps_decorate.jpg"
-    }
+        heroImageUrl: "static/images/apps_decorate.jpg",
+    };
 
     async run(dataSource: DataSource): Promise<void> {
         const dictRepository = dataSource.getRepository(Dict);
@@ -31,7 +31,9 @@ export class AppsDecorateSeeder extends BaseSeeder {
         }
     }
 
-    private async initAppsDecorate(dictRepository: ReturnType<DataSource["getRepository"]>): Promise<void> {
+    private async initAppsDecorate(
+        dictRepository: ReturnType<DataSource["getRepository"]>,
+    ): Promise<void> {
         const key = "apps_decorate_config";
         const group = "apps_decorate";
 

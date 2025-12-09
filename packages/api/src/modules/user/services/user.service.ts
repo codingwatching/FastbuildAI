@@ -12,7 +12,7 @@ import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { MembershipLevels, User, UserSubscription } from "@buildingai/db/entities";
 import { Role } from "@buildingai/db/entities";
-import { Between, DeepPartial, In, Like, MoreThan, Repository } from "@buildingai/db/typeorm";
+import { Between, DeepPartial, In, Like, Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { generateNo } from "@buildingai/utils";
 import { isEnabled } from "@buildingai/utils";

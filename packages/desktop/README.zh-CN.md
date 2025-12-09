@@ -19,7 +19,7 @@ BuildingAI 桌面端应用，基于 Tauri 构建。
 
 Tauri 在 Linux 上进行开发需要各种系统依赖项。这些可能会有所不同，具体取决于你的发行版，但我们在下面提供了一些流行的发行版来帮助你进行设置。
 
->Debian
+> Debian
 
 ```sh
 sudo apt update
@@ -34,7 +34,7 @@ sudo apt install libwebkit2gtk-4.1-dev \
   librsvg2-dev
 ```
 
->Arch
+> Arch
 
 ```sh
 sudo pacman -Syu
@@ -51,7 +51,7 @@ sudo pacman -S --needed \
   xdotool
 ```
 
->Fedora
+> Fedora
 
 ```sh
 sudo dnf check-update
@@ -66,7 +66,7 @@ sudo dnf install webkit2gtk4.1-devel \
 sudo dnf group install "c-development"
 ```
 
->Gentoo
+> Gentoo
 
 ```sh
 sudo emerge --ask \
@@ -77,7 +77,7 @@ sudo emerge --ask \
   sys-apps/file
 ```
 
->openSUSE
+> openSUSE
 
 ```sh
 sudo zypper up
@@ -91,7 +91,8 @@ sudo zypper in webkit2gtk3-devel \
 sudo zypper in -t pattern devel_basis
 ```
 
->Alpine
+> Alpine
+
 ```sh
 sudo apk add \
   build-base \
@@ -104,13 +105,16 @@ sudo apk add \
   librsvg
 ```
 
-如果你的发行版未包含在上面，那么你可能需要查阅 [Awesome Tauri on GitHub](https://github.com/tauri-apps/awesome-tauri#guides) 以获知是否已有指南被创建。
+如果你的发行版未包含在上面，那么你可能需要查阅
+[Awesome Tauri on GitHub](https://github.com/tauri-apps/awesome-tauri#guides)
+以获知是否已有指南被创建。
 
 下一步：[下载并安装 Rust](#rust)
 
 ### macOS
 
-Tauri 使用 [Xcode](https://developer.apple.com/cn/xcode/resources/) 以及各种 macOS 和 iOS 开发依赖项。
+Tauri 使用 [Xcode](https://developer.apple.com/cn/xcode/resources/)
+以及各种 macOS 和 iOS 开发依赖项。
 
 从以下位置之一下载并安装 Xcode：
 
@@ -133,13 +137,15 @@ xcode-select --install
 
 ### Windows
 
-Tauri 使用 Microsoft C++ 生成工具进行开发以及 Microsoft Edge WebView2。这两者都是在 Windows 上进行开发所必需的。
+Tauri 使用 Microsoft C++ 生成工具进行开发以及 Microsoft Edge
+WebView2。这两者都是在 Windows 上进行开发所必需的。
 
 按照以下步骤安装所需的依赖项。
 
 #### Microsoft C++ 生成工具
 
-1. 下载 [Microsoft C++ 生成工具](https://visualstudio.microsoft.com/zh-hans/visual-cpp-build-tools/) 安装程序并打开它以开始安装。
+1. 下载 [Microsoft C++ 生成工具](https://visualstudio.microsoft.com/zh-hans/visual-cpp-build-tools/)
+   安装程序并打开它以开始安装。
 2. 在安装过程中，选中“使用 C++ 的桌面开发”选项。
 
 ![Visual Studio C++ 生成工具 安装程序 截图](./../../assets/docs/desktop/visual-studio-build-tools-installer.webp)
@@ -150,17 +156,22 @@ Tauri 使用 Microsoft C++ 生成工具进行开发以及 Microsoft Edge WebView
 
 > 💡提示
 >
-> WebView 2 已安装在 Windows 10（从版本 1803 开始）和更高版本的 Windows 上。如果你正在这些版本之一上进行开发，则可以跳过此步骤，并直接转到 [下载并安装 Rust](#rust)。
+> WebView 2 已安装在 Windows
+> 10（从版本 1803 开始）和更高版本的 Windows 上。如果你正在这些版本之一上进行开发，则可以跳过此步骤，并直接转到
+> [下载并安装 Rust](#rust)。
 
 Tauri 使用 Microsoft Edge WebView2 在 Windows 上呈现内容。
 
-通过访问[下载 WebView2 运行时](https://developer.microsoft.com/zh-cn/microsoft-edge/webview2/#download)安装 WebView2。下载并安装“常青独立安装程序（Evergreen Bootstrapper）”。
+通过访问[下载 WebView2 运行时](https://developer.microsoft.com/zh-cn/microsoft-edge/webview2/#download)安装 WebView2。下载并安装“常青独立安装程序（Evergreen
+Bootstrapper）”。
 
 下一步：[下载并安装 Rust](#rust)
 
 ## Rust
 
-Tauri 使用 [Rust](https://www.rust-lang.org/zh-CN/) 构建并需要它进行开发。使用以下方法之一安装 Rust。你可以在 https://www.rust-lang.org/zh-CN/tools/install 查看更多安装方法。
+Tauri 使用 [Rust](https://www.rust-lang.org/zh-CN/)
+构建并需要它进行开发。使用以下方法之一安装 Rust。你可以在
+https://www.rust-lang.org/zh-CN/tools/install 查看更多安装方法。
 
 **> Linux and macOS**
 
@@ -172,8 +183,7 @@ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 
 > 💡提示
 >
-> 我们已经审核了这个 bash 脚本，它做了它所说的应该做的事情。尽管如此，在盲目地使用脚本之前，先看一看总是明智的。
-> 以下是作为纯文本的脚本文件：[rustup.sh](https://sh.rustup.rs/)
+> 我们已经审核了这个 bash 脚本，它做了它所说的应该做的事情。尽管如此，在盲目地使用脚本之前，先看一看总是明智的。以下是作为纯文本的脚本文件：[rustup.sh](https://sh.rustup.rs/)
 
 **> Windows**
 
@@ -187,9 +197,11 @@ winget install --id Rustlang.Rustup
 
 > ⚠️警告
 >
-> 为了完全支持 Tauri 和 [`trunk`](https://trunkrs.dev/) 等工具，请确保在安装程序对话框中的 `default host triple` 选择 MSVC Rust 工具链。根据你的系统，它应该是 
->`x86_64-pc-windows-msvc`、`i686-pc-windows-msvc` 或 >`aarch64-pc-windows-msvc`。
-> 如果你已安装 Rust，你可以通过运行以下命令来确保安装正确的工具链：
+> 为了完全支持 Tauri 和 [`trunk`](https://trunkrs.dev/) 等工具，请确保在安装程序对话框中的
+> `default host triple` 选择 MSVC Rust 工具链。根据你的系统，它应该是
+> `x86_64-pc-windows-msvc`、`i686-pc-windows-msvc`
+> 或 >`aarch64-pc-windows-msvc`。如果你已安装 Rust，你可以通过运行以下命令来确保安装正确的工具链：
+>
 > ```powershell
 > rustup default stable-msvc
 > ```
@@ -217,14 +229,15 @@ npm -v
 
 重要的是，重新启动终端以确保它能够识别新安装的内容。在某些情况下，您可能需要重新启动计算机。
 
-虽然 npm 是 Node.js 的默认包管理器，但你也可以使用其他包管理器，比如 pnpm 或 yarn。如果你想启用这些包管理器，可以在终端中运行 `corepack enable`。这一步是可选的，只有在您想使用 npm 以外的包管理器时才需要。
+虽然 npm 是 Node.js 的默认包管理器，但你也可以使用其他包管理器，比如 pnpm 或 yarn。如果你想启用这些包管理器，可以在终端中运行
+`corepack enable`。这一步是可选的，只有在您想使用 npm 以外的包管理器时才需要。
 
 下一步：[移动端配置](#移动端配置)或者[创建新项目](/zh-cn/start/create-project/)。
 
 ## 故障排除
 
-如果你在安装过程中遇到任何问题，请务必查看[故障诊断指南](/zh-cn/develop/debug/)或联系 [Tauri Discord](https://discord.com/invite/tauri) 以寻求帮助。
-
+如果你在安装过程中遇到任何问题，请务必查看[故障诊断指南](/zh-cn/develop/debug/)或联系
+[Tauri Discord](https://discord.com/invite/tauri) 以寻求帮助。
 
 现在，你已经安装了所有前置要求，你可以尝试本地运行或打包桌面端应用。
 

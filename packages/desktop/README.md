@@ -17,7 +17,8 @@ Click the link that matches your operating system to start configuring the envir
 
 ### Linux
 
-Tauri development on Linux requires various system dependencies. These may vary depending on your distribution, but we provide some common examples below to help you set things up.
+Tauri development on Linux requires various system dependencies. These may vary depending on your
+distribution, but we provide some common examples below to help you set things up.
 
 > Debian
 
@@ -105,13 +106,16 @@ sudo apk add \
   librsvg
 ```
 
-If your distribution is not listed above, you may want to check [Awesome Tauri on GitHub](https://github.com/tauri-apps/awesome-tauri#guides) to see if there is already a guide available.
+If your distribution is not listed above, you may want to check
+[Awesome Tauri on GitHub](https://github.com/tauri-apps/awesome-tauri#guides) to see if there is
+already a guide available.
 
 Next step: [Download and install Rust](#rust)
 
 ### macOS
 
-Tauri uses [Xcode](https://developer.apple.com/xcode/resources/) and various macOS and iOS development dependencies.
+Tauri uses [Xcode](https://developer.apple.com/xcode/resources/) and various macOS and iOS
+development dependencies.
 
 Download and install Xcode from one of the following locations:
 
@@ -134,13 +138,16 @@ Next step: [Download and install Rust](#rust)
 
 ### Windows
 
-Tauri uses the Microsoft C++ Build Tools and Microsoft Edge WebView2, both of which are required for development on Windows.
+Tauri uses the Microsoft C++ Build Tools and Microsoft Edge WebView2, both of which are required for
+development on Windows.
 
 Follow the steps below to install the required dependencies.
 
 #### Microsoft C++ Build Tools
 
-1. Download the [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) installer and open it to start the installation.
+1. Download the
+   [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) installer
+   and open it to start the installation.
 2. During setup, select the "Desktop development with C++" workload.
 
 ![Visual Studio C++ Build Tools installer screenshot](./../../assets/docs/desktop/visual-studio-build-tools-installer.webp)
@@ -151,17 +158,23 @@ Next step: [Download and install WebView2](#webview2).
 
 > 💡 Tip
 >
-> WebView2 is already installed on Windows 10 (version 1803 and later) and newer versions of Windows. If you are developing on one of these versions, you can skip this step and go directly to [Download and install Rust](#rust).
+> WebView2 is already installed on Windows 10 (version 1803 and later) and newer versions of
+> Windows. If you are developing on one of these versions, you can skip this step and go directly to
+> [Download and install Rust](#rust).
 
 Tauri uses Microsoft Edge WebView2 to render content on Windows.
 
-Install WebView2 by visiting [Download the WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/#download). Download and install the "Evergreen Bootstrapper".
+Install WebView2 by visiting
+[Download the WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/#download).
+Download and install the "Evergreen Bootstrapper".
 
 Next step: [Download and install Rust](#rust)
 
 ## Rust
 
-Tauri is built with [Rust](https://www.rust-lang.org/) and requires it for development. Install Rust using one of the following methods. You can find more installation options at https://www.rust-lang.org/tools/install.
+Tauri is built with [Rust](https://www.rust-lang.org/) and requires it for development. Install Rust
+using one of the following methods. You can find more installation options at
+https://www.rust-lang.org/tools/install.
 
 **> Linux and macOS**
 
@@ -173,8 +186,9 @@ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 
 > 💡 Tip
 >
-> We have reviewed this bash script, and it does what it claims to do. Nevertheless, it is always a good idea to inspect scripts before running them blindly.
-> You can view the script as plain text here: [rustup.sh](https://sh.rustup.rs/)
+> We have reviewed this bash script, and it does what it claims to do. Nevertheless, it is always a
+> good idea to inspect scripts before running them blindly. You can view the script as plain text
+> here: [rustup.sh](https://sh.rustup.rs/)
 
 **> Windows**
 
@@ -188,16 +202,21 @@ winget install --id Rustlang.Rustup
 
 > ⚠️ Warning
 >
-> To fully support Tauri and tools like [`trunk`](https://trunkrs.dev/), make sure to select the MSVC Rust toolchain as the `default host triple` in the installer dialog. Depending on your system, it should be
-> `x86_64-pc-windows-msvc`, `i686-pc-windows-msvc`, or `aarch64-pc-windows-msvc`.
-> If you have already installed Rust, you can ensure the correct toolchain is selected by running:
+> To fully support Tauri and tools like [`trunk`](https://trunkrs.dev/), make sure to select the
+> MSVC Rust toolchain as the `default host triple` in the installer dialog. Depending on your
+> system, it should be `x86_64-pc-windows-msvc`, `i686-pc-windows-msvc`, or
+> `aarch64-pc-windows-msvc`. If you have already installed Rust, you can ensure the correct
+> toolchain is selected by running:
+>
 > ```powershell
 > rustup default stable-msvc
 > ```
 
 **Be sure to restart your terminal (and in some cases your system) for the changes to take effect.**
 
-Next step: If you want to develop for Android or iOS, go to the mobile setup docs. Otherwise, if you plan to use a JavaScript frontend framework, go to [Node.js](#nodejs). If not, you can proceed to create a new project directly.
+Next step: If you want to develop for Android or iOS, go to the mobile setup docs. Otherwise, if you
+plan to use a JavaScript frontend framework, go to [Node.js](#nodejs). If not, you can proceed to
+create a new project directly.
 
 ## Node.js
 
@@ -205,7 +224,8 @@ Next step: If you want to develop for Android or iOS, go to the mobile setup doc
 >
 > Only required if you plan to use a JavaScript frontend framework.
 
-1. Visit the [Node.js website](https://nodejs.org/), download, and install the Long-Term Support (LTS) version.
+1. Visit the [Node.js website](https://nodejs.org/), download, and install the Long-Term Support
+   (LTS) version.
 
 2. Run the following commands to verify that Node.js was installed successfully:
 
@@ -216,17 +236,23 @@ npm -v
 # 10.2.3
 ```
 
-It is important to restart your terminal so it can recognize the newly installed tools. In some cases, you may need to restart your computer.
+It is important to restart your terminal so it can recognize the newly installed tools. In some
+cases, you may need to restart your computer.
 
-Although npm is the default package manager for Node.js, you can also use other package managers such as pnpm or yarn. If you want to enable these package managers, run `corepack enable` in your terminal. This step is optional and only needed if you want to use a package manager other than npm.
+Although npm is the default package manager for Node.js, you can also use other package managers
+such as pnpm or yarn. If you want to enable these package managers, run `corepack enable` in your
+terminal. This step is optional and only needed if you want to use a package manager other than npm.
 
 Next step: mobile setup or creating a new project.
 
 ## Troubleshooting
 
-If you run into any issues during installation, please refer to the official Tauri [debugging guide](/develop/debug/) or ask for help in the [Tauri Discord](https://discord.com/invite/tauri).
+If you run into any issues during installation, please refer to the official Tauri
+[debugging guide](/develop/debug/) or ask for help in the
+[Tauri Discord](https://discord.com/invite/tauri).
 
-Now that you have installed all prerequisites, you can try running or bundling the desktop application locally.
+Now that you have installed all prerequisites, you can try running or bundling the desktop
+application locally.
 
 ### Run locally
 
@@ -236,7 +262,8 @@ pnpm dev:desktop
 
 ### Build / bundle
 
-Note: You can only build installers for the platform you are currently on. For example, on macOS you can only build `.dmg` or `.zip` files, and on Windows you can only build `.exe` files.
+Note: You can only build installers for the platform you are currently on. For example, on macOS you
+can only build `.dmg` or `.zip` files, and on Windows you can only build `.exe` files.
 
 For more details, see the [build guide](./build.md).
 

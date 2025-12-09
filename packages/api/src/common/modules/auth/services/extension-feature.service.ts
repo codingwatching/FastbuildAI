@@ -1,6 +1,6 @@
 import { CacheService } from "@buildingai/cache";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { ExtensionFeature, MembershipLevels, UserSubscription } from "@buildingai/db/entities";
+import { ExtensionFeature, UserSubscription } from "@buildingai/db/entities";
 import { MoreThan, Repository } from "@buildingai/db/typeorm";
 import { Injectable, Logger } from "@nestjs/common";
 

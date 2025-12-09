@@ -47,7 +47,7 @@ export async function getSeeders(): Promise<BaseSeeder[]> {
 }
 ```
 
-### 2. src/api/db/seeds/seeders/*.seeder.ts
+### 2. src/api/db/seeds/seeders/\*.seeder.ts
 
 具体的种子类，继承自 `BaseSeeder`：
 
@@ -74,22 +74,22 @@ export class YourSeeder extends BaseSeeder {
      */
     async run(dataSource: DataSource): Promise<void> {
         const repository = dataSource.getRepository(YourEntity);
-        
+
         // 从 data 目录加载数据
         const data = await this.loadConfig<YourDataType[]>("your-data.json");
-        
+
         for (const item of data) {
             const entity = repository.create(item);
             await repository.save(entity);
             this.logInfo(`Inserted: ${entity.name}`);
         }
-        
+
         this.logSuccess(`Successfully inserted ${data.length} records`);
     }
 }
 ```
 
-### 3. src/api/db/seeds/data/*.json
+### 3. src/api/db/seeds/data/\*.json
 
 种子数据文件，存放初始化数据：
 
@@ -110,11 +110,11 @@ export class YourSeeder extends BaseSeeder {
 4. **模块初始化**：应用启动时加载所有插件模块
 5. **种子检测**：`ExtensionCoreModule.onModuleInit()` 检查所有插件的 `data/.installed` 文件
 6. **首次安装执行**：
-   - 如果 `.installed` 不存在，执行种子逻辑
-   - 动态加载 `build/api/db/seeds/index.js`
-   - 调用 `getSeeders()` 获取所有 seeder
-   - 按优先级顺序执行每个 seeder
-   - 创建 `.installed` 标记文件
+    - 如果 `.installed` 不存在，执行种子逻辑
+    - 动态加载 `build/api/db/seeds/index.js`
+    - 调用 `getSeeders()` 获取所有 seeder
+    - 按优先级顺序执行每个 seeder
+    - 创建 `.installed` 标记文件
 7. **已安装跳过**：如果 `.installed` 存在，跳过种子执行
 
 ## BaseSeeder 提供的工具方法
@@ -147,10 +147,12 @@ export class YourSeeder extends BaseSeeder {
 ## 构建
 
 插件构建时，tsup 会自动：
+
 1. 编译 `src/api/**/*.ts`（包括 seeds）到 `build/api/`
 2. 复制 `src/api/db/seeds/data/` 到 `build/api/db/seeds/data/`
 
 确保在构建前运行：
+
 ```bash
 pnpm build:api
 ```

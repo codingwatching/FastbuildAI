@@ -23,8 +23,8 @@ pnpm build:desktop # 打包桌面应用
         "devUrl": "http://localhost:4090",
         "frontendDist": "https://你的项目线上部署地址",
         "beforeDevCommand": "pnpm run prepare",
-        "beforeBuildCommand": "pnpm run prepare"
-    }
+        "beforeBuildCommand": "pnpm run prepare",
+    },
 }
 ```
 
@@ -62,8 +62,8 @@ pnpm build:web
         "devUrl": "http://localhost:4090",
         "frontendDist": "../../../public/web",
         "beforeDevCommand": "pnpm run prepare",
-        "beforeBuildCommand": "pnpm run prepare"
-    }
+        "beforeBuildCommand": "pnpm run prepare",
+    },
 }
 ```
 
@@ -73,5 +73,5 @@ pnpm build:web
 pnpm build:desktop
 ```
 
-此时 `frontendDist` 是本地目录，`prepare-frontend.js` 会自动在 `public/web` 和 `public` 之间选择，并写回配置。
-
+此时 `frontendDist` 是本地目录，`prepare-frontend.js` 会自动在 `public/web` 和 `public`
+之间选择，并写回配置。

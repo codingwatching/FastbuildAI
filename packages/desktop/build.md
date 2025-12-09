@@ -7,13 +7,15 @@ pnpm dev:desktop   # development
 pnpm build:desktop # build desktop app
 ```
 
-Before building, `pnpm run prepare` is executed automatically. It decides whether to use a remote URL or local static assets based on the `frontendDist` value.
+Before building, `pnpm run prepare` is executed automatically. It decides whether to use a remote
+URL or local static assets based on the `frontendDist` value.
 
 ---
 
 ## 1. Bundle a deployed website (remote URL)
 
-If you want the desktop app to open an already deployed website (for example, `https://your-production-url`):
+If you want the desktop app to open an already deployed website (for example,
+`https://your-production-url`):
 
 1. Edit `src-tauri/tauri.conf.json`:
 
@@ -23,8 +25,8 @@ If you want the desktop app to open an already deployed website (for example, `h
         "devUrl": "http://localhost:4090",
         "frontendDist": "https://your-production-url",
         "beforeDevCommand": "pnpm run prepare",
-        "beforeBuildCommand": "pnpm run prepare"
-    }
+        "beforeBuildCommand": "pnpm run prepare",
+    },
 }
 ```
 
@@ -34,7 +36,8 @@ If you want the desktop app to open an already deployed website (for example, `h
 pnpm build:desktop
 ```
 
-In this case `frontendDist` is a URL. The `prepare-frontend.js` script **skips any change** and uses the remote URL as-is.
+In this case `frontendDist` is a URL. The `prepare-frontend.js` script **skips any change** and uses
+the remote URL as-is.
 
 ---
 
@@ -62,8 +65,8 @@ The final static files should be output to:
         "devUrl": "http://localhost:4090",
         "frontendDist": "../../../public/web",
         "beforeDevCommand": "pnpm run prepare",
-        "beforeBuildCommand": "pnpm run prepare"
-    }
+        "beforeBuildCommand": "pnpm run prepare",
+    },
 }
 ```
 
@@ -73,5 +76,6 @@ The final static files should be output to:
 pnpm build:desktop
 ```
 
-In this case `frontendDist` is a local directory. The `prepare-frontend.js` script will automatically choose between `public/web` and `public`, and write the final value back to the config file.
-
+In this case `frontendDist` is a local directory. The `prepare-frontend.js` script will
+automatically choose between `public/web` and `public`, and write the final value back to the config
+file.
