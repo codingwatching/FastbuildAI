@@ -320,7 +320,7 @@ watch(
 </script>
 
 <template>
-    <div class="w-full space-y-2 px-5">
+    <div class="w-full space-y-2 px-5 pb-6">
         <div class="mb-4 pl-2">
             <UInput
                 v-model="searchForm.search"

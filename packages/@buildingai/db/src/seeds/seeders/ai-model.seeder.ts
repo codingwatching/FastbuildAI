@@ -110,11 +110,6 @@ export class AiModelSeeder extends BaseSeeder {
                         modelConfig: transformedModelConfig as any,
                     };
 
-                    // Map context_size to maxContext field (separate column)
-                    if (modelConfig.model_properties?.context_size) {
-                        modelData.maxContext = modelConfig.model_properties.context_size;
-                    }
-
                     // Create a new model when none exists
                     if (!model) {
                         model = await modelRepository.save(modelData);
