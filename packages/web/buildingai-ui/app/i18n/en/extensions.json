@@ -160,7 +160,8 @@
         "description": "Description",
         "updateTime": "Updated",
         "changelog": "Changelog",
-        "noVersionInfo": "No version info"
+        "noVersionInfo": "No version info",
+        "platformVersion": "Platform Version"
     },
     "modal": {
         "addExtension": "Add App",

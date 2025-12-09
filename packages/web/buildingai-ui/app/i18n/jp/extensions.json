@@ -160,7 +160,8 @@
         "description": "説明",
         "updateTime": "更新日時",
         "changelog": "更新履歴",
-        "noVersionInfo": "バージョン情報なし"
+        "noVersionInfo": "バージョン情報なし",
+        "platformVersion": "プラットフォームバージョン"
     },
     "modal": {
         "addExtension": "アプリ追加",

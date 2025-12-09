@@ -43,6 +43,7 @@ export interface ExtensionFormData extends BaseEntity {
     supportTerminal?: ExtensionSupportTerminalType[];
     /** Extension status */
     status: ExtensionStatusType;
+    engine: string;
     /** Extension configuration */
     config?: Record<string, any>;
     /** Extension dependencies */

@@ -148,7 +148,7 @@
             "uninstallError": "卸载应用失败"
         },
         "empty": {
-            "title": "暂无应用",
+            "title": "暂无已安装应用",
             "description": "您还没有安装任何应用，去应用市场看看吧",
             "action": "前往应用市场"
         }
@@ -160,7 +160,8 @@
         "description": "描述",
         "updateTime": "更新时间",
         "changelog": "更新日志",
-        "noVersionInfo": "暂无版本信息"
+        "noVersionInfo": "暂无版本信息",
+        "platformVersion": "平台版本"
     },
     "modal": {
         "addExtension": "添加应用",
