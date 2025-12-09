@@ -71,7 +71,8 @@
         "personalRights": "Benefits"
     },
     "personalRights": {
-        "rechargeCenter": "Top-up"
+        "rechargeCenter": "Top-up",
+        "memberCenter": "Member Center"
     },
     "dateGroup": {
         "today": "Today",

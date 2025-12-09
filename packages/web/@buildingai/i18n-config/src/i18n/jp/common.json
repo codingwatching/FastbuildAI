@@ -71,7 +71,8 @@
         "personalRights": "個人権益"
     },
     "personalRights": {
-        "rechargeCenter": "チャージセンター"
+        "rechargeCenter": "チャージセンター",
+        "memberCenter": "会員センター"
     },
     "dateGroup": {
         "today": "今日",
