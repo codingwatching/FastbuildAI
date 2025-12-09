@@ -76,6 +76,11 @@ onMounted(() => getData());
                     :single="true"
                     :multiple="false"
                 />
+                <template #help>
+                    <span class="text-xs">
+                        {{ t("extensions.develop.form.bannerRecommendation") }}
+                    </span>
+                </template>
             </UFormField>
         </div>
 

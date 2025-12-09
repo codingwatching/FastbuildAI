@@ -145,6 +145,7 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
                 <UInput
                     v-model="formData.name"
                     variant="subtle"
+                    readonly
                     :placeholder="t('extensions.develop.form.nameInput')"
                     size="lg"
                     :ui="{ root: 'w-full' }"
@@ -164,12 +165,11 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
                 :label="t('extensions.develop.form.description')"
                 required
                 name="description"
-                :disabled="true"
             >
                 <UTextarea
                     v-model="formData.description"
                     :placeholder="t('extensions.develop.form.descriptionInput')"
-                    :disabled="true"
+                    readonly
                     size="lg"
                     :rows="2"
                     :ui="{ root: 'w-full' }"

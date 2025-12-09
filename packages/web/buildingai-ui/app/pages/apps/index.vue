@@ -145,11 +145,13 @@ definePageMeta({
             class="flex-none cursor-pointer overflow-hidden px-4 pb-4"
             @click="appsDecorate?.link && navigateToWeb(appsDecorate.link)"
         >
-            <NuxtImg
-                :src="appsDecorate.heroImageUrl"
-                :alt="appsDecorate.title || 'banner'"
-                class="h-auto w-full rounded-lg object-cover"
-            />
+            <BdAspectRatio :ratio="1488 / 170">
+                <NuxtImg
+                    :src="appsDecorate.heroImageUrl"
+                    :alt="appsDecorate.title || 'banner'"
+                    class="h-full w-full rounded-lg object-contain"
+                />
+            </BdAspectRatio>
         </div>
 
         <!-- 可滚动的应用列表区域 -->

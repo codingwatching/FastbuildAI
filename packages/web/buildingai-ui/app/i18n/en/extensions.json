@@ -46,6 +46,7 @@
             "icon": "App Icon",
             "addIcon": "Add",
             "iconRecommendation": "Size: 200 * 200px; Format: jpg, png, jpeg, gif",
+            "bannerRecommendation": "Size: 1488 * 170px; Format: jpg, png, jpeg, gif",
             "key": "App Key",
             "packName": "App Identifier",
             "packNameInput": "Enter app identifier",
