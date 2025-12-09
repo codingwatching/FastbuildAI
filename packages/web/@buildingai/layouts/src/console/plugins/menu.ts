@@ -30,6 +30,8 @@ export interface PluginMenuItem {
     activePath?: string;
     /** Child menu items for nested structure */
     children?: PluginMenuItem[];
+
+    defaultOpen?: boolean;
 }
 
 /**
@@ -210,6 +212,7 @@ export function transformMenuToNavigation(
                 label: item.name,
                 icon: item.icon || "i-lucide-file",
                 active: isActive,
+                defaultOpen: item.defaultOpen,
             };
 
             if (item.component) {

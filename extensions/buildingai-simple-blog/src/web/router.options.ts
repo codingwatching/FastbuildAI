@@ -17,6 +17,7 @@ export const consoleMenu: PluginMenuItem[] = [
         path: "article",
         // icons: https://icones.js.org/collection/lucide
         icon: "i-lucide-file-text",
+        defaultOpen: true,
         children: [
             {
                 name: "列表",
