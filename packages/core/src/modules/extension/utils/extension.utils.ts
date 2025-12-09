@@ -67,7 +67,7 @@ export async function getExtensionEngine(
         const content = await readFile(packageJsonPath, "utf-8");
         const packageJson = JSON.parse(content) as { engine?: ExtensionEngine };
 
-        return packageJson.engine || null;
+        return packageJson.engine || { buildingai: "<=25.0.4" };
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         TerminalLogger.warn(
@@ -224,7 +224,7 @@ export async function getEnabledExtensionsFromConfig(extensionsDir?: string): Pr
 
         const extensionPath = join(targetDir, key);
         const manifest = await readExtensionManifest(extensionPath);
-        const engine = manifest?.engine;
+        const engine = manifest?.engine || { buildingai: "<=25.0.4" };
 
         // Check version compatibility
         const compatResult = checkVersionCompatibility(platformVersion, engine);
@@ -461,7 +461,7 @@ export async function getExtensionList(extensionsDir?: string): Promise<Extensio
 
                     version = packageJson.version || "0.0.0";
                     description = packageJson.description;
-                    engine = packageJson.engine.buildingai;
+                    engine = packageJson.engine?.buildingai || "<=25.0.4";
 
                     // Parse author field (can be string or object)
                     if (manifestJson && manifestJson.author) {
@@ -529,14 +529,14 @@ export function getExtensionPackNameFromControllerSync(): string {
 
     // 如果有多个插件,需要通过调用栈来确定
     if (!stackFinderFn) {
-        throw new Error("未设置堆栈查找函数,请先调用 setStackFinderFn() 设置查找函数");
+        throw new Error("Stack finder function is not set. Please call setStackFinderFn() first.");
     }
 
     // 查找调用栈中的文件
     const callerFiles = stackFinderFn([".ts", ".js"]) || [];
 
     if (callerFiles.length === 0) {
-        throw new Error("无法从调用栈中找到文件");
+        throw new Error("No caller files found in stack trace.");
     }
 
     // 尝试从每个文件路径中提取插件名称
@@ -551,7 +551,7 @@ export function getExtensionPackNameFromControllerSync(): string {
         }
     }
 
-    throw new Error("无法从调用栈中确定插件名称");
+    throw new Error("Unable to determine extension name from stack trace.");
 }
 
 /**
