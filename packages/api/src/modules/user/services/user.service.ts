@@ -295,7 +295,7 @@ export class UserService extends BaseService<User> {
             userNo: await generateNo(this.userRepository, "userNo"),
             avatar: createUserDto.avatar
                 ? createUserDto.avatar
-                : `/static/avatars/${Math.floor(Math.random() * 34) + 1}.png`,
+                : `/static/avatars/${Math.floor(Math.random() * 33) + 1}.png`,
         });
 
         // 如果有角色ID，添加角色关联
