@@ -53,6 +53,10 @@
                 "consumeSourceDesc": "ソース",
                 "remark": "備考"
             },
+            "noOptionSelected": "チャージプランを選択してください",
+            "orderNotFound": "注文が存在しません",
+            "continueRecharge": "続けてチャージ",
+            "viewRecords": "記録を表示",
             "powerBalance": "ポイント残高",
             "selectRechargePackage": "チャージプランを選択",
             "paymentMethod": "支払い方法",
@@ -86,9 +90,7 @@
             "back": "前のページに戻る",
             "qrCodeExpired": "QRコードが無効です。更新してください",
             "refreshQrCode": "QRコードを更新",
-            "systemTip": "システム通知",
-            "continueRecharge": "続けてチャージ",
-            "viewRecords": "記録を表示"
+            "systemTip": "システム通知"
         }
     }
 }

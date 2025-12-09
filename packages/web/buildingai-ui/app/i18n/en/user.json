@@ -14,6 +14,7 @@
         "neverLogin": "Never logged in",
         "editProfile": "Edit Profile",
         "adjustBalance": "Adjust Balance",
+        "expired": "Expired",
         "deleteUser": "Delete User",
         "status": {
             "active": "Active",
@@ -27,6 +28,18 @@
             "email": "Email Register",
             "username": "Account Register",
             "unknown": "Unknown"
+        },
+        "list": {
+            "nickname": "User Information",
+            "username": "User Account",
+            "userNo": "User ID",
+            "status": "Status",
+            "source": "Source",
+            "createdAt": "Creation Time",
+            "lastLoginAt": "Last login time",
+            "actions": "Operation",
+            "level": "Membership Level",
+            "endTime": "Membership validity period"
         },
         "form": {
             "username": "Username",

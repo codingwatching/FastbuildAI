@@ -57,7 +57,6 @@
         "agreementTitle": "ご注意",
         "agreementModal": {
             "title": "利用規約とプライバシー保護",
-            "description": "ログインを続行すると、{{appName}}の「利用規約」と「プライバシーポリシー」に同意したものとみなされます。",
             "prefix": "登録またはログインすると、{{appName}}の",
             "confirm": "同意する",
             "cancel": "同意しない",
@@ -71,7 +70,6 @@
         "enterPassword": "パスワードを入力",
         "enterPasswordAgain": "パスワードを再入力"
     },
-
     "forget": {
         "title": "パスワードをお忘れですか？",
         "subtitle": "アカウントを継続して使用するために新しいパスワードを設定してください",

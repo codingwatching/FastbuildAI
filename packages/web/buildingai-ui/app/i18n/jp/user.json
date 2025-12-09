@@ -14,6 +14,7 @@
         "neverLogin": "未ログイン",
         "editProfile": "プロフィール編集",
         "adjustBalance": "残高調整",
+        "expired": "期限切れ",
         "deleteUser": "ユーザー削除",
         "status": {
             "active": "正常",
@@ -27,6 +28,18 @@
             "email": "メール登録",
             "username": "アカウント登録",
             "unknown": "不明なソース"
+        },
+        "list": {
+            "nickname": "ユーザー情報",
+            "username": "ユーザーアカウント",
+            "userNo": "ユーザー番号",
+            "status": "状態",
+            "source": "出典",
+            "createdAt": "作成時間",
+            "lastLoginAt": "最終ログイン時間",
+            "actions": "操作",
+            "level": "会員ランク",
+            "endTime": "会員有効期限"
         },
         "form": {
             "username": "アカウント",

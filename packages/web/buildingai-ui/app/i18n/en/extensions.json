@@ -164,6 +164,7 @@
     },
     "modal": {
         "addExtension": "Add App",
+        "editExtension": "Edit App",
         "addExtensionDescription": "Local app, for development only",
         "extensionTypes": {
             "application": "App Plugin",

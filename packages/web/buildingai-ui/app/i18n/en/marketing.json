@@ -53,6 +53,10 @@
                 "consumeSourceDesc": "Source",
                 "remark": "Note"
             },
+            "noOptionSelected": "Please select a top-up plan",
+            "orderNotFound": "Order does not exist",
+            "continueRecharge": "Continue Recharge",
+            "viewRecords": "View Records",
             "powerBalance": "Credit Balance",
             "selectRechargePackage": "Select Package",
             "paymentMethod": "Payment Method",
@@ -86,9 +90,7 @@
             "back": "Go back",
             "qrCodeExpired": "QR code expired, refresh",
             "refreshQrCode": "Refresh QR",
-            "systemTip": "System Message",
-            "continueRecharge": "Continue Recharge",
-            "viewRecords": "View Records"
+            "systemTip": "System Message"
         }
     }
 }

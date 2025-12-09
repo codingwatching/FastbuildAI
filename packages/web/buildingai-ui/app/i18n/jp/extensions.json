@@ -164,6 +164,7 @@
     },
     "modal": {
         "addExtension": "アプリ追加",
+        "editExtension": "アプリを編集",
         "addExtensionDescription": "ローカルアプリ、ローカル開発専用",
         "extensionTypes": {
             "application": "アプリケーションプラグイン",

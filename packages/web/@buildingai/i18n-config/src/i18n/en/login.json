@@ -70,7 +70,6 @@
         "enterPassword": "Enter password",
         "enterPasswordAgain": "Re-enter password"
     },
-
     "forget": {
         "title": "Forgot Password",
         "subtitle": "Set a new password to continue using your account",

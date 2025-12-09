@@ -38,7 +38,8 @@
         },
         "messages": {
             "enableSuccess": "プロバイダーを有効化しました",
-            "disableSuccess": "プロバイダーを無効化しました"
+            "disableSuccess": "プロバイダーを無効化しました",
+            "selectModel": "モデルを選択してください"
         },
         "empty": {
             "noProviders": "プロバイダーなし",
@@ -62,6 +63,7 @@
             "noModelsDescription": "このプロバイダーにはモデルがまだ設定されていません",
             "searchPlaceholder": "モデルを検索",
             "batchOperation": "一括操作 ({count})",
+            "billingSetting": "料金設定",
             "form": {
                 "name": "モデル名",
                 "namePlaceholder": "モデル名を入力",

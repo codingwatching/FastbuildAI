@@ -68,6 +68,12 @@
         "userInfo": "ユーザー情報",
         "userRecharge": "チャージ管理"
     },
+    "membershipManagement": {
+        "title": "会員登録",
+        "levelsList": "会員ランク",
+        "plansList": "サブスクリプションプラン",
+        "membershipOrder": "会員注文"
+    },
     "diyCenter": {
         "title": "DIY センター",
         "microPage": "マイクロページ",
@@ -79,7 +85,8 @@
         "accountBalance": "残高明細",
         "financialCenter": "財務センター",
         "orderManagement": "注文管理",
-        "orderList": "チャージ注文"
+        "orderList": "チャージ注文",
+        "orderMembership": "会員注文"
     },
     "permission": {
         "title": "権限管理",

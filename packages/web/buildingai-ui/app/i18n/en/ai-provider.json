@@ -38,7 +38,8 @@
         },
         "messages": {
             "enableSuccess": "Provider enabled",
-            "disableSuccess": "Provider disabled"
+            "disableSuccess": "Provider disabled",
+            "selectModel": "Please select a model"
         },
         "empty": {
             "noProviders": "No providers",
@@ -62,6 +63,7 @@
             "noModelsDescription": "No models configured for this provider",
             "searchPlaceholder": "Search models",
             "batchOperation": "Batch Operation ({count})",
+            "billingSetting": "Billing Settings",
             "form": {
                 "name": "Model Name",
                 "namePlaceholder": "Enter model name",

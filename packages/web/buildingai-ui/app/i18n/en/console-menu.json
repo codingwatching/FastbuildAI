@@ -68,6 +68,12 @@
         "userInfo": "User Info",
         "userRecharge": "Recharge"
     },
+    "membershipManagement": {
+        "title": "Subscribe to Membership",
+        "levelsList": "Membership Level",
+        "plansList": "Subscription Plan",
+        "membershipOrder": "Member Order"
+    },
     "diyCenter": {
         "title": "DIY Center",
         "microPage": "Micro Pages",
@@ -79,7 +85,8 @@
         "accountBalance": "Balance",
         "financialCenter": "Finance Center",
         "orderManagement": "Orders",
-        "orderList": "Recharge Orders"
+        "orderList": "Recharge Orders",
+        "orderMembership": "Member Order"
     },
     "permission": {
         "title": "Permissions",
