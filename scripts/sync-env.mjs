@@ -69,11 +69,28 @@ function buildExistingVariablesMap(parsedEnv) {
 }
 
 /**
+ * Read version from root package.json
+ * @param {string} cwd - current working directory
+ * @returns {string|null}
+ */
+function readRootVersion(cwd) {
+    try {
+        const pkgPath = path.resolve(cwd, "package.json");
+        const pkgContent = readFileSync(pkgPath, "utf-8");
+        const pkgJson = JSON.parse(pkgContent);
+        return pkgJson.version || null;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Sync .env file with .env.example
  * @param {string} examplePath - Path to .env.example
  * @param {string} envPath - Path to .env
+ * @param {string|null} rootVersion - root package.json version
  */
-function syncEnvFile(examplePath, envPath) {
+function syncEnvFile(examplePath, envPath, rootVersion) {
     // Check if .env.example exists
     if (!existsSync(examplePath)) {
         console.log(chalk.red("❌ .env.example file not found"));
@@ -100,6 +117,15 @@ function syncEnvFile(examplePath, envPath) {
         const envContent = readFileSync(envPath, "utf-8");
         parsedEnv = parseEnvFile(envContent);
         existingVariables = buildExistingVariablesMap(parsedEnv);
+    }
+
+    // Version-specific tweak: for 25.1.0, bump JWT_EXPIRES_IN from 1d to 30d
+    if (rootVersion === "25.1.0") {
+        const jwtExpiresIn = existingVariables.get("JWT_EXPIRES_IN");
+        if (jwtExpiresIn === "1d") {
+            existingVariables.set("JWT_EXPIRES_IN", "30d");
+            console.log(chalk.blue("ℹ Adjusted JWT_EXPIRES_IN from 1d to 30d for version 25.1.0"));
+        }
     }
 
     // Track changes
@@ -187,8 +213,9 @@ function main() {
     const cwd = process.cwd();
     const examplePath = path.resolve(cwd, ".env.example");
     const envPath = path.resolve(cwd, ".env");
+    const rootVersion = readRootVersion(cwd);
 
-    syncEnvFile(examplePath, envPath);
+    syncEnvFile(examplePath, envPath, rootVersion);
 }
 
 main();
