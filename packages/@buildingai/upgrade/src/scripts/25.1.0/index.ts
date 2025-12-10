@@ -51,6 +51,7 @@ export class Upgrade extends BaseUpgradeScript {
             await this.seedMembershipPlans(dataSource);
             await this.disableAllExtensions(dataSource);
             await this.fixAiModelConfig(dataSource);
+            await this.fixWebAppsMenu(dataSource);
 
             this.success("Upgrade to version 25.1.0 completed.");
         } catch (error) {
@@ -461,6 +462,42 @@ export class Upgrade extends BaseUpgradeScript {
         const result = await repo.update({ maxContext: MoreThan(99) }, { maxContext: 5 });
 
         this.log(`Fixed ${result.affected || 0} AI model(s) with invalid maxContext values.`);
+    }
+
+    private async fixWebAppsMenu(dataSource: DataSource): Promise<void> {
+        const repo = dataSource.getRepository(DecoratePageEntity);
+
+        // Find all records with name = 'web'
+        const webPages = await repo.find({ where: { name: "web" } });
+
+        let updatedCount = 0;
+
+        for (const page of webPages) {
+            if (!page.data || typeof page.data !== "object") continue;
+
+            const pageData = page.data as { menus?: Array<any>; layout?: string };
+            if (!Array.isArray(pageData.menus)) continue;
+
+            let hasChanges = false;
+
+            for (const menu of pageData.menus) {
+                // Check if type is 'plugin' and path starts with '/extensions/'
+                if (menu.link?.type === "plugin" && menu.link?.path?.startsWith("/extensions/")) {
+                    menu.link.path = menu.link.path.replace(
+                        /^\/extensions\//,
+                        "/buildingai/extension/",
+                    );
+                    hasChanges = true;
+                }
+            }
+
+            if (hasChanges) {
+                await repo.update({ id: page.id }, { data: pageData } as any);
+                updatedCount++;
+            }
+        }
+
+        this.log(`Fixed ${updatedCount} web app menu(s) with old extension paths.`);
     }
 }
 
