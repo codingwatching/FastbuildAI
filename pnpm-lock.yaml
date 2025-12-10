@@ -1026,6 +1026,9 @@ importers:
       '@buildingai/logger':
         specifier: workspace:*
         version: link:../logger
+      '@buildingai/utils':
+        specifier: workspace:*
+        version: link:../utils
     devDependencies:
       '@buildingai/eslint-config':
         specifier: workspace:*

@@ -12,6 +12,7 @@ import {
     PermissionType,
 } from "@buildingai/db/entities";
 import { DataSource, MoreThan, Repository } from "@buildingai/db/typeorm";
+import { checkVersionCompatibility, ExtensionEngine } from "@buildingai/utils";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -410,22 +411,16 @@ export class Upgrade extends BaseUpgradeScript {
     }
 
     /**
-     * Disable all extensions in database and extensions.json file.
+     * Disable incompatible extensions in database and extensions.json file.
+     * Only disables extensions that are not compatible with the current platform version.
      */
     private async disableAllExtensions(dataSource: DataSource): Promise<void> {
-        // Disable extensions in database
-        const repo = dataSource.getRepository(Extension);
-        const result = await repo.update(
-            { status: ExtensionStatus.ENABLED },
-            { status: ExtensionStatus.DISABLED },
-        );
-        this.log(`Disabled ${result.affected ?? 0} extension(s) in database.`);
-
-        // Disable extensions in extensions.json (resolve from api package to project root)
-        const extensionsJsonPath = path.resolve(process.cwd(), "../../extensions/extensions.json");
+        const platformVersion = "25.1.0";
+        const extensionsDir = path.resolve(process.cwd(), "../../extensions");
+        const extensionsJsonPath = path.join(extensionsDir, "extensions.json");
 
         if (!fs.existsSync(extensionsJsonPath)) {
-            this.log("extensions.json not found, skipping file update.");
+            this.log("extensions.json not found, skipping compatibility check.");
             return;
         }
 
@@ -436,23 +431,94 @@ export class Upgrade extends BaseUpgradeScript {
                 functionals?: Record<string, { enabled?: boolean }>;
             };
 
-            let updatedCount = 0;
+            const incompatibleIdentifiers: string[] = [];
+            let disabledCount = 0;
 
-            // Disable all applications
+            // Check compatibility for each application
             if (data.applications) {
-                for (const key of Object.keys(data.applications)) {
-                    if (data.applications[key] && data.applications[key].enabled !== false) {
-                        data.applications[key].enabled = false;
-                        updatedCount++;
+                for (const identifier of Object.keys(data.applications)) {
+                    const extConfig = data.applications[identifier];
+                    if (!extConfig || extConfig.enabled === false) {
+                        continue;
+                    }
+
+                    // Read engine config from extension's manifest.json or package.json
+                    const engine = this.getExtensionEngine(extensionsDir, identifier);
+                    const compatResult = checkVersionCompatibility(platformVersion, engine);
+
+                    if (!compatResult.compatible) {
+                        this.log(
+                            `Extension "${identifier}" is incompatible: ${compatResult.reason}`,
+                        );
+                        extConfig.enabled = false;
+                        incompatibleIdentifiers.push(identifier);
+                        disabledCount++;
                     }
                 }
             }
 
-            fs.writeFileSync(extensionsJsonPath, JSON.stringify(data, null, 4), "utf-8");
-            this.log(`Disabled ${updatedCount} extension(s) in extensions.json.`);
+            // Write updated extensions.json
+            if (disabledCount > 0) {
+                fs.writeFileSync(extensionsJsonPath, JSON.stringify(data, null, 4), "utf-8");
+                this.log(`Disabled ${disabledCount} incompatible extension(s) in extensions.json.`);
+            } else {
+                this.log(
+                    "All enabled extensions are compatible with the current platform version.",
+                );
+            }
+
+            // Disable incompatible extensions in database
+            if (incompatibleIdentifiers.length > 0) {
+                const repo = dataSource.getRepository(Extension);
+                for (const identifier of incompatibleIdentifiers) {
+                    await repo.update(
+                        { identifier, status: ExtensionStatus.ENABLED },
+                        { status: ExtensionStatus.DISABLED },
+                    );
+                }
+                this.log(
+                    `Disabled ${incompatibleIdentifiers.length} incompatible extension(s) in database.`,
+                );
+            }
         } catch (err) {
-            this.error("Failed to update extensions.json.", err);
+            this.error("Failed to check extension compatibility.", err);
         }
+    }
+
+    /**
+     * Get extension engine configuration from manifest.json or package.json
+     */
+    private getExtensionEngine(extensionsDir: string, identifier: string): ExtensionEngine {
+        const extensionPath = path.join(extensionsDir, identifier);
+        const defaultEngine: ExtensionEngine = { buildingai: "<=25.0.4" };
+
+        // Try manifest.json first
+        const manifestPath = path.join(extensionPath, "manifest.json");
+        if (fs.existsSync(manifestPath)) {
+            try {
+                const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+                if (manifest.engine) {
+                    return manifest.engine;
+                }
+            } catch {
+                // Ignore parse errors
+            }
+        }
+
+        // Fallback to package.json
+        const packageJsonPath = path.join(extensionPath, "package.json");
+        if (fs.existsSync(packageJsonPath)) {
+            try {
+                const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
+                if (packageJson.engine) {
+                    return packageJson.engine;
+                }
+            } catch {
+                // Ignore parse errors
+            }
+        }
+
+        return defaultEngine;
     }
 
     private async fixAiModelConfig(dataSource: DataSource): Promise<void> {
