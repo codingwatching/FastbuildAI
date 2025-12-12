@@ -69,9 +69,6 @@ catalogs:
     class-validator:
       specifier: ^0.14.2
       version: 0.14.2
-    cron:
-      specifier: 4.3.3
-      version: 4.3.3
     express:
       specifier: ^5.1.0
       version: 5.1.0
@@ -260,6 +257,7 @@ catalogs:
       version: 1.7.1
 
 overrides:
+  cron: 4.3.5
   vite: ^7.1.6
   '@nuxt/kit': ^4.2.0
   buildingai: link:packages/cli
@@ -422,8 +420,8 @@ importers:
         specifier: ^6.0.0
         version: 6.0.0
       cron:
-        specifier: catalog:api
-        version: 4.3.3
+        specifier: 4.3.5
+        version: 4.3.5
       dotenv:
         specifier: 'catalog:'
         version: 17.2.3
@@ -7523,8 +7521,8 @@ packages:
     resolution: {integrity: sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q==}
     engines: {node: '>=12.0.0'}
 
-  cron@4.3.3:
-    resolution: {integrity: sha512-B/CJj5yL3sjtlun6RtYHvoSB26EmQ2NUmhq9ZiJSyKIM4K/fqfh9aelDFlIayD2YMeFZqWLi9hHV+c+pq2Djkw==}
+  cron@4.3.5:
+    resolution: {integrity: sha512-hKPP7fq1+OfyCqoePkKfVq7tNAdFwiQORr4lZUHwrf0tebC65fYEeWgOrXOL6prn1/fegGOdTfrM6e34PJfksg==}
     engines: {node: '>=18.x'}
 
   croner@4.1.97:
@@ -15341,7 +15339,7 @@ snapshots:
     dependencies:
       '@nestjs/common': 11.1.8(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.1.8(@nestjs/common@11.1.8(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.8)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      cron: 4.3.3
+      cron: 4.3.5
 
   '@nestjs/schematics@11.0.9(chokidar@4.0.3)(typescript@5.8.3)':
     dependencies:
@@ -20434,7 +20432,7 @@ snapshots:
     dependencies:
       luxon: 3.7.2
 
-  cron@4.3.3:
+  cron@4.3.5:
     dependencies:
       '@types/luxon': 3.7.1
       luxon: 3.7.2

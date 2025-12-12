@@ -186,13 +186,13 @@
         "vue-tsc": "catalog:dev"
     },
     "overrides": {
-        "cron": "catalog:api",
         "mime-types": "3.0.1",
         "body-parser": "2.2.0"
     },
     "packageManager": "pnpm@10.20.0",
     "pnpm": {
         "overrides": {
+            "cron": "catalog:api",
             "vite": "catalog:dev",
             "@nuxt/kit": "catalog:web",
             "buildingai": "link:packages/cli",
