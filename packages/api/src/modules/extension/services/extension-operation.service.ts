@@ -322,10 +322,13 @@ export class ExtensionOperationService {
             // 6. Drop extension database schema (if exists)
             await this.dropExtensionSchemaWrapper(identifier);
 
-            // 7. Delete extension from database
+            // 7. Delete extension migration history records
+            await this.deleteExtensionMigrationHistory(identifier);
+
+            // 8. Delete extension from database
             await this.extensionsService.delete(extension.id);
 
-            // 8. Schedule PM2 restart after response is sent
+            // 9. Schedule PM2 restart after response is sent
             this.scheduleRestart();
 
             this.logger.log(`Extension uninstalled successfully: ${identifier}`);
@@ -887,6 +890,40 @@ export class ExtensionOperationService {
     }
 
     /**
+     * Delete extension migration history records
+     * @param identifier Extension identifier
+     * @private
+     */
+    private async deleteExtensionMigrationHistory(identifier: string): Promise<void> {
+        try {
+            this.logger.log(`Deleting migration history for extension: ${identifier}`);
+
+            const result = await this.dataSource.query(
+                `DELETE FROM "extensions_migrations_history" WHERE extension_identifier = $1`,
+                [identifier],
+            );
+
+            const deletedCount = result[1] || 0;
+            this.logger.log(
+                `Deleted ${deletedCount} migration history record(s) for extension: ${identifier}`,
+            );
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            // Table might not exist if no migrations were ever run
+            if (errorMessage.includes("does not exist")) {
+                this.logger.log(
+                    `Migration history table does not exist, skipping cleanup for: ${identifier}`,
+                );
+                return;
+            }
+            this.logger.error(
+                `Failed to delete migration history: ${errorMessage}. Manual cleanup may be required.`,
+            );
+            // Don't throw error - continue with uninstall
+        }
+    }
+
+    /**
      * Delete file records associated with extension
      * @param identifier Extension identifier
      * @private
@@ -1370,6 +1407,21 @@ export class ExtensionOperationService {
     private async executeExtensionSeeds(identifier: string, dataSource: DataSource): Promise<void> {
         const safeIdentifier = this.toSafeName(identifier);
         const extensionPath = path.join(this.extensionsDir, safeIdentifier);
+
+        // Check if extension is already installed (skip seeds on upgrade)
+        const installFilePath = path.join(extensionPath, "data", ".installed");
+        if (await fs.pathExists(installFilePath)) {
+            this.logger.log(`Extension ${identifier} already installed, skipping seeds execution`);
+            TerminalLogger.log(
+                "Extension Upgrade",
+                `Extension ${identifier} already installed, skipping seeds execution`,
+                {
+                    icon: "⬆",
+                },
+            );
+            return;
+        }
+
         const seedsIndexPath = path.join(extensionPath, "build", "db", "seeds", "index.js");
 
         // Check if seeds entry exists
