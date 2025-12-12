@@ -7,7 +7,7 @@ import {
     createHttpClient,
     type HttpMethod,
     type RequestOptions,
-    type ResponseSchema,
+    // type ResponseSchema,
 } from "../index";
 
 // ==================== API Configuration Constants ====================
@@ -59,7 +59,7 @@ export interface RequestFactoryOptions {
 function createRequestFactory(options: RequestFactoryOptions) {
     const {
         apiPrefix,
-        enableStatusLog = false,
+        // enableStatusLog = false,
         filterEmptyParams = false,
         requireAuth = false,
         customParamsProcessor,
@@ -77,11 +77,11 @@ function createRequestFactory(options: RequestFactoryOptions) {
     http.setBaseURL(`${BASE_API}${apiPrefix}`);
 
     // Configure status code handling logic
-    http.setStatusHandler((status: number, response: ResponseSchema) => {
-        if (enableStatusLog && import.meta.client) {
-            console.log(`[HTTP ${status}]`, response);
-        }
-    });
+    // http.setStatusHandler((status: number, response: ResponseSchema) => {
+    //     if (enableStatusLog && import.meta.client) {
+    //         console.log(`[HTTP ${status}]`, response);
+    //     }
+    // });
 
     // Request interceptor - Handle authentication headers and runtime configuration
     http.interceptors.request(async (config) => {
