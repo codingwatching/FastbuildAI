@@ -4,8 +4,9 @@
 
 | Platform | Build artifact path |
 | --- | --- |
-| Windows | [Project Root]/packages/desktop/src-tauri/target/release/ |
-| macOS | [Project Root]/packages/desktop/src-tauri/target/release/bundle/dmg/ |
+| Windows | [Project Root]/packages/desktop/src-tauri/target/release/bundle/msi/xxx.msi |
+| Windows | [Project Root]/packages/desktop/src-tauri/target/release/bundle/nsis/xxx.exe |
+| macOS | [Project Root]/packages/desktop/src-tauri/target/release/bundle/dmg/xxx.dmg |
 
 > If macOS says the app package is damaged, run `sudo xattr -r -d com.apple.quarantine [package-path]` in Terminal, then enter your password and press Enter to open it again.
 

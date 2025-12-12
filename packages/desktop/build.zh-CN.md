@@ -4,7 +4,8 @@
 
 | 平台 | 构建产物路径 |
 | --- | --- |
-| Windows | [项目根目录]/packages/desktop/src-tauri/target/release/ |
+| Windows | [项目根目录]/packages/desktop/src-tauri/target/release/bundle/msi/xxx.msi |
+| Windows | [项目根目录]/packages/desktop/src-tauri/target/release/bundle/nsis/xxx.exe |
 | macOS | [项目根目录]/packages/desktop/src-tauri/target/release/bundle/dmg/ |
 
 > macOS安装如果提示包已损坏，则在终端中输入`sudo xattr -r -d com.apple.quarantine [安装包路径]`，然后输入密码回车即可重新打开。
