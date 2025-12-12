@@ -80,6 +80,9 @@ export class ExtensionVersionManagerService {
             TerminalLogger.log(
                 "Extension Upgrade",
                 `[${this.extensionIdentifier}] Starting upgrade process...`,
+                {
+                    icon: "⬆",
+                },
             );
 
             // Execute upgrade for each version sequentially
@@ -93,12 +96,18 @@ export class ExtensionVersionManagerService {
             TerminalLogger.success(
                 "Extension Upgrade",
                 `[${this.extensionIdentifier}] Completed: ${versionInfo.current}`,
+                {
+                    icon: "⬆",
+                },
             );
         } catch (error) {
             this.logger.error(`[${this.extensionIdentifier}] Upgrade failed: ${error.message}`);
             TerminalLogger.error(
                 "Extension Upgrade",
                 `[${this.extensionIdentifier}] Failed: ${error.message}`,
+                {
+                    icon: "⬆",
+                },
             );
             throw error;
         }
@@ -112,6 +121,9 @@ export class ExtensionVersionManagerService {
         TerminalLogger.log(
             "Extension Upgrade",
             `[${this.extensionIdentifier}] Upgrading to ${version}...`,
+            {
+                icon: "⬆",
+            },
         );
 
         try {
@@ -136,6 +148,9 @@ export class ExtensionVersionManagerService {
             TerminalLogger.success(
                 "Extension Upgrade",
                 `[${this.extensionIdentifier}] ${version} completed`,
+                {
+                    icon: "⬆",
+                },
             );
         } catch (error) {
             this.logger.error(
@@ -144,6 +159,9 @@ export class ExtensionVersionManagerService {
             TerminalLogger.error(
                 "Extension Upgrade",
                 `[${this.extensionIdentifier}] ${version} failed: ${error.message}`,
+                {
+                    icon: "⬆",
+                },
             );
             throw error;
         }
