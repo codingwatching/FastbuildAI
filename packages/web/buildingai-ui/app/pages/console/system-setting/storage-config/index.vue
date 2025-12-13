@@ -41,8 +41,8 @@ const columns: TableColumn<StorageConfigTableData>[] = [
                     const data = row.original as StorageConfig<typeof StorageType.LOCAL>;
                     return h(LocalConfig, { data });
                 }
-                case StorageType.ALIYUN_OSS: {
-                    const data = row.original as StorageConfig<typeof StorageType.ALIYUN_OSS>;
+                case StorageType.OSS: {
+                    const data = row.original as StorageConfig<typeof StorageType.OSS>;
                     return h(AliCloudConfig, { data });
                 }
                 default:

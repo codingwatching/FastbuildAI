@@ -8,7 +8,7 @@ import { boolean, object, string } from "yup";
 
 const props = defineProps({
     data: {
-        type: Object as PropType<StorageConfig<typeof StorageType.ALIYUN_OSS>>,
+        type: Object as PropType<StorageConfig<typeof StorageType.OSS>>,
         required: true,
     },
 });
@@ -27,7 +27,7 @@ const schema = object({
         arn: string().optional(),
     }),
 });
-const state = reactive<StorageConfig<typeof StorageType.ALIYUN_OSS>>({
+const state = reactive<StorageConfig<typeof StorageType.OSS>>({
     ...props.data,
     config: { ...props.data.config },
 });
@@ -66,8 +66,8 @@ async function handleSubmit() {
                         v-model="state.storageType"
                         :items="[
                             {
-                                label: $t('storage-config.storage.aliyun-oss'),
-                                value: StorageType.ALIYUN_OSS,
+                                label: $t('storage-config.storage.oss'),
+                                value: StorageType.OSS,
                             },
                         ]"
                     />
