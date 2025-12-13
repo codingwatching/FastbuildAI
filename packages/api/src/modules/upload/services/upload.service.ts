@@ -1,10 +1,12 @@
 import { BaseService } from "@buildingai/base";
+import { AliyunOssConfig } from "@buildingai/constants/shared/storage-config.constant";
 import { FileUploadService, type UploadFileResult } from "@buildingai/core/modules";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { RemoteUploadDto } from "@modules/upload/dto/remote-upload.dto";
 import { Injectable } from "@nestjs/common";
+import { STS } from "ali-oss";
 import { Request } from "express";
 
 /**
@@ -124,5 +126,17 @@ export class UploadService extends BaseService<File> {
             description,
             extensionId ? { extensionId } : undefined,
         );
+    }
+
+    async getAliyunOssUploadSignature(config: AliyunOssConfig) {
+        const sts = new STS({ accessKeyId: config.accessKey, accessKeySecret: config.secretKey });
+        const result = await sts.assumeRole(config.arn, null, 3600, "test-session");
+
+        return {
+            accessKeyId: result.credentials.AccessKeyId,
+            accessKeySecret: result.credentials.AccessKeySecret,
+            stsToken: result.credentials.SecurityToken,
+            bucket: config.bucket,
+        };
     }
 }

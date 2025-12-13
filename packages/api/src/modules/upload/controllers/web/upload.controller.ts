@@ -1,5 +1,6 @@
 import { BaseController } from "@buildingai/base";
 import { BusinessCode } from "@buildingai/constants";
+import { AliyunOssConfig, StorageType } from "@buildingai/constants/shared/storage-config.constant";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
 import { DictService } from "@buildingai/dict";
@@ -7,6 +8,7 @@ import { HttpErrorFactory } from "@buildingai/errors";
 import { UUIDValidationPipe } from "@buildingai/pipe/param-validate.pipe";
 import { SYSTEM_CONFIG } from "@common/constants";
 import { WebController } from "@common/decorators/controller.decorator";
+import { StorageConfigService } from "@modules/system/services/storage-config.service";
 import { QueryFileDto } from "@modules/upload/dto/query-file.dto";
 import { RemoteUploadDto } from "@modules/upload/dto/remote-upload.dto";
 import { UploadFileDto } from "@modules/upload/dto/upload-file.dto";
@@ -40,10 +42,12 @@ export class UploadController extends BaseController {
      *
      * @param uploadService 文件上传服务
      * @param dictService 字典服务
+     * @param storageConfigService - 存储配置服务
      */
     constructor(
         private readonly uploadService: UploadService,
         private readonly dictService: DictService,
+        private readonly storageConfigService: StorageConfigService,
     ) {
         super();
     }
@@ -218,5 +222,31 @@ export class UploadController extends BaseController {
     @Delete(":id")
     async deleteFile(@Param("id", UUIDValidationPipe) id: string) {
         return this.uploadService.deleteFile(id);
+    }
+
+    @Get("signature")
+    async getUploadSignature() {
+        const storageConfig = await this.storageConfigService.getActiveStorageConfig();
+        // 检查文件是否存在
+        if (!storageConfig) {
+            throw HttpErrorFactory.notFound("Config not found");
+        }
+
+        switch (storageConfig.storageType) {
+            case StorageType.ALIYUN_OSS: {
+                const config = storageConfig.config as AliyunOssConfig;
+                const signature = await this.uploadService.getAliyunOssUploadSignature(config);
+                return {
+                    signature,
+                    storageType: storageConfig.storageType,
+                };
+            }
+            default: {
+                return {
+                    signature: null,
+                    storageType: storageConfig.storageType,
+                };
+            }
+        }
     }
 }

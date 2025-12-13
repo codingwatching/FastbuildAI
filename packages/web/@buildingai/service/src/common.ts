@@ -5,6 +5,7 @@
  *
  * @author BuildingAI Teams
  */
+import type { StorageTypeType } from "@buildingai/constants/shared/storage-config.constant";
 
 // ==================== Type Definitions ====================
 
@@ -181,6 +182,16 @@ export interface FileUploadResponse {
     extension: string;
 }
 
+export interface UploadSignatureResponse {
+    signature: {
+        accessKeyId: string;
+        accessKeySecret: string;
+        stsToken: string;
+        bucket: string;
+    } | null;
+    storageType: StorageTypeType;
+}
+
 // ==================== Website Configuration Related APIs ====================
 
 /**
@@ -301,6 +312,10 @@ export function apiUploadRemoteFile(params: {
     description?: string;
 }): Promise<FileUploadResponse> {
     return useWebPost<FileUploadResponse>(`/upload/remote`, params);
+}
+
+export function apiGetUploadSignature(): Promise<UploadSignatureResponse> {
+    return useConsoleGet("/upload/signature");
 }
 
 // ==================== Behaviour Analysis Related Types ====================

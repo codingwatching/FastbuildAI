@@ -15,11 +15,11 @@ import { UserService } from "@modules/user/services/user.service";
 import { forwardRef, Module } from "@nestjs/common";
 
 import { PayconfigConsoleController } from "./controllers/console/payconfig.controller";
-import { StorageController } from "./controllers/console/storage.controller";
+import { StorageConfigController } from "./controllers/console/storage-config.controller";
 import { SystemConsoleController } from "./controllers/console/system.controller";
 import { WebsiteConsoleController } from "./controllers/console/website.controller";
 import { PayconfigService } from "./services/payconfig.service";
-import { StorageService } from "./services/storage.service";
+import { StorageConfigService } from "./services/storage-config.service";
 import { SystemService } from "./services/system.service";
 import { WebsiteService } from "./services/website.service";
 
@@ -47,7 +47,7 @@ import { WebsiteService } from "./services/website.service";
         WebsiteConsoleController,
         SystemConsoleController,
         PayconfigConsoleController,
-        StorageController,
+        StorageConfigController,
     ],
     providers: [
         WebsiteService,
@@ -56,8 +56,8 @@ import { WebsiteService } from "./services/website.service";
         CacheService,
         PayconfigService,
         UserService,
-        StorageService,
+        StorageConfigService,
     ],
-    exports: [WebsiteService, SystemService, PayconfigService, StorageService],
+    exports: [WebsiteService, SystemService, PayconfigService, StorageConfigService],
 })
 export class SystemModule {}

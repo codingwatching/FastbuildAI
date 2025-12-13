@@ -1,14 +1,12 @@
-import { AliyunOssConfig } from "@buildingai/constants/shared/storage-config.constant";
 import { StorageConfig } from "@buildingai/db/entities";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { STS } from "ali-oss";
 import { DataSource, Repository } from "typeorm";
 
 import { UpdateStorageConfigDto } from "../dto/update-storage-config.dto";
 
 @Injectable()
-export class StorageService {
+export class StorageConfigService {
     @InjectRepository(StorageConfig)
     private repository: Repository<StorageConfig>;
 
@@ -46,17 +44,5 @@ export class StorageService {
 
     getActiveStorageConfig() {
         return this.repository.findOne({ where: { isActive: true } });
-    }
-
-    async getAliyunOssUploadSignature(config: AliyunOssConfig) {
-        const sts = new STS({ accessKeyId: config.accessKey, accessKeySecret: config.secretKey });
-        const result = await sts.assumeRole(config.arn, null, 3600, "test-session");
-
-        return {
-            accessKeyId: result.credentials.AccessKeyId,
-            accessKeySecret: result.credentials.AccessKeySecret,
-            stsToken: result.credentials.SecurityToken,
-            bucket: config.bucket,
-        };
     }
 }
