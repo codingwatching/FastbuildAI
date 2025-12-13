@@ -102,7 +102,7 @@
         "channelManagement": "渠道管理",
         "wechatOaConfig": "公众号配置",
         "loginConfig": "登录设置",
-        "storageConfig": "支付配置"
+        "storageConfig": "存储配置"
     },
     "plugin": "应用管理",
     "pluginManage": "我的应用",
