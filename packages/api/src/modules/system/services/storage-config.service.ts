@@ -38,7 +38,10 @@ export class StorageConfigService {
             }
 
             const { storageType, ...updateValue } = dto;
-            await manager.update(StorageConfig, { id, storageType }, updateValue);
+            const res = await manager.update(StorageConfig, { id, storageType }, updateValue);
+            if (res.affected === 0) {
+                throw new Error("Update storage config failed");
+            }
         });
     }
 
