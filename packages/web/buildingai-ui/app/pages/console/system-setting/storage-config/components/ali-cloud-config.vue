@@ -13,6 +13,13 @@ const props = defineProps({
     },
 });
 
+const emit = defineEmits<{
+    (e: "update"): void;
+}>();
+
+const modalOpen = ref(false);
+const loading = ref(false);
+
 const { t } = useI18n();
 const form = useTemplateRef("form");
 const schema = object({
@@ -32,19 +39,24 @@ const state = reactive<StorageConfig<typeof StorageType.OSS>>({
     config: { ...props.data.config },
 });
 
-const toast = useToast();
 async function handleSubmit() {
-    toast.add({ title: "Success", description: "The form has been submitted.", color: "success" });
-    await apiUpdateStorageConfig(state);
-    console.log("emit update");
+    try {
+        loading.value = true;
+        await apiUpdateStorageConfig(state);
+        emit("update");
+        modalOpen.value = false;
+    } finally {
+        loading.value = false;
+    }
 }
 </script>
 
 <template>
     <UModal
+        v-model:open="modalOpen"
         :title="$t('storage-config.storage.local')"
         :ui="{ footer: 'justify-end' }"
-        :dismissible="false"
+        :dismissible="loading"
     >
         <UButton variant="ghost">{{ $t("storage-config.table.setting") }}</UButton>
 
@@ -146,10 +158,10 @@ async function handleSubmit() {
         </template>
 
         <template #footer="{ close }">
-            <UButton color="neutral" variant="outline" @click="close">{{
+            <UButton color="neutral" variant="outline" :disabled="loading" @click="close">{{
                 $t("storage-config.cancel")
             }}</UButton>
-            <UButton color="primary" @click="() => form?.submit()">{{
+            <UButton color="primary" :loading="loading" @click="() => form?.submit()">{{
                 $t("storage-config.confirm")
             }}</UButton>
         </template>

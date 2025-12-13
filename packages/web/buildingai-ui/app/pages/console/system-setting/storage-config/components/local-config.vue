@@ -13,6 +13,12 @@ const props = defineProps({
     },
 });
 
+const emit = defineEmits<{
+    (e: "update"): void;
+}>();
+
+const modalOpen = ref(false);
+
 const form = useTemplateRef("form");
 const schema = object({
     storageType: string().required(),
@@ -23,16 +29,19 @@ const state = reactive({
     config: null,
 });
 
-const toast = useToast();
 async function onSubmit() {
-    toast.add({ title: "Success", description: "The form has been submitted.", color: "success" });
     await apiUpdateStorageConfig(state);
-    console.log("emit update");
+    emit("update");
+    modalOpen.value = false;
 }
 </script>
 
 <template>
-    <UModal :title="$t('storage-config.storage.local')" :ui="{ footer: 'justify-end' }">
+    <UModal
+        v-model:open="modalOpen"
+        :title="$t('storage-config.storage.local')"
+        :ui="{ footer: 'justify-end' }"
+    >
         <UButton variant="ghost">{{ $t("storage-config.table.setting") }}</UButton>
 
         <template #body>

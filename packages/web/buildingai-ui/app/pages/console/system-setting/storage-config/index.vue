@@ -13,6 +13,12 @@ import LocalConfig from "./components/local-config.vue";
 
 const { t } = useI18n();
 
+const ossConfigList = shallowRef<StorageConfigTableData[]>([]);
+const requestStorageConfigs = async () => {
+    ossConfigList.value = await apiGetStorageConfigList();
+};
+onMounted(requestStorageConfigs);
+
 const columns: TableColumn<StorageConfigTableData>[] = [
     {
         accessorKey: "storageType",
@@ -39,11 +45,17 @@ const columns: TableColumn<StorageConfigTableData>[] = [
             switch (row.original.storageType) {
                 case StorageType.LOCAL: {
                     const data = row.original as StorageConfig<typeof StorageType.LOCAL>;
-                    return h(LocalConfig, { data });
+                    return h(LocalConfig, {
+                        data,
+                        onUpdate: requestStorageConfigs,
+                    });
                 }
                 case StorageType.OSS: {
                     const data = row.original as StorageConfig<typeof StorageType.OSS>;
-                    return h(AliCloudConfig, { data });
+                    return h(AliCloudConfig, {
+                        data,
+                        onUpdate: requestStorageConfigs,
+                    });
                 }
                 default:
                     return t("storage-config.noSupport");
@@ -51,12 +63,6 @@ const columns: TableColumn<StorageConfigTableData>[] = [
         },
     },
 ];
-
-const ossConfigList = shallowRef<StorageConfigTableData[]>([]);
-const requestStorageConfigs = async () => {
-    ossConfigList.value = await apiGetStorageConfigList();
-};
-onMounted(requestStorageConfigs);
 </script>
 <template>
     <div>
