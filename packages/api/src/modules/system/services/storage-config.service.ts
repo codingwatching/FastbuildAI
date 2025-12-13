@@ -1,3 +1,4 @@
+import { StorageType } from "@buildingai/constants/shared/storage-config.constant";
 import { Dict, StorageConfig } from "@buildingai/db/entities";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -10,9 +11,6 @@ import { UpdateStorageConfigDto } from "../dto/update-storage-config.dto";
 export class StorageConfigService {
     @InjectRepository(StorageConfig)
     private repository: Repository<StorageConfig>;
-
-    @InjectRepository(Dict)
-    private dictRepository: Repository<Dict>;
 
     constructor(private dataSource: DataSource) {}
 
@@ -48,7 +46,6 @@ export class StorageConfigService {
             }
 
             if (dto.isActive) {
-                // 获取完整的配置信息
                 const newActiveConfig = await manager.findOne(StorageConfig, {
                     where: { id },
                 });
@@ -64,31 +61,24 @@ export class StorageConfigService {
         return this.repository.findOne({ where: { isActive: true } });
     }
 
-    private async syncToDict(manager: EntityManager, config: StorageConfig): Promise<void> {
+    private async syncToDict(manager: EntityManager, storage: StorageConfig): Promise<void> {
         const group = "storage_config";
 
-        // 1. 同步存储引擎类型
         await this.upsertDict(manager, {
             key: "engine",
-            value: config.storageType,
+            value: storage.storageType,
             group,
             description: "当前激活的存储引擎类型",
             isEnabled: true,
         });
 
-        // 2. 同步域名配置
-        if (config.config && typeof config.config === "object") {
-            const domain = (config.config as any).domain;
-            if (domain) {
-                await this.upsertDict(manager, {
-                    key: "domain",
-                    value: domain,
-                    group,
-                    description: "当前激活的存储域名",
-                    isEnabled: true,
-                });
-            }
-        }
+        await this.upsertDict(manager, {
+            group,
+            key: "domain",
+            description: "当前激活的存储域名",
+            value: storage.config ? (storage.config as any).domain : "",
+            isEnabled: storage.storageType !== StorageType.LOCAL,
+        });
     }
 
     private async upsertDict(

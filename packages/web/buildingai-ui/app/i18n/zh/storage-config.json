@@ -30,10 +30,11 @@
         },
         "spaceDomain": {
             "label": "空间域名",
+            "desc": "请补全 http:// 或 https://，例如https://static.cloud.com",
             "placeholder": "请输入空间域名 (Domain)"
         },
-        "endpoint": {
-            "placeholder": "请输入 endpoint"
+        "region": {
+            "placeholder": "请输入 region"
         },
         "arn": {
             "placeholder": "请输入 role_arn"

@@ -1355,7 +1355,7 @@
                     {
                         "name": "console-menu.systemSettings.storageConfig",
                         "code": "system-storage-config-list",
-                        "path": "",
+                        "path": "storage-config",
                         "icon": "",
                         "component": "/console/system-setting/storage-config/index",
                         "permissionCode": "system-storage-config:list",

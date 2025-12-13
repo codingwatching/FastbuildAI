@@ -35,7 +35,7 @@ import * as fse from "fs-extra";
  *
  * 处理文件上传、查询和下载等请求
  */
-@WebController("upload")
+@WebController({ path: "upload", skipAuth: true })
 export class UploadController extends BaseController {
     /**
      * 构造函数
@@ -50,6 +50,32 @@ export class UploadController extends BaseController {
         private readonly storageConfigService: StorageConfigService,
     ) {
         super();
+    }
+
+    @Get("signature")
+    async getUploadSignature() {
+        const storageConfig = await this.storageConfigService.getActiveStorageConfig();
+        // 检查文件是否存在
+        if (!storageConfig) {
+            throw HttpErrorFactory.notFound("Config not found");
+        }
+
+        switch (storageConfig.storageType) {
+            case StorageType.OSS: {
+                const config = storageConfig.config as AliyunOssConfig;
+                const signature = await this.uploadService.getAliyunOssUploadSignature(config);
+                return {
+                    signature,
+                    storageType: storageConfig.storageType,
+                };
+            }
+            default: {
+                return {
+                    signature: null,
+                    storageType: storageConfig.storageType,
+                };
+            }
+        }
     }
 
     /**
@@ -222,31 +248,5 @@ export class UploadController extends BaseController {
     @Delete(":id")
     async deleteFile(@Param("id", UUIDValidationPipe) id: string) {
         return this.uploadService.deleteFile(id);
-    }
-
-    @Get("signature")
-    async getUploadSignature() {
-        const storageConfig = await this.storageConfigService.getActiveStorageConfig();
-        // 检查文件是否存在
-        if (!storageConfig) {
-            throw HttpErrorFactory.notFound("Config not found");
-        }
-
-        switch (storageConfig.storageType) {
-            case StorageType.OSS: {
-                const config = storageConfig.config as AliyunOssConfig;
-                const signature = await this.uploadService.getAliyunOssUploadSignature(config);
-                return {
-                    signature,
-                    storageType: storageConfig.storageType,
-                };
-            }
-            default: {
-                return {
-                    signature: null,
-                    storageType: storageConfig.storageType,
-                };
-            }
-        }
     }
 }

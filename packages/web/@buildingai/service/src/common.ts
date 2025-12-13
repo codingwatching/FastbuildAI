@@ -184,11 +184,16 @@ export interface FileUploadResponse {
 
 export interface UploadSignatureResponse {
     signature: {
-        accessKeyId: string;
-        accessKeySecret: string;
-        stsToken: string;
+        domain: string;
+        region: string;
         bucket: string;
-    } | null;
+        policy: string;
+        ossSignatureVersion: string;
+        ossCredential: string;
+        ossDate: string;
+        signature: string;
+        securityToken: string;
+    };
     storageType: StorageTypeType;
 }
 
@@ -315,7 +320,7 @@ export function apiUploadRemoteFile(params: {
 }
 
 export function apiGetUploadSignature(): Promise<UploadSignatureResponse> {
-    return useConsoleGet("/upload/signature");
+    return useWebGet("/upload/signature");
 }
 
 // ==================== Behaviour Analysis Related Types ====================

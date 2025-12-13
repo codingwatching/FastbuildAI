@@ -30,8 +30,8 @@ const schema = object({
         accessKey: string().required(t("storage-config.form.accessKey.placeholder")),
         secretKey: string().required(t("storage-config.form.secretKey.placeholder")),
         domain: string().required(t("storage-config.form.spaceDomain.placeholder")),
-        endpoint: string().optional(),
-        arn: string().optional(),
+        region: string().required(t("storage-config.form.region.placeholder")),
+        arn: string().required(t("storage-config.form.arn.placeholder")),
     }),
 });
 const state = reactive<StorageConfig<typeof StorageType.OSS>>({
@@ -115,8 +115,10 @@ async function handleSubmit() {
 
                 <UFormField
                     required
-                    :label="$t('storage-config.form.spaceDomain.label')"
                     name="config.domain"
+                    :ui="{ description: 'text-xs' }"
+                    :label="$t('storage-config.form.spaceDomain.label')"
+                    :description="$t('storage-config.form.spaceDomain.desc')"
                 >
                     <UInput
                         class="w-full"
@@ -125,22 +127,18 @@ async function handleSubmit() {
                     />
                 </UFormField>
 
-                <UFormField
-                    label="ENDPOINT"
-                    name="config.endpoint"
-                    :ui="{ description: 'text-xs' }"
-                    :description="$t('storage-config.aliCloud.paramDesc')"
-                >
+                <UFormField name="config.region" label="REGION" required>
                     <UInput
                         class="w-full"
-                        v-model="state.config.endpoint"
-                        :placeholder="$t('storage-config.form.endpoint.placeholder')"
+                        v-model="state.config.region"
+                        :placeholder="$t('storage-config.form.region.placeholder')"
                     />
                 </UFormField>
 
                 <UFormField
                     label="ARN"
                     name="config.arn"
+                    required
                     :ui="{ description: 'text-xs' }"
                     :description="$t('storage-config.aliCloud.paramDesc')"
                 >

@@ -116,20 +116,12 @@ class BaseCloudConfigDto {
 }
 
 export class AliyunOssConfigDto extends BaseCloudConfigDto {
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
-    endpoint?: string;
-
-    @IsOptional()
-    @IsString()
-    arn?: string;
+    arn: string;
 }
 
-export class TencentCosConfigDto extends BaseCloudConfigDto {
-    @IsOptional()
-    @IsString()
-    region?: string;
-}
+export class TencentCosConfigDto extends BaseCloudConfigDto {}
 
 export class QiniuKodoConfigDto extends BaseCloudConfigDto {}
 
