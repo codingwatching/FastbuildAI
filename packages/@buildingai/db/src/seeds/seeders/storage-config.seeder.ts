@@ -29,19 +29,19 @@ export class StorageConfigSeeder extends BaseSeeder {
                     sort: 0,
                 },
                 {
-                    storageType: StorageType.ALIYUN_OSS,
+                    storageType: StorageType.OSS,
                     isActive: false,
                     config: null,
                     sort: 1,
                 },
                 {
-                    storageType: StorageType.TENCENT_COS,
+                    storageType: StorageType.COS,
                     isActive: false,
                     config: null,
                     sort: 2,
                 },
                 {
-                    storageType: StorageType.QINIU_KODO,
+                    storageType: StorageType.KODO,
                     isActive: false,
                     config: null,
                     sort: 3,

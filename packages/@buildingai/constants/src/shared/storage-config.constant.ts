@@ -1,8 +1,8 @@
 export const StorageType = {
     LOCAL: "local",
-    ALIYUN_OSS: "aliyun-oss",
-    TENCENT_COS: "tencent-cos",
-    QINIU_KODO: "qiniu-kodo",
+    OSS: "oss",
+    COS: "cos",
+    KODO: "kodo",
 } as const;
 
 export type StorageTypeType = (typeof StorageType)[keyof typeof StorageType];
@@ -29,9 +29,9 @@ export interface QiniuKodoConfig extends CloudStorageConfig {}
 
 export interface StorageConfigMap {
     [StorageType.LOCAL]: LocalStorageConfig | null | undefined;
-    [StorageType.ALIYUN_OSS]: AliyunOssConfig;
-    [StorageType.TENCENT_COS]: TencentCosConfig;
-    [StorageType.QINIU_KODO]: QiniuKodoConfig;
+    [StorageType.OSS]: AliyunOssConfig;
+    [StorageType.COS]: TencentCosConfig;
+    [StorageType.KODO]: QiniuKodoConfig;
 }
 
 export type StorageConfigData =

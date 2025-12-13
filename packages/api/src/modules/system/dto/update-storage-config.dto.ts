@@ -35,13 +35,13 @@ class IsValidStorageConfigConstraint implements ValidatorConstraintInterface {
 
         let DtoClass: any;
         switch (storageType) {
-            case StorageType.ALIYUN_OSS:
+            case StorageType.OSS:
                 DtoClass = AliyunOssConfigDto;
                 break;
-            case StorageType.TENCENT_COS:
+            case StorageType.COS:
                 DtoClass = TencentCosConfigDto;
                 break;
-            case StorageType.QINIU_KODO:
+            case StorageType.KODO:
                 DtoClass = QiniuKodoConfigDto;
                 break;
             default:
@@ -69,13 +69,13 @@ class IsValidStorageConfigConstraint implements ValidatorConstraintInterface {
         // Detail error
         let DtoClass: any;
         switch (storageType) {
-            case StorageType.ALIYUN_OSS:
+            case StorageType.OSS:
                 DtoClass = AliyunOssConfigDto;
                 break;
-            case StorageType.TENCENT_COS:
+            case StorageType.COS:
                 DtoClass = TencentCosConfigDto;
                 break;
-            case StorageType.QINIU_KODO:
+            case StorageType.KODO:
                 DtoClass = QiniuKodoConfigDto;
                 break;
             default:
