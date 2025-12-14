@@ -1,4 +1,5 @@
 import { BaseController } from "@buildingai/base";
+import { HttpErrorFactory } from "@buildingai/errors";
 import { UUIDValidationPipe } from "@buildingai/pipe/param-validate.pipe";
 import { ConsoleController } from "@common/decorators";
 import { UpdateStorageConfigDto } from "@modules/system/dto/update-storage-config.dto";
@@ -14,6 +15,16 @@ export class StorageConfigController extends BaseController {
     @Get()
     storageConfigList() {
         return this.storageService.getAllConfigs();
+    }
+
+    @Get(":id")
+    async getDetail(@Param("id", UUIDValidationPipe) id: string) {
+        const storageConfig = await this.storageService.getStorageDetail(id);
+        if (!storageConfig) {
+            throw HttpErrorFactory.notFound("Storage config is not found");
+        }
+
+        return storageConfig;
     }
 
     @Patch(":id")

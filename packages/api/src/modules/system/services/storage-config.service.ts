@@ -7,6 +7,14 @@ import type { EntityManager } from "typeorm/entity-manager/EntityManager";
 
 import { UpdateStorageConfigDto } from "../dto/update-storage-config.dto";
 
+interface DictUpdateData {
+    key: string;
+    value: string;
+    group: string;
+    description?: string;
+    isEnabled: boolean;
+}
+
 @Injectable()
 export class StorageConfigService {
     @InjectRepository(StorageConfig)
@@ -61,7 +69,11 @@ export class StorageConfigService {
         return this.repository.findOne({ where: { isActive: true } });
     }
 
-    private async syncToDict(manager: EntityManager, storage: StorageConfig): Promise<void> {
+    getStorageDetail(id: string) {
+        return this.repository.findOne({ where: { id } });
+    }
+
+    private async syncToDict(manager: EntityManager, storage: StorageConfig) {
         const group = "storage_config";
 
         await this.upsertDict(manager, {
@@ -81,16 +93,7 @@ export class StorageConfigService {
         });
     }
 
-    private async upsertDict(
-        manager: EntityManager,
-        data: {
-            key: string;
-            value: string;
-            group: string;
-            description?: string;
-            isEnabled: boolean;
-        },
-    ): Promise<void> {
+    private async upsertDict(manager: EntityManager, data: DictUpdateData) {
         const existDict = await manager.findOne(Dict, {
             where: { key: data.key, group: data.group },
         });
