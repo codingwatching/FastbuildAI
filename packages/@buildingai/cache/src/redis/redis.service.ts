@@ -111,9 +111,10 @@ export class RedisService implements OnModuleDestroy {
      */
     async getHash<T>(key: string, field?: string): Promise<T | null> {
         if (field) {
-            return this.redisClient.hGet(key, field) as Promise<T | null>;
+            return (await this.redisClient.hGet(key, field)) as unknown as Promise<T | null>;
         } else {
-            return this.redisClient.hGetAll(key) as Promise<T | null>;
+            const data = await this.redisClient.hGetAll(key);
+            return Object.keys(data).length > 0 ? (data as unknown as Promise<T | null>) : null;
         }
     }
 
