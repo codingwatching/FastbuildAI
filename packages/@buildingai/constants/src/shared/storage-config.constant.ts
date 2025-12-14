@@ -7,7 +7,7 @@ export const StorageType = {
 
 export type StorageTypeType = (typeof StorageType)[keyof typeof StorageType];
 
-interface CloudStorageConfig {
+interface StorageConfigBase {
     bucket: string;
     accessKey: string;
     secretKey: string;
@@ -15,13 +15,13 @@ interface CloudStorageConfig {
     region: string;
 }
 
-export interface AliyunOssConfig extends CloudStorageConfig {
+export interface AliyunOssConfig extends StorageConfigBase {
     arn: string;
 }
 
 export type LocalStorageConfig = null;
-export type TencentCosConfig = CloudStorageConfig;
-export type QiniuKodoConfig = CloudStorageConfig;
+export type TencentCosConfig = StorageConfigBase;
+export type QiniuKodoConfig = StorageConfigBase;
 
 export interface StorageConfigMap {
     [StorageType.LOCAL]: LocalStorageConfig;

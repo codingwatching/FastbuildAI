@@ -25,12 +25,7 @@ export class StorageConfigService {
     async getAllConfigs() {
         return await this.repository
             .createQueryBuilder("storage-config")
-            .select([
-                "storage-config.id",
-                "storage-config.isActive",
-                "storage-config.storageType",
-                "storage-config.config",
-            ])
+            .select(["storage-config.id", "storage-config.isActive", "storage-config.storageType"])
             .orderBy("sort", "ASC")
             .getMany();
     }
