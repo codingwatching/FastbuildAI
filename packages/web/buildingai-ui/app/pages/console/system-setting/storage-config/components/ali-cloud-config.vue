@@ -1,24 +1,34 @@
 <script setup lang="ts">
 import {
+    apiGetStorageConfigDetail,
     apiUpdateStorageConfig,
     type StorageConfig,
+    type StorageConfigTableData,
 } from "@buildingai/service/consoleapi/storage-config";
 import { StorageType } from "@buildingai/service/consoleapi/storage-config";
 import { boolean, object, string } from "yup";
 
+import { aliyunOSSDefaultConfig } from "../config-default";
+
+const emit = defineEmits<{ (e: "update"): void }>();
 const props = defineProps({
     data: {
-        type: Object as PropType<StorageConfig<typeof StorageType.OSS>>,
+        type: Object as PropType<StorageConfigTableData>,
         required: true,
     },
 });
 
-const emit = defineEmits<{
-    (e: "update"): void;
-}>();
-
-const modalOpen = ref(false);
-const loading = ref(false);
+const modalOpenRef = ref(false);
+const loadingRef = ref(false);
+watch(modalOpenRef, (isOpen) => {
+    if (isOpen) {
+        updateStorageConfig();
+    }
+});
+const updateStorageConfig = async () => {
+    const storage = await apiGetStorageConfigDetail<typeof StorageType.OSS>(props.data.id);
+    state.config = storage.config;
+};
 
 const { t } = useI18n();
 const form = useTemplateRef("form");
@@ -36,27 +46,27 @@ const schema = object({
 });
 const state = reactive<StorageConfig<typeof StorageType.OSS>>({
     ...props.data,
-    config: { ...props.data.config },
+    config: aliyunOSSDefaultConfig(),
 });
 
 async function handleSubmit() {
     try {
-        loading.value = true;
+        loadingRef.value = true;
         await apiUpdateStorageConfig(state);
+        modalOpenRef.value = false;
         emit("update");
-        modalOpen.value = false;
     } finally {
-        loading.value = false;
+        loadingRef.value = false;
     }
 }
 </script>
 
 <template>
     <UModal
-        v-model:open="modalOpen"
+        v-model:open="modalOpenRef"
         :title="$t('storage-config.storage.local')"
         :ui="{ footer: 'justify-end' }"
-        :dismissible="loading"
+        :dismissible="loadingRef"
     >
         <UButton variant="ghost">{{ $t("storage-config.table.setting") }}</UButton>
 
@@ -156,10 +166,10 @@ async function handleSubmit() {
         </template>
 
         <template #footer="{ close }">
-            <UButton color="neutral" variant="outline" :disabled="loading" @click="close">{{
+            <UButton color="neutral" variant="outline" :disabled="loadingRef" @click="close">{{
                 $t("storage-config.cancel")
             }}</UButton>
-            <UButton color="primary" :loading="loading" @click="() => form?.submit()">{{
+            <UButton color="primary" :loading="loadingRef" @click="() => form?.submit()">{{
                 $t("storage-config.confirm")
             }}</UButton>
         </template>

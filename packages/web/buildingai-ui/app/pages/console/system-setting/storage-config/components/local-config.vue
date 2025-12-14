@@ -1,23 +1,20 @@
 <script setup lang="ts">
 import {
     apiUpdateStorageConfig,
-    type StorageConfig,
-    StorageType,
+    type StorageConfigTableData,
 } from "@buildingai/service/consoleapi/storage-config";
 import { boolean, object, string } from "yup";
 
+const emit = defineEmits<{ (e: "update"): void }>();
 const props = defineProps({
     data: {
-        type: Object as PropType<StorageConfig<typeof StorageType.LOCAL>>,
+        type: Object as PropType<StorageConfigTableData>,
         required: true,
     },
 });
 
-const emit = defineEmits<{
-    (e: "update"): void;
-}>();
-
-const modalOpen = ref(false);
+const modalOpenRef = ref(false);
+const loadingRef = ref(false);
 
 const form = useTemplateRef("form");
 const schema = object({
@@ -30,17 +27,23 @@ const state = reactive({
 });
 
 async function onSubmit() {
-    await apiUpdateStorageConfig(state);
-    emit("update");
-    modalOpen.value = false;
+    try {
+        loadingRef.value = true;
+        await apiUpdateStorageConfig(state);
+        modalOpenRef.value = false;
+        emit("update");
+    } finally {
+        loadingRef.value = false;
+    }
 }
 </script>
 
 <template>
     <UModal
-        v-model:open="modalOpen"
+        v-model:open="modalOpenRef"
         :title="$t('storage-config.storage.local')"
         :ui="{ footer: 'justify-end' }"
+        :dismissible="loadingRef"
     >
         <UButton variant="ghost">{{ $t("storage-config.table.setting") }}</UButton>
 
@@ -65,10 +68,10 @@ async function onSubmit() {
         </template>
 
         <template #footer="{ close }">
-            <UButton color="neutral" variant="outline" @click="close">{{
+            <UButton color="neutral" variant="outline" :disabled="loadingRef" @click="close">{{
                 $t("storage-config.cancel")
             }}</UButton>
-            <UButton color="primary" @click="() => form?.submit()">{{
+            <UButton color="primary" :loading="loadingRef" @click="() => form?.submit()">{{
                 $t("storage-config.confirm")
             }}</UButton>
         </template>
