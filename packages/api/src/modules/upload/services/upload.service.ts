@@ -1,4 +1,5 @@
 import { BaseService } from "@buildingai/base";
+import { RedisService } from "@buildingai/cache";
 import { AliyunOssConfig } from "@buildingai/constants/shared/storage-config.constant";
 import { FileUploadService, type UploadFileResult } from "@buildingai/core/modules";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
@@ -11,7 +12,6 @@ import { getCredential } from "ali-oss/lib/common/signUtils";
 import { getStandardRegion } from "ali-oss/lib/common/utils/getStandardRegion";
 import { policy2Str } from "ali-oss/lib/common/utils/policy2Str";
 import { Request } from "express";
-
 /**
  * File upload service (API layer)
  *
@@ -19,16 +19,20 @@ import { Request } from "express";
  */
 @Injectable()
 export class UploadService extends BaseService<File> {
+    private readonly CACHE_PREFIX = "sts:credentials";
+
     /**
      * Constructor
      *
      * @param fileRepository File repository
      * @param fileUploadService Core file upload service
+     * @param cacheService Redis service
      */
     constructor(
         @InjectRepository(File)
         private readonly fileRepository: Repository<File>,
         private readonly fileUploadService: FileUploadService,
+        private readonly cacheService: RedisService,
     ) {
         super(fileRepository);
     }
@@ -132,12 +136,8 @@ export class UploadService extends BaseService<File> {
     }
 
     async getAliyunOssUploadSignature(config: AliyunOssConfig) {
-        let sts = new STS({ accessKeyId: config.accessKey, accessKeySecret: config.secretKey });
-
-        const result = await sts.assumeRole(config.arn, "", 3600);
-        const accessKeyId = result.credentials.AccessKeyId;
-        const accessKeySecret = result.credentials.AccessKeySecret;
-        const securityToken = result.credentials.SecurityToken;
+        const { accessKeyId, accessKeySecret, securityToken } =
+            await this.getSTSCredentials(config);
 
         const client = new OSS({
             bucket: config.bucket,
@@ -192,7 +192,7 @@ export class UploadService extends BaseService<File> {
         const signature = (client as any).signPostObjectPolicyV4(policy, date);
 
         return {
-            domain: config.domain,
+            host: config.domain,
             bucket: config.bucket,
             policy: Buffer.from(policy2Str(policy), "utf8").toString("base64"),
             ossSignatureVersion: "OSS4-HMAC-SHA256",
@@ -201,5 +201,32 @@ export class UploadService extends BaseService<File> {
             signature: signature,
             securityToken: securityToken,
         };
+    }
+
+    private async getSTSCredentials(config: AliyunOssConfig) {
+        const cacheKey = `${this.CACHE_PREFIX}:oss`;
+        const cachedResult = await this.cacheService.getHash<{
+            accessKeyId: string;
+            accessKeySecret: string;
+            securityToken: string;
+        }>(cacheKey);
+
+        if (cachedResult) {
+            return cachedResult;
+        }
+
+        let sts = new STS({ accessKeyId: config.accessKey, accessKeySecret: config.secretKey });
+        const expirationSeconds = 3600;
+        const result = await sts.assumeRole(config.arn, "", expirationSeconds);
+
+        const credentials = {
+            accessKeyId: result.credentials.AccessKeyId,
+            accessKeySecret: result.credentials.AccessKeySecret,
+            securityToken: result.credentials.SecurityToken,
+        };
+
+        await this.cacheService.setHash(cacheKey, credentials, expirationSeconds);
+
+        return credentials;
     }
 }

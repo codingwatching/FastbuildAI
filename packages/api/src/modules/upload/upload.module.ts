@@ -1,3 +1,4 @@
+import { RedisModule } from "@buildingai/cache";
 import { UploadModule as CoreUploadModule } from "@buildingai/core/modules";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
@@ -22,6 +23,7 @@ import { UploadService } from "./services/upload.service";
         MulterModule.register({
             storage: memoryStorage(),
         }),
+        RedisModule,
     ],
     controllers: [UploadController],
     providers: [UploadService],
