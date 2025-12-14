@@ -104,6 +104,35 @@ export class RedisService implements OnModuleDestroy {
     }
 
     /**
+     * Get hash value
+     * @param key Key
+     * @param field object[field]
+     * @returns Value
+     */
+    async getHash<T>(key: string, field?: string): Promise<T | null> {
+        if (field) {
+            return this.redisClient.hGet(key, field) as Promise<T | null>;
+        } else {
+            return this.redisClient.hGetAll(key) as Promise<T | null>;
+        }
+    }
+
+    /**
+     * Set hash value
+     * @param key Key
+     * @param value Value
+     * @param ttl Time to live in seconds, optional
+     */
+    async setHash(key: string, value: Record<string, string>, ttl?: number): Promise<void> {
+        if (ttl) {
+            await this.redisClient.hSet(key, value);
+            await this.redisClient.expire(key, ttl);
+        } else {
+            await this.redisClient.hSet(key, value);
+        }
+    }
+
+    /**
      * Delete key
      * @param key Key
      */
