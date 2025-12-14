@@ -16,7 +16,7 @@ interface CloudStorageConfig {
 }
 
 export interface AliyunOssConfig extends CloudStorageConfig {
-    arn?: string;
+    arn: string;
 }
 
 export type LocalStorageConfig = null;
