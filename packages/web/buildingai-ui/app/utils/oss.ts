@@ -1,7 +1,11 @@
 import { apiGetUploadSignature } from "@buildingai/service/common";
 
-async function uploadOssFile(file: File, dir: string) {
-    const { signature } = await apiGetUploadSignature();
+async function uploadOssFile(file: File) {
+    const result = await apiGetUploadSignature({
+        name: file.name,
+        size: file.size,
+    });
+    const signature = result.signature;
 
     const formData = new FormData();
     formData.append("success_action_status", "200");
@@ -10,14 +14,11 @@ async function uploadOssFile(file: File, dir: string) {
     formData.append("x-oss-signature-version", signature.ossSignatureVersion);
     formData.append("x-oss-credential", signature.ossCredential);
     formData.append("x-oss-date", signature.ossDate);
-    formData.append("key", dir + file.name);
     formData.append("x-oss-security-token", signature.securityToken);
+    formData.append("key", result.fullPath);
     formData.append("file", file);
 
-    return fetch(signature.host, {
-        method: "POST",
-        body: formData,
-    });
+    return fetch(signature.host, { method: "POST", body: formData });
 }
 
 export { uploadOssFile };

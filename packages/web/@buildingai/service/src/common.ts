@@ -194,6 +194,8 @@ export interface UploadSignatureResponse {
         signature: string;
         securityToken: string;
     };
+    fullPath: string;
+    fileUrl: string;
     storageType: StorageTypeType;
 }
 
@@ -319,8 +321,11 @@ export function apiUploadRemoteFile(params: {
     return useWebPost<FileUploadResponse>(`/upload/remote`, params);
 }
 
-export function apiGetUploadSignature(): Promise<UploadSignatureResponse> {
-    return useWebGet("/upload/signature");
+export function apiGetUploadSignature(params: {
+    name: string;
+    size: number;
+}): Promise<UploadSignatureResponse> {
+    return useWebPost("/upload/signature", params);
 }
 
 // ==================== Behaviour Analysis Related Types ====================
