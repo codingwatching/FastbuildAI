@@ -36,6 +36,7 @@
             "status": "状态",
             "source": "来源",
             "createdAt": "创建时间",
+            "registerTime": "注册时间",
             "lastLoginAt": "最后登录时间",
             "actions": "操作",
             "level": "会员等级",

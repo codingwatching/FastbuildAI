@@ -29,7 +29,7 @@ const columnLabels = computed<Record<string, string>>(() => {
         nickname: t("user.backend.list.nickname"),
         status: t("user.backend.list.status"),
         source: t("user.backend.list.source"),
-        createdAt: t("user.backend.list.createdAt"),
+        createdAt: t("user.backend.list.registerTime"),
         lastLoginAt: t("user.backend.list.lastLoginAt"),
         actions: t("user.backend.list.actions"),
         membershipLevel: t("user.backend.list.level"),

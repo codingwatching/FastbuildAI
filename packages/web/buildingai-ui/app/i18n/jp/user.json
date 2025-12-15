@@ -36,6 +36,7 @@
             "status": "状態",
             "source": "出典",
             "createdAt": "作成時間",
+            "registerTime": "登録時間",
             "lastLoginAt": "最終ログイン時間",
             "actions": "操作",
             "level": "会員ランク",

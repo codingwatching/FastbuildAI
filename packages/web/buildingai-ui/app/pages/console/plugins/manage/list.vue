@@ -360,11 +360,13 @@ onMounted(() => getLists());
                                     <div class="flex w-[calc(100%-76px)] flex-col gap-1">
                                         <!-- Title with Verification -->
                                         <div class="flex items-center gap-1">
-                                            <span
-                                                class="text-foreground truncate text-[16px] leading-[22px] font-[500]"
-                                            >
-                                                {{ extension.name }}
-                                            </span>
+                                            <UTooltip :text="extension.name">
+                                                <span
+                                                    class="text-foreground truncate text-[16px] leading-[22px] font-[500]"
+                                                >
+                                                    {{ extension.name }}
+                                                </span>
+                                            </UTooltip>
                                         </div>
                                         <!-- Description -->
                                         <span

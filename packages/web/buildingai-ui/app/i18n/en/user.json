@@ -36,6 +36,7 @@
             "status": "Status",
             "source": "Source",
             "createdAt": "Creation Time",
+            "registerTime": "Registration Time",
             "lastLoginAt": "Last login time",
             "actions": "Operation",
             "level": "Membership Level",
