@@ -14,7 +14,7 @@ async function uploadOssFile(file: File, dir: string) {
     formData.append("x-oss-security-token", signature.securityToken);
     formData.append("file", file);
 
-    return fetch(signature.domain, {
+    return fetch(signature.host, {
         method: "POST",
         body: formData,
     });

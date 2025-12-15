@@ -184,7 +184,7 @@ export interface FileUploadResponse {
 
 export interface UploadSignatureResponse {
     signature: {
-        domain: string;
+        host: string;
         region: string;
         bucket: string;
         policy: string;
