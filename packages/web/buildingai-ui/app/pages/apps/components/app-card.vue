@@ -32,15 +32,17 @@ const handleClick = () => {
     >
         <div class="flex flex-row justify-between gap-3">
             <div class="min-w-0 flex-1">
-                <h3 class="text-foreground truncate text-lg font-semibold">
-                    {{ extension.alias || extension.name }}
-                </h3>
+                <UTooltip :text="extension.alias || extension.name">
+                    <h3 class="text-foreground text-4 line-clamp-1 truncate font-semibold">
+                        {{ extension.alias || extension.name }}
+                    </h3>
+                </UTooltip>
                 <p class="text-muted-foreground mt-1 line-clamp-2 h-10 text-sm">
                     {{ extension.description || $t("extensions.manage.noDescription") }}
                 </p>
             </div>
             <div
-                class="border-default bg-background flex size-18 flex-none items-center justify-center overflow-hidden rounded-lg border"
+                class="bg-background flex size-18 flex-none items-center justify-center overflow-hidden rounded-lg"
             >
                 <UAvatar
                     :src="extension.icon"

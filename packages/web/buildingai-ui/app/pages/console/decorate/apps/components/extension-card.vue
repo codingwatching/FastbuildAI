@@ -19,9 +19,11 @@ const selectExtension = () => {
         <UCard :ui="{ body: 'flex flex-col justify-between gap-2' }">
             <div class="flex flex-row justify-between gap-2">
                 <div class="h-18">
-                    <h3 class="text-lg font-semibold">
-                        {{ props.extension.alias || props.extension.name }}
-                    </h3>
+                    <UTooltip :text="props.extension.alias || props.extension.name">
+                        <h3 class="text-4 line-clamp-1 font-semibold">
+                            {{ props.extension.alias || props.extension.name }}
+                        </h3>
+                    </UTooltip>
                     <p class="text-muted-foreground line-clamp-2 text-sm">
                         {{ props.extension.description }}
                     </p>

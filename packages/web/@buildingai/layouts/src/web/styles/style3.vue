@@ -61,6 +61,9 @@ const navigationItems = computed((): NavigationMenuItem[] => {
                         orientation="horizontal"
                         variant="pill"
                         color="primary"
+                        :ui="{
+                            root: 'max-w-[70vw]',
+                        }"
                     />
                 </div>
 
