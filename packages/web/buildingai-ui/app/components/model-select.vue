@@ -90,6 +90,8 @@ function requiresMembership(model: AiModel): boolean {
  * @returns 是否有权限访问
  */
 function hasModelAccess(model: AiModel): boolean {
+    if (props.console) return true;
+
     // 超级管理员不受会员等级限制
     if (userStore.userInfo?.isRoot === 1) return true;
 
@@ -136,7 +138,7 @@ function getModelMembershipIcon(model: AiModel): string | undefined {
 
 function select(model: AiModel | null) {
     // 如果模型需要会员权限且用户没有权限，则不允许选择
-    if (model && !isModelSelectable(model)) {
+    if (!props.console && model && !isModelSelectable(model)) {
         return;
     }
 
@@ -202,8 +204,9 @@ async function loadModels() {
             return;
         }
 
-        // 只选择有访问权限的模型
-        const accessibleModels = allModels.value.filter(isModelSelectable);
+        const accessibleModels = props.console
+            ? allModels.value
+            : allModels.value.filter(isModelSelectable);
 
         selected.value =
             (props.openLocalStorage
