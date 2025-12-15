@@ -27,7 +27,7 @@ const mobileMenuOpen = shallowRef(false);
 
                 <!-- 中间浮动导航菜单（桌面端） -->
                 <ul
-                    class="border-border/50 bg-background/60 fixed top-4 left-1/2 z-50 hidden -translate-x-1/2 items-center gap-6 rounded-full border px-8 py-2 backdrop-blur-sm sm:flex"
+                    class="scrollbar-hide border-border/50 bg-background/60 fixed top-4 left-1/2 z-50 hidden max-w-[70vw] -translate-x-1/2 items-center gap-6 overflow-x-auto rounded-full border px-8 py-2 whitespace-nowrap backdrop-blur-sm sm:flex"
                     :class="{ '!left-inherit !static !translate-x-0': hasPreview }"
                 >
                     <li
@@ -93,3 +93,13 @@ const mobileMenuOpen = shallowRef(false);
         <MobileNavigation v-model="mobileMenuOpen" :navigation-config="navigationConfig" />
     </div>
 </template>
+<style scoped>
+.scrollbar-hide {
+    -ms-overflow-style: none; /* IE */
+    scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome / Safari */
+}
+</style>

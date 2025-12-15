@@ -29,7 +29,7 @@ const mobileMenuOpen = shallowRef(false);
 
                 <!-- 桌面端导航菜单 -->
                 <ul
-                    class="text-brand-neutrals-700 dark:text-brand-neutrals-200 col-start-2 hidden gap-2 px-2 font-medium sm:flex xl:gap-4"
+                    class="scrollbar-hide text-brand-neutrals-700 dark:text-brand-neutrals-200 col-start-2 hidden max-w-[70vw] gap-2 overflow-x-auto px-2 font-medium whitespace-nowrap sm:flex xl:gap-4"
                 >
                     <li v-for="item in props.navigationConfig.items" :key="item.id">
                         <!-- 普通菜单项 -->
@@ -95,3 +95,13 @@ const mobileMenuOpen = shallowRef(false);
         />
     </div>
 </template>
+<style scoped>
+.scrollbar-hide {
+    -ms-overflow-style: none; /* IE */
+    scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome / Safari */
+}
+</style>
