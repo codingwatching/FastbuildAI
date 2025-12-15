@@ -6,12 +6,20 @@ import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { RemoteUploadDto } from "@modules/upload/dto/remote-upload.dto";
+import { SignatureRequestDto } from "@modules/upload/dto/upload-file.dto";
 import { Injectable } from "@nestjs/common";
 import OSS, { STS } from "ali-oss";
 import { getCredential } from "ali-oss/lib/common/signUtils";
 import { getStandardRegion } from "ali-oss/lib/common/utils/getStandardRegion";
 import { policy2Str } from "ali-oss/lib/common/utils/policy2Str";
 import { Request } from "express";
+
+interface AliyunSTSResult {
+    accessKeyId: string;
+    accessKeySecret: string;
+    securityToken: string;
+}
+
 /**
  * File upload service (API layer)
  *
@@ -135,16 +143,31 @@ export class UploadService extends BaseService<File> {
         );
     }
 
-    async getAliyunOssUploadSignature(config: AliyunOssConfig) {
-        const { accessKeyId, accessKeySecret, securityToken } =
-            await this.getSTSCredentials(config);
+    async getAliyunOssUploadSignature(dto: SignatureRequestDto, config: AliyunOssConfig) {
+        const stsResult = await this.getSTSCredentials(config);
+        const signature = await this.getAliyunSignature(config, stsResult);
 
+        const storagePath = await this.fileUploadService.createCloudStoragePath(dto);
+
+        return {
+            signature: {
+                ...signature,
+                host: config.domain,
+                bucket: config.bucket,
+                securityToken: stsResult.securityToken,
+            },
+            fullPath: storagePath.fullPath,
+            fileUrl: storagePath.fileUrl,
+        };
+    }
+
+    private async getAliyunSignature(config: AliyunOssConfig, sts: AliyunSTSResult) {
         const client = new OSS({
             bucket: config.bucket,
             region: config.region,
-            accessKeyId,
-            accessKeySecret,
-            stsToken: securityToken,
+            accessKeyId: sts.accessKeyId,
+            accessKeySecret: sts.accessKeySecret,
+            stsToken: sts.securityToken,
         });
 
         // Set the signature expiration time to 10 minutes later than the current time
@@ -153,10 +176,8 @@ export class UploadService extends BaseService<File> {
         expirationDate.setMinutes(date.getMinutes() + 10);
 
         // Format the date in UTC time string format that complies with the ISO 8601 standard
-        function padTo2Digits(num) {
-            return num.toString().padStart(2, "0");
-        }
-        function formatDateToUTC(date: Date) {
+        const padTo2Digits = (num: number) => num.toString().padStart(2, "0");
+        const formatDateToUTC = (date: Date) => {
             return (
                 date.getUTCFullYear() +
                 padTo2Digits(date.getUTCMonth() + 1) +
@@ -167,43 +188,41 @@ export class UploadService extends BaseService<File> {
                 padTo2Digits(date.getUTCSeconds()) +
                 "Z"
             );
-        }
+        };
         const formattedDate = formatDateToUTC(expirationDate);
 
         // Generate x-oss-credential
         const credential = getCredential(
             formattedDate.split("T")[0],
             getStandardRegion(config.region),
-            accessKeyId,
+            sts.accessKeyId,
         );
 
         // Create a policy(list required fields)
+        const ossSignatureVersion = "OSS4-HMAC-SHA256";
         const policy = {
             expiration: expirationDate.toISOString(),
             conditions: [
                 { bucket: config.bucket },
                 { "x-oss-credential": credential },
-                { "x-oss-signature-version": "OSS4-HMAC-SHA256" },
+                { "x-oss-signature-version": ossSignatureVersion },
                 { "x-oss-date": formattedDate },
-                { "x-oss-security-token": securityToken },
+                { "x-oss-security-token": sts.securityToken },
             ],
         };
 
         const signature = (client as any).signPostObjectPolicyV4(policy, date);
 
         return {
-            host: config.domain,
-            bucket: config.bucket,
-            policy: Buffer.from(policy2Str(policy), "utf8").toString("base64"),
-            ossSignatureVersion: "OSS4-HMAC-SHA256",
+            signature,
+            ossSignatureVersion,
+            policy: Buffer.from(policy2Str(policy)),
             ossCredential: credential,
             ossDate: formattedDate,
-            signature: signature,
-            securityToken: securityToken,
         };
     }
 
-    private async getSTSCredentials(config: AliyunOssConfig) {
+    private async getSTSCredentials(config: AliyunOssConfig): Promise<AliyunSTSResult> {
         const cacheKey = `${this.CACHE_PREFIX}:oss`;
         const cachedResult = await this.cacheService.getHash<{
             accessKeyId: string;

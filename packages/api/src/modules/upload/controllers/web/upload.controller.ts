@@ -11,7 +11,7 @@ import { WebController } from "@common/decorators/controller.decorator";
 import { StorageConfigService } from "@modules/system/services/storage-config.service";
 import { QueryFileDto } from "@modules/upload/dto/query-file.dto";
 import { RemoteUploadDto } from "@modules/upload/dto/remote-upload.dto";
-import { UploadFileDto } from "@modules/upload/dto/upload-file.dto";
+import { SignatureRequestDto, UploadFileDto } from "@modules/upload/dto/upload-file.dto";
 import { UploadService } from "@modules/upload/services/upload.service";
 import {
     Body,
@@ -52,10 +52,9 @@ export class UploadController extends BaseController {
         super();
     }
 
-    @Get("signature")
-    async getUploadSignature() {
+    @Post("signature")
+    async getUploadSignature(@Body() dto: SignatureRequestDto) {
         const storageConfig = await this.storageConfigService.getActiveStorageConfig();
-        // 检查文件是否存在
         if (!storageConfig) {
             throw HttpErrorFactory.notFound("Config not found");
         }
@@ -63,9 +62,9 @@ export class UploadController extends BaseController {
         switch (storageConfig.storageType) {
             case StorageType.OSS: {
                 const config = storageConfig.config as AliyunOssConfig;
-                const signature = await this.uploadService.getAliyunOssUploadSignature(config);
+                const signature = await this.uploadService.getAliyunOssUploadSignature(dto, config);
                 return {
-                    signature,
+                    ...signature,
                     storageType: storageConfig.storageType,
                 };
             }
