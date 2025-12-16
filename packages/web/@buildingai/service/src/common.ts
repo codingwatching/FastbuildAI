@@ -194,6 +194,14 @@ export interface UploadSignatureResponse {
         signature: string;
         securityToken: string;
     };
+    metadata: {
+        originalName: string;
+        mimeType: string;
+        size: number;
+        extension: string;
+        // File type category
+        type: string;
+    };
     fullPath: string;
     fileUrl: string;
     storageType: StorageTypeType;

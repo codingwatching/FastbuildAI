@@ -8,6 +8,8 @@ import {
 import { StorageType } from "@buildingai/service/consoleapi/storage-config";
 import { boolean, object, string } from "yup";
 
+import { useStorageStore } from "@/stores/storage";
+
 import { aliyunOSSDefaultConfig } from "../config-default";
 
 const emit = defineEmits<{ (e: "update"): void }>();
@@ -52,7 +54,12 @@ const state = reactive<StorageConfig<typeof StorageType.OSS>>({
 async function handleSubmit() {
     try {
         loadingRef.value = true;
+
         await apiUpdateStorageConfig(state);
+        if (state.isActive) {
+            useStorageStore().updateStorageType(state.storageType);
+        }
+
         modalOpenRef.value = false;
         emit("update");
     } finally {

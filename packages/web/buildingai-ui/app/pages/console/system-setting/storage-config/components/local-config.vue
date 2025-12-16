@@ -5,6 +5,8 @@ import {
 } from "@buildingai/service/consoleapi/storage-config";
 import { boolean, object, string } from "yup";
 
+import { useStorageStore } from "~/stores/storage";
+
 const emit = defineEmits<{ (e: "update"): void }>();
 const props = defineProps({
     data: {
@@ -29,7 +31,12 @@ const state = reactive({
 async function onSubmit() {
     try {
         loadingRef.value = true;
+
         await apiUpdateStorageConfig(state);
+        if (state.isActive) {
+            useStorageStore().updateStorageType(state.storageType);
+        }
+
         modalOpenRef.value = false;
         emit("update");
     } finally {
