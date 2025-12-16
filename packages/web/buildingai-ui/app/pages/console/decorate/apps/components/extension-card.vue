@@ -15,7 +15,7 @@ const selectExtension = () => {
 </script>
 
 <template>
-    <div class="cursor-pointer" @click.stop="selectExtension">
+    <div class="group cursor-pointer transition-all duration-200" @click.stop="selectExtension">
         <UCard :ui="{ body: 'flex flex-col justify-between gap-2' }">
             <div class="flex flex-row justify-between gap-2">
                 <div class="h-18">
@@ -43,12 +43,18 @@ const selectExtension = () => {
                     </UAvatar>
                 </div>
             </div>
-            <div>
+            <div class="flex flex-row items-center justify-between">
                 <UBadge
                     :color="props.extension.status === 1 ? 'success' : 'neutral'"
                     variant="soft"
                     >{{ props.extension.status === 1 ? "启用" : "禁用" }}</UBadge
                 >
+                <div
+                    class="text-muted-foreground flex items-center gap-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                >
+                    <UIcon name="i-lucide-edit" class="size-4" />
+                    <span>DIY装修</span>
+                </div>
             </div>
         </UCard>
     </div>

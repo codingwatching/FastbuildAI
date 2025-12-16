@@ -1,4 +1,8 @@
 {
+    "apps": {
+        "modalTitle": "アプリセンター広告",
+        "heroImage": "広告画像"
+    },
     "micropage": {
         "title": "マイクロページ管理",
         "list": {

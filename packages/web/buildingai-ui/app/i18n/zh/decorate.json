@@ -1,4 +1,8 @@
 {
+    "apps": {
+        "modalTitle": "应用中心广告",
+        "heroImage": "广告图"
+    },
     "micropage": {
         "title": "微页面管理",
         "list": {

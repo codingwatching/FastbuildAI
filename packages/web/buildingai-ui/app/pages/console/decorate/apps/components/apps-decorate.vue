@@ -46,7 +46,7 @@ onMounted(() => getData());
 </script>
 
 <template>
-    <BdModal title="应用中心" @close="emit('close')">
+    <BdModal :title="t('decorate.apps.modalTitle')" @close="emit('close')">
         <div class="grid grid-cols-1 gap-4">
             <UFormField :label="t('console-common.enabled')" required>
                 <USwitch v-model="formData.enabled" />
@@ -66,7 +66,7 @@ onMounted(() => getData());
                 </div>
             </UFormField>
 
-            <UFormField label="广告图" required>
+            <UFormField :label="t('decorate.apps.heroImage')" required>
                 <BdUploader
                     v-model="formData.heroImageUrl"
                     class="h-24 w-24"

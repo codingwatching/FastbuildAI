@@ -1,4 +1,8 @@
 {
+    "apps": {
+        "modalTitle": "App Center Banner",
+        "heroImage": "Banner Image"
+    },
     "micropage": {
         "title": "Micro Page Management",
         "list": {
