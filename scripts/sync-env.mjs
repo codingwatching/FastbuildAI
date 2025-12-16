@@ -7,7 +7,7 @@ import chalk from "chalk";
  * Keys that are allowed to exist in .env but not in .env.example
  * These are environment-specific variables that should not be synced
  */
-const IGNORED_KEYS = new Set(["SERVER_IS_DEMO_ENV", "SERVER_DEMO_POST_WHITELIST"]);
+const IGNORED_KEYS = new Set(["SERVER_IS_DEMO_ENV", "SERVER_DEMO_POST_WHITELIST", "EXTENSION_API_URL"]);
 
 /**
  * Parse env file content into structured data

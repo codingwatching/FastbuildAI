@@ -60,6 +60,9 @@ catalogs:
     '@types/express':
       specifier: ^5.0.5
       version: 5.0.5
+    adm-zip:
+      specifier: ^0.5.16
+      version: 0.5.16
     bullmq:
       specifier: ^5.63.0
       version: 5.63.1
@@ -72,6 +75,9 @@ catalogs:
     express:
       specifier: ^5.1.0
       version: 5.1.0
+    pg:
+      specifier: ^8.16.3
+      version: 8.16.3
     typeorm-naming-strategies:
       specifier: ^4.1.0
       version: 4.1.0
@@ -785,7 +791,7 @@ importers:
         specifier: workspace:*
         version: link:../logger
       pg:
-        specifier: ^8.16.3
+        specifier: catalog:api
         version: 8.16.3
       pg-connection-string:
         specifier: ^2.9.1
@@ -1190,7 +1196,7 @@ importers:
         specifier: ^4.0.9
         version: 4.0.9
       adm-zip:
-        specifier: ^0.5.16
+        specifier: catalog:api
         version: 0.5.16
       ajv:
         specifier: ^8.17.1
@@ -1229,7 +1235,7 @@ importers:
         specifier: ^0.0.2
         version: 0.0.2
       pg:
-        specifier: ^8.16.3
+        specifier: catalog:api
         version: 8.16.3
       pg-connection-string:
         specifier: ^2.9.1
@@ -1334,15 +1340,21 @@ importers:
 
   packages/cli:
     dependencies:
-      '@buildingai/api':
+      '@buildingai/db':
         specifier: workspace:*
-        version: link:../api
+        version: link:../@buildingai/db
+      adm-zip:
+        specifier: catalog:api
+        version: 0.5.16
       commander:
         specifier: ^12.0.0
         version: 12.1.0
-      fs-extra:
-        specifier: ^11.3.2
-        version: 11.3.2
+      dotenv:
+        specifier: 'catalog:'
+        version: 17.2.3
+      pg:
+        specifier: catalog:api
+        version: 8.16.3
     devDependencies:
       '@buildingai/eslint-config':
         specifier: workspace:*
@@ -20721,7 +20733,7 @@ snapshots:
 
   dotenv-expand@12.0.1:
     dependencies:
-      dotenv: 16.4.7
+      dotenv: 16.6.1
 
   dotenv@16.0.3: {}
 
