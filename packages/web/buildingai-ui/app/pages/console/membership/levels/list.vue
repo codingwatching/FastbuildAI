@@ -12,6 +12,8 @@ import type { TableColumn } from "#ui/types";
 const UButton = resolveComponent("UButton");
 const USwitch = resolveComponent("USwitch");
 const UAvatar = resolveComponent("UAvatar");
+const UPopover = resolveComponent("UPopover");
+const UIcon = resolveComponent("UIcon");
 
 const { t } = useI18n();
 const toast = useMessage();
@@ -46,7 +48,27 @@ const columnLabels = computed<Record<string, string>>(() => ({
 const columns: TableColumn<LevelFormData>[] = [
     {
         accessorKey: "level",
-        header: () => h("p", { class: "" }, `${columnLabels.value.level}`),
+        header: () =>
+            h("div", { class: "flex items-center gap-1" }, [
+                h("span", `${columnLabels.value.level}`),
+                h(
+                    UPopover,
+                    { mode: "hover" },
+                    {
+                        default: () =>
+                            h(UIcon, {
+                                name: "i-lucide-circle-help",
+                                class: "size-4 cursor-pointer text-muted-foreground",
+                            }),
+                        content: () =>
+                            h(
+                                "p",
+                                { class: "text-sm py-2 px-4 w-64" },
+                                t("membership.console-membership.level.table.levelTip"),
+                            ),
+                    },
+                ),
+            ]),
         cell: ({ row }) => {
             return h("p", { class: "" }, row.original.level + "级");
         },

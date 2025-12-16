@@ -55,7 +55,8 @@
                 "givePower": "毎月ポイントをプレゼント",
                 "accountCount": "ユーザー数",
                 "status": "状態",
-                "actions": "操作"
+                "actions": "操作",
+                "levelTip": "数値が大きいほどレベルが高くなります"
             },
             "edit": {
                 "title": "編集レベル",

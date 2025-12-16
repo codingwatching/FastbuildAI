@@ -55,7 +55,8 @@
                 "givePower": "Monthly bonus points",
                 "accountCount": "Number of users",
                 "status": "Status",
-                "actions": "Operation"
+                "actions": "Operation",
+                "levelTip": "Higher level number means a higher level"
             },
             "edit": {
                 "title": "Edit Level",

@@ -55,7 +55,8 @@
                 "givePower": "每月赠送积分",
                 "accountCount": "用户数量",
                 "status": "状态",
-                "actions": "操作"
+                "actions": "操作",
+                "levelTip": "等级数值越大表示等级越高"
             },
             "edit": {
                 "title": "编辑等级",
