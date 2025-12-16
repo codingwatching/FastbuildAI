@@ -206,6 +206,17 @@ export async function releaseExtension() {
     const rl = createReadlineInterface();
 
     let stagingDir = "";
+    let tempBaseDir = "";
+
+    async function removeTempDirIfEmpty() {
+        if (!tempBaseDir) return;
+        const exists = await fs.pathExists(tempBaseDir);
+        if (!exists) return;
+        const entries = await fs.readdir(tempBaseDir).catch(() => []);
+        if (entries.length === 0) {
+            await fs.remove(tempBaseDir).catch(() => {});
+        }
+    }
 
     console.log("\n");
     Logger.info("Extension", "Release a BuildingAI extension");
@@ -246,11 +257,27 @@ export async function releaseExtension() {
                   : "0.0.1";
 
         const version = await prompt(rl, "Version", currentVersion);
-        rl.close();
 
         if (!semver.valid(version)) {
             throw new Error(`Invalid version: ${version}`);
         }
+
+        let shouldRebuild = true;
+        while (true) {
+            const rebuildAnswer = await prompt(rl, "Rebuild before release? (Y/n)", "y");
+            const normalizedAnswer = rebuildAnswer.trim().toLowerCase();
+            if (normalizedAnswer === "y" || normalizedAnswer === "yes") {
+                shouldRebuild = true;
+                break;
+            }
+            if (normalizedAnswer === "n" || normalizedAnswer === "no") {
+                shouldRebuild = false;
+                break;
+            }
+            Logger.error("Validation", "Please enter 'y' or 'n'");
+        }
+
+        rl.close();
 
         const packageVersion = packageJson?.version;
         const manifestVersion = manifest?.version;
@@ -282,14 +309,22 @@ export async function releaseExtension() {
             Logger.info("Version", "No version change needed");
         }
 
+        if (shouldRebuild) {
+            await buildExtension(extensionDir);
+            Logger.success("Build", "Build completed");
+        } else {
+            Logger.info("Build", "Skipped rebuild");
+        }
+
         const releaseName = `${identifier}-${version}`;
-        const tempBaseDir = path.join(RELEASES_DIR, ".tmp");
+        tempBaseDir = path.join(RELEASES_DIR, ".tmp");
         stagingDir = path.join(tempBaseDir, releaseName);
         const zipPath = path.join(RELEASES_DIR, `${releaseName}.zip`);
 
         await fs.ensureDir(RELEASES_DIR);
         if (await fs.pathExists(zipPath)) {
-            throw new Error(`Release zip already exists: ${zipPath}`);
+            Logger.warning("Zip", `Release zip already exists, overwriting: ${zipPath}`);
+            await fs.remove(zipPath);
         }
 
         await fs.ensureDir(tempBaseDir);
@@ -310,11 +345,13 @@ export async function releaseExtension() {
 
         await fs.remove(stagingDir).catch(() => {});
         stagingDir = "";
+        await removeTempDirIfEmpty();
     } catch (error) {
         rl.close();
         if (stagingDir) {
             await fs.remove(stagingDir).catch(() => {});
         }
+        await removeTempDirIfEmpty();
         Logger.error("Extension", `Failed to release extension: ${error.message}`);
         process.exit(1);
     }
