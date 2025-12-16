@@ -143,21 +143,19 @@ export class UploadService extends BaseService<File> {
         );
     }
 
-    async getAliyunOssUploadSignature(dto: SignatureRequestDto, config: AliyunOssConfig) {
+    generateCloudStorageInfo(dto: SignatureRequestDto) {
+        return this.fileUploadService.createCloudStoragePath(dto);
+    }
+
+    async getAliyunOssUploadSignature(config: AliyunOssConfig) {
         const stsResult = await this.getSTSCredentials(config);
         const signature = await this.getAliyunSignature(config, stsResult);
 
-        const storagePath = await this.fileUploadService.createCloudStoragePath(dto);
-
         return {
-            signature: {
-                ...signature,
-                host: config.domain,
-                bucket: config.bucket,
-                securityToken: stsResult.securityToken,
-            },
-            fullPath: storagePath.fullPath,
-            fileUrl: storagePath.fileUrl,
+            ...signature,
+            host: config.domain,
+            bucket: config.bucket,
+            securityToken: stsResult.securityToken,
         };
     }
 
@@ -216,7 +214,7 @@ export class UploadService extends BaseService<File> {
         return {
             signature,
             ossSignatureVersion,
-            policy: Buffer.from(policy2Str(policy)),
+            policy: Buffer.from(policy2Str(policy)).toString("base64"),
             ossCredential: credential,
             ossDate: formattedDate,
         };

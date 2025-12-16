@@ -61,7 +61,11 @@ export class StorageConfigService {
     }
 
     getActiveStorageConfig() {
-        return this.repository.findOne({ where: { isActive: true } });
+        return this.repository.findOne({
+            where: {
+                isActive: true,
+            },
+        });
     }
 
     getStorageDetail(id: string) {

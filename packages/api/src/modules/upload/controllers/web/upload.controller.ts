@@ -52,6 +52,19 @@ export class UploadController extends BaseController {
         super();
     }
 
+    @Get("active")
+    async getActiveStorageType() {
+        const storage = await this.storageConfigService.getActiveStorageConfig();
+        if (!storage) {
+            throw HttpErrorFactory.notFound("Storage config is not found");
+        }
+        return {
+            id: storage.id,
+            storageType: storage.storageType,
+            isActive: storage.isActive,
+        };
+    }
+
     @Post("signature")
     async getUploadSignature(@Body() dto: SignatureRequestDto) {
         const storageConfig = await this.storageConfigService.getActiveStorageConfig();
@@ -62,10 +75,15 @@ export class UploadController extends BaseController {
         switch (storageConfig.storageType) {
             case StorageType.OSS: {
                 const config = storageConfig.config as AliyunOssConfig;
-                const signature = await this.uploadService.getAliyunOssUploadSignature(dto, config);
+                const cloudConf = await this.uploadService.generateCloudStorageInfo(dto);
+                const signature = await this.uploadService.getAliyunOssUploadSignature(config);
+
                 return {
-                    ...signature,
+                    signature,
+                    metadata: cloudConf.metadata,
                     storageType: storageConfig.storageType,
+                    fullPath: cloudConf.storage.fullPath,
+                    fileUrl: cloudConf.storage.fileUrl,
                 };
             }
             default: {
