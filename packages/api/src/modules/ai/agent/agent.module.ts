@@ -6,9 +6,12 @@ import {
     AgentChatRecord,
     AiModel,
     AiProvider,
+    MembershipLevels,
     Tag,
     User,
+    UserSubscription,
 } from "@buildingai/db/entities";
+import { MembershipValidationCommandHandler } from "@modules/ai/chat/handlers";
 import { Module } from "@nestjs/common";
 
 import { AiAgentConsoleController } from "./controllers/console/ai-agent.controller";
@@ -42,6 +45,8 @@ import { AiAgentPublicChatService } from "./services/ai-agent-v1-chat.service";
             Tag,
             AiModel,
             AiProvider,
+            UserSubscription,
+            MembershipLevels,
         ]),
         ChatHandlersModule, // 导入聊天处理器模块（已包含其他依赖模块）
     ],
@@ -62,6 +67,7 @@ import { AiAgentPublicChatService } from "./services/ai-agent-v1-chat.service";
         AiAgentChatsMessageService,
         AiAgentPublicChatService,
         AiAgentTemplateService,
+        MembershipValidationCommandHandler,
     ],
     exports: [
         AiAgentService,
