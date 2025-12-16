@@ -2,6 +2,7 @@ import AdmZip from "adm-zip";
 import fs from "fs-extra";
 import path from "path";
 import readline from "readline";
+import semver from "semver";
 import { fileURLToPath } from "url";
 
 import { AdvancedLogger, Logger } from "../utils/logger.js";
@@ -14,6 +15,28 @@ const TEMPLATES_DIR = path.join(rootDir, "templates");
 const EXTENSIONS_DIR = path.join(rootDir, "extensions");
 const EXTENSIONS_CONFIG_PATH = path.join(EXTENSIONS_DIR, "extensions.json");
 const TEMPLATE_FILE = "buildingai-extension-starter.zip";
+
+const RELEASES_DIR = path.join(rootDir, "releases");
+
+const RELEASE_COPY_ALLOWLIST = [
+    ".output",
+    "build",
+    "src",
+    "storage/static",
+    "storage/.gitkeep",
+    ".gitignore",
+    "eslint.config.mjs",
+    "LICENSE",
+    "manifest.json",
+    "nuxt.config.ts",
+    "README.md",
+    "SEEDS.md",
+    "tsconfig.json",
+    "tsconfig.web.json",
+    "tsconfig.api.json",
+    "tsup.config.ts",
+    "package.json",
+];
 
 /**
  * Create readline interface for interactive input
@@ -136,6 +159,201 @@ async function extractTemplate(identifier) {
         return targetDir;
     } finally {
         await fs.remove(tempDir).catch(() => {});
+    }
+}
+
+async function readExtensionJsonFiles(extensionDir) {
+    const packageJsonPath = path.join(extensionDir, "package.json");
+    const manifestPath = path.join(extensionDir, "manifest.json");
+
+    if (!(await fs.pathExists(packageJsonPath))) {
+        throw new Error(`package.json not found: ${packageJsonPath}`);
+    }
+    if (!(await fs.pathExists(manifestPath))) {
+        throw new Error(`manifest.json not found: ${manifestPath}`);
+    }
+
+    const packageJson = await fs.readJson(packageJsonPath);
+    const manifest = await fs.readJson(manifestPath);
+
+    return {
+        packageJsonPath,
+        manifestPath,
+        packageJson,
+        manifest,
+    };
+}
+
+async function ensureAndCopyAllowlistedFiles(sourceDir, targetDir) {
+    await fs.ensureDir(targetDir);
+
+    for (const relativePath of RELEASE_COPY_ALLOWLIST) {
+        const srcPath = path.join(sourceDir, relativePath);
+        const destPath = path.join(targetDir, relativePath);
+
+        const exists = await fs.pathExists(srcPath);
+        if (!exists) {
+            Logger.warning("Copy", `Skipped missing path: ${relativePath}`);
+            continue;
+        }
+
+        await fs.ensureDir(path.dirname(destPath));
+        await fs.copy(srcPath, destPath);
+    }
+}
+
+export async function releaseExtension() {
+    const rl = createReadlineInterface();
+
+    let stagingDir = "";
+    let tempBaseDir = "";
+
+    async function removeTempDirIfEmpty() {
+        if (!tempBaseDir) return;
+        const exists = await fs.pathExists(tempBaseDir);
+        if (!exists) return;
+        const entries = await fs.readdir(tempBaseDir).catch(() => []);
+        if (entries.length === 0) {
+            await fs.remove(tempBaseDir).catch(() => {});
+        }
+    }
+
+    console.log("\n");
+    Logger.info("Extension", "Release a BuildingAI extension");
+    console.log("━".repeat(60));
+
+    try {
+        let identifier = "";
+        while (true) {
+            const rawIdentifier = await prompt(
+                rl,
+                "Extension identifier (buildingai-<name> or <name>)",
+            );
+            identifier = rawIdentifier.startsWith("buildingai-")
+                ? rawIdentifier
+                : `buildingai-${rawIdentifier}`;
+
+            const validation = validateIdentifier(identifier);
+            if (!validation.valid) {
+                Logger.error("Validation", validation.message);
+                continue;
+            }
+
+            if (!(await extensionExists(identifier))) {
+                Logger.error("Validation", `Extension directory not found: ${identifier}`);
+                continue;
+            }
+
+            break;
+        }
+
+        const extensionDir = path.join(EXTENSIONS_DIR, identifier);
+        const { packageJson, manifest } = await readExtensionJsonFiles(extensionDir);
+        const currentVersion =
+            typeof packageJson?.version === "string" && packageJson.version
+                ? packageJson.version
+                : typeof manifest?.version === "string" && manifest.version
+                  ? manifest.version
+                  : "0.0.1";
+
+        const version = await prompt(rl, "Version", currentVersion);
+
+        if (!semver.valid(version)) {
+            throw new Error(`Invalid version: ${version}`);
+        }
+
+        let shouldRebuild = true;
+        while (true) {
+            const rebuildAnswer = await prompt(rl, "Rebuild before release? (Y/n)", "y");
+            const normalizedAnswer = rebuildAnswer.trim().toLowerCase();
+            if (normalizedAnswer === "y" || normalizedAnswer === "yes") {
+                shouldRebuild = true;
+                break;
+            }
+            if (normalizedAnswer === "n" || normalizedAnswer === "no") {
+                shouldRebuild = false;
+                break;
+            }
+            Logger.error("Validation", "Please enter 'y' or 'n'");
+        }
+
+        rl.close();
+
+        const packageVersion = packageJson?.version;
+        const manifestVersion = manifest?.version;
+
+        if (!semver.valid(packageVersion)) {
+            throw new Error(`Invalid package.json version: ${packageVersion}`);
+        }
+        if (!semver.valid(manifestVersion)) {
+            throw new Error(`Invalid manifest.json version: ${manifestVersion}`);
+        }
+
+        if (semver.lt(version, packageVersion) || semver.lt(version, manifestVersion)) {
+            throw new Error(
+                `Version ${version} is lower than current version (package.json=${packageVersion}, manifest.json=${manifestVersion})`,
+            );
+        }
+
+        if (semver.gt(version, packageVersion) || semver.gt(version, manifestVersion)) {
+            Logger.info("Version", `Updating versions to ${version}...`);
+
+            const { packageJsonPath, manifestPath } = await readExtensionJsonFiles(extensionDir);
+            const nextPackageJson = { ...packageJson, version };
+            const nextManifest = { ...manifest, version };
+
+            await fs.writeJson(packageJsonPath, nextPackageJson, { spaces: 4 });
+            await fs.writeJson(manifestPath, nextManifest, { spaces: 4 });
+            Logger.success("Version", "Updated package.json and manifest.json");
+        } else {
+            Logger.info("Version", "No version change needed");
+        }
+
+        if (shouldRebuild) {
+            await buildExtension(extensionDir);
+            Logger.success("Build", "Build completed");
+        } else {
+            Logger.info("Build", "Skipped rebuild");
+        }
+
+        const releaseName = `${identifier}-${version}`;
+        tempBaseDir = path.join(RELEASES_DIR, ".tmp");
+        stagingDir = path.join(tempBaseDir, releaseName);
+        const zipPath = path.join(RELEASES_DIR, `${releaseName}.zip`);
+
+        await fs.ensureDir(RELEASES_DIR);
+        if (await fs.pathExists(zipPath)) {
+            Logger.warning("Zip", `Release zip already exists, overwriting: ${zipPath}`);
+            await fs.remove(zipPath);
+        }
+
+        await fs.ensureDir(tempBaseDir);
+        if (await fs.pathExists(stagingDir)) {
+            Logger.warning("Copy", `Removing existing temp directory: ${stagingDir}`);
+            await fs.remove(stagingDir);
+        }
+
+        Logger.info("Copy", `Copying extension to: ${stagingDir}`);
+        await ensureAndCopyAllowlistedFiles(extensionDir, stagingDir);
+        Logger.success("Copy", "Copy completed");
+
+        Logger.info("Zip", `Creating zip: ${zipPath}`);
+        const zip = new AdmZip();
+        zip.addLocalFolder(stagingDir, releaseName);
+        zip.writeZip(zipPath);
+        Logger.success("Zip", `Release created: ${zipPath}`);
+
+        await fs.remove(stagingDir).catch(() => {});
+        stagingDir = "";
+        await removeTempDirIfEmpty();
+    } catch (error) {
+        rl.close();
+        if (stagingDir) {
+            await fs.remove(stagingDir).catch(() => {});
+        }
+        await removeTempDirIfEmpty();
+        Logger.error("Extension", `Failed to release extension: ${error.message}`);
+        process.exit(1);
     }
 }
 
@@ -513,8 +731,9 @@ export async function createExtension() {
         // 1. Get extension identifier
         let identifier = "";
         while (true) {
-            const suffix = await prompt(rl, "Extension identifier (buildingai-<name>)");
-            identifier = suffix.startsWith("buildingai-") ? suffix : `buildingai-${suffix}`;
+            const rawIdentifier = await prompt(rl, "Extension identifier (buildingai-<name>)");
+            const normalizedIdentifier = rawIdentifier.replace(/^(?:buildingai-)+/g, "");
+            identifier = `buildingai-${normalizedIdentifier}`;
             const validation = validateIdentifier(identifier);
             if (!validation.valid) {
                 Logger.error("Validation", validation.message);
