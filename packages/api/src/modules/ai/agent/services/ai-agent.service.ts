@@ -8,6 +8,7 @@ import { AgentAnnotation } from "@buildingai/db/entities";
 import { AgentChatMessage } from "@buildingai/db/entities";
 import { AgentChatRecord } from "@buildingai/db/entities";
 import { Tag } from "@buildingai/db/entities";
+import { User } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { Injectable } from "@nestjs/common";
@@ -225,6 +226,23 @@ export class AiAgentService extends BaseService<Agent> {
         queryBuilder
             .leftJoin("agent.tags", "tag")
             .addSelect(["tag.id", "tag.name", "tag.type", "tag.createdAt", "tag.updatedAt"]);
+
+        // 关联创建者信息（仅选择安全字段）
+        // 注意：agent.createBy 是 varchar，但 user.id 通常为 uuid，这里使用 ::text 规避 uuid/text 比较报错
+        queryBuilder
+            .leftJoinAndMapOne(
+                "agent.creator",
+                User,
+                "creator",
+                "creator.id::text = agent.createBy",
+            )
+            .addSelect([
+                "creator.id",
+                "creator.userNo",
+                "creator.username",
+                "creator.nickname",
+                "creator.avatar",
+            ]);
 
         // 关键词搜索
         if (dto.keyword) {
