@@ -69,7 +69,8 @@
         "build:desktop": "cd packages/desktop && pnpm run build:desktop",
         "build:api": "cd packages/api && pnpm run build",
         "build:web": "cd packages/web/buildingai-ui && pnpm run generate",
-        "extension:create": "node packages/cli/bin/cli.js extension:create"
+        "extension:create": "node packages/cli/bin/cli.js extension:create",
+        "extension:release": "node packages/cli/bin/cli.js extension:release"
     },
     "dependencies": {
         "@iconify-json/heroicons": "^1.2.3",

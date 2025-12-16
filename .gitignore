@@ -66,3 +66,4 @@ extensions/*
 !extensions/buildingai-simple-blog/build
 !extensions/buildingai-simple-blog/.output
 extensions/buildingai-simple-blog/dist
+releases

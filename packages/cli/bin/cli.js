@@ -5,7 +5,7 @@ import { Command } from "commander";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import { createExtension } from "../src/commands/extension.js";
+import { createExtension, releaseExtension } from "../src/commands/extension.js";
 import {
     deleteApi,
     flushLogs,
@@ -95,5 +95,10 @@ program
     .command("extension:create")
     .description("Create a new extension from template")
     .action(createExtension);
+
+program
+    .command("extension:release")
+    .description("Release an extension to releases directory")
+    .action(releaseExtension);
 
 program.parse();
