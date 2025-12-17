@@ -1111,10 +1111,15 @@ export class ExtensionOperationService {
      * @private
      */
     private async extractTemplateToExtensions(identifier: string): Promise<string> {
-        const templatePath = path.join(this.templatesDir, "buildingai-extension-starter.zip");
+        const templatePath = path.join(this.templatesDir, "buildingai-extension-starter");
 
         if (!(await fs.pathExists(templatePath))) {
-            throw HttpErrorFactory.badRequest(`Template file not found: ${templatePath}`);
+            throw HttpErrorFactory.badRequest(`Template directory not found: ${templatePath}`);
+        }
+
+        const templateStat = await fs.stat(templatePath);
+        if (!templateStat.isDirectory()) {
+            throw HttpErrorFactory.badRequest(`Template path is not a directory: ${templatePath}`);
         }
 
         const safeIdentifier = this.toSafeName(identifier);
@@ -1126,28 +1131,15 @@ export class ExtensionOperationService {
         }
 
         try {
-            // Extract template
-            const zip = new AdmZip(templatePath);
-            const tempExtractDir = path.join(this.tempDir, `template-${uuidv4()}`);
+            // Find the root directory (may be nested)
+            const sourceDir = await this.resolveTemplateRoot(templatePath);
 
-            await fs.ensureDir(tempExtractDir);
+            // Copy to target directory
+            await fs.ensureDir(targetDir);
+            await fs.copy(sourceDir, targetDir);
 
-            try {
-                zip.extractAllTo(tempExtractDir, true);
-
-                // Find the root directory (may be nested)
-                const sourceDir = await this.resolveTemplateRoot(tempExtractDir);
-
-                // Copy to target directory
-                await fs.ensureDir(targetDir);
-                await fs.copy(sourceDir, targetDir);
-
-                this.logger.log(`Template extracted to: ${targetDir}`);
-                return targetDir;
-            } finally {
-                // Clean up temp directory
-                await fs.remove(tempExtractDir).catch(() => undefined);
-            }
+            this.logger.log(`Template extracted to: ${targetDir}`);
+            return targetDir;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             throw HttpErrorFactory.badRequest(`Failed to extract template: ${errorMessage}`);
