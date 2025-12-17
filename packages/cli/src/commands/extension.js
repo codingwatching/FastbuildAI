@@ -14,7 +14,7 @@ const rootDir = path.join(__dirname, "../../../..");
 const TEMPLATES_DIR = path.join(rootDir, "templates");
 const EXTENSIONS_DIR = path.join(rootDir, "extensions");
 const EXTENSIONS_CONFIG_PATH = path.join(EXTENSIONS_DIR, "extensions.json");
-const TEMPLATE_FILE = "buildingai-extension-starter.zip";
+const TEMPLATE_FILE = "buildingai-extension-starter";
 
 const RELEASES_DIR = path.join(rootDir, "releases");
 
@@ -134,7 +134,12 @@ async function extractTemplate(identifier) {
     const templatePath = path.join(TEMPLATES_DIR, TEMPLATE_FILE);
 
     if (!(await fs.pathExists(templatePath))) {
-        throw new Error(`Template file not found: ${templatePath}`);
+        throw new Error(`Template directory not found: ${templatePath}`);
+    }
+
+    const templateStat = await fs.stat(templatePath);
+    if (!templateStat.isDirectory()) {
+        throw new Error(`Template path is not a directory: ${templatePath}`);
     }
 
     const targetDir = path.join(EXTENSIONS_DIR, identifier);
@@ -143,23 +148,13 @@ async function extractTemplate(identifier) {
         throw new Error(`Extension directory already exists: ${targetDir}`);
     }
 
-    const zip = new AdmZip(templatePath);
-    const tempDir = path.join(EXTENSIONS_DIR, `.temp-${Date.now()}`);
+    // Find the root directory (may be nested)
+    const sourceDir = await resolveTemplateRoot(templatePath);
 
-    try {
-        await fs.ensureDir(tempDir);
-        zip.extractAllTo(tempDir, true);
+    await fs.ensureDir(targetDir);
+    await fs.copy(sourceDir, targetDir);
 
-        // Find the root directory (may be nested)
-        const sourceDir = await resolveTemplateRoot(tempDir);
-
-        await fs.ensureDir(targetDir);
-        await fs.copy(sourceDir, targetDir);
-
-        return targetDir;
-    } finally {
-        await fs.remove(tempDir).catch(() => {});
-    }
+    return targetDir;
 }
 
 async function readExtensionJsonFiles(extensionDir) {
