@@ -105,7 +105,6 @@ const uploadFiles = async (items: FileItem[]) => {
                 { file: item.file, description: "datasets files" },
                 {
                     onProgress: (progress) => {
-                        // TODO: Check progress is work
                         if (item.id) {
                             updateFile(item.id, { progress });
                         }
