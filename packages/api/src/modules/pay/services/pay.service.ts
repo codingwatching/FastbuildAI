@@ -340,13 +340,13 @@ export class PayService extends BaseService<Payconfig> {
                 source: 1,
             });
 
-            // 立即赠送临时积分(过期时间为下月同日)
+            // 立即赠送临时积分(过期时间为 30 天后)
             const levelSnap = order.levelSnap as any;
             const givePower = levelSnap?.givePower || 0;
 
             if (givePower > 0) {
-                // 计算下月同日作为过期时间
-                const expireAt = this.getNextMonthSameDay(now);
+                // 计算 30 天后作为过期时间
+                const expireAt = this.getNext30Days(now);
 
                 // 记录积分赠送日志(带过期时间)
                 await this.appBillingService.addUserPower(
@@ -369,28 +369,13 @@ export class PayService extends BaseService<Payconfig> {
     }
 
     /**
-     * 获取下月同日的时间
-     * 如果下月没有该日期(如1月31日->2月),则取下月最后一天
+     * 获取 30 天后的时间
      * @param date 日期
-     * @returns 下月同日的0点时间
+     * @returns 30 天后的 0 点时间
      */
-    private getNextMonthSameDay(date: Date): Date {
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const day = date.getDate();
-
-        // 计算下月
-        const nextMonth = month + 1;
-        const nextYear = nextMonth > 11 ? year + 1 : year;
-        const actualNextMonth = nextMonth > 11 ? 0 : nextMonth;
-
-        // 获取下月的天数
-        const daysInNextMonth = new Date(nextYear, actualNextMonth + 1, 0).getDate();
-
-        // 如果下月没有该日期,取下月最后一天
-        const actualDay = Math.min(day, daysInNextMonth);
-
-        const nextDate = new Date(nextYear, actualNextMonth, actualDay);
+    private getNext30Days(date: Date): Date {
+        const nextDate = new Date(date);
+        nextDate.setDate(nextDate.getDate() + 30);
         nextDate.setHours(0, 0, 0, 0);
         return nextDate;
     }

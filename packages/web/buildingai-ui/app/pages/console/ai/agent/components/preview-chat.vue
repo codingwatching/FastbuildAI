@@ -466,11 +466,7 @@ defineExpose({
         <div class="px-4 pb-4">
             <div class="flex gap-2 pb-4">
                 <div v-for="item in agent.quickCommands" :key="item.name">
-                    <UButton
-                        color="neutral"
-                        variant="soft"
-                        @click="handleSubmitMessage(item.content)"
-                    >
+                    <UButton color="neutral" variant="soft" @click="handleSubmitMessage(item.name)">
                         <NuxtImg v-if="item.avatar" :src="item.avatar" class="h-4 w-4" />
                         <span>{{ item.name }}</span>
                     </UButton>

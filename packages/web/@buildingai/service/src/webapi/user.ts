@@ -71,6 +71,10 @@ export interface UserInfo extends BaseEntity {
     /** 用户当前最高会员等级ID */
     membershipLevelId?: string | null;
     membershipLevel?: MembershipLevelInfo;
+    /** 用户当前会员等级 */
+    level?: string;
+    /** 用户当前会员等级结束时间 */
+    levelEndTime?: string;
 }
 
 export interface MembershipLevelInfo {
