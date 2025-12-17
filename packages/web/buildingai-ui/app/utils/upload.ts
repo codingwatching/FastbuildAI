@@ -14,20 +14,28 @@ interface FileUploadParams {
     extensionId?: string;
 }
 
+interface OssFileUploadParams {
+    file: File | Blob;
+    name: string;
+    size: number;
+    description?: string;
+    extensionId?: string;
+}
+
 interface OssWrappedFileUploadOptions {
     onProgress?: (percent: number, bytes: number) => void;
 }
 
 async function fileUploadToOSS(
-    params: FileUploadParams,
+    params: OssFileUploadParams,
     options?: OssWrappedFileUploadOptions,
 ): Promise<FileUploadResponse> {
     const storageStore = useStorageStore();
 
     try {
         const { signature, fullPath, fileUrl, metadata } = await storageStore.getOSSSignature({
-            name: params.file.name,
-            size: params.file.size,
+            name: params.name,
+            size: params.size,
         });
 
         const formData = new FormData();
@@ -102,7 +110,7 @@ async function filesUploadToOSS(
 
     const tasks = Promise.all(
         params.files.map((file) => {
-            const fileParam: FileUploadParams = { file };
+            const fileParam: OssFileUploadParams = { file, size: file.size, name: file.name };
             if (params.description) fileParam.description = params.description;
             if (params.extensionId) fileParam.extensionId = params.extensionId;
 
@@ -144,7 +152,14 @@ export async function fileUploadUnified(
 
         switch (storageType) {
             case StorageType.OSS:
-                return await fileUploadToOSS(params, options);
+                return await fileUploadToOSS(
+                    {
+                        ...params,
+                        name: params.file.name,
+                        size: params.file.size,
+                    },
+                    options,
+                );
             case StorageType.LOCAL:
                 return await fileUploadToLocal(params, options);
         }
@@ -183,5 +198,37 @@ export async function filesUploadUnified(
 }
 
 export async function uploadRemoteFileUnified(params: { url: string; description?: string }) {
-    return apiUploadRemoteFile(params);
+    const storageStore = useStorageStore();
+
+    try {
+        let storageType = storageStore.storageType;
+        if (!storageType) {
+            storageType = await storageStore.checkStorageType();
+        }
+
+        switch (storageType) {
+            case StorageType.OSS: {
+                const response = await fetch(params.url);
+                const file = await response.blob();
+
+                const getFileNameFromUrl = (url: string) => {
+                    const urlObj = new URL(url);
+                    const pathname = urlObj.pathname;
+                    return pathname.substring(pathname.lastIndexOf("/") + 1);
+                };
+                return await fileUploadToOSS({
+                    file,
+                    size: file.size,
+                    name: getFileNameFromUrl(params.url),
+                });
+            }
+            case StorageType.LOCAL:
+                return apiUploadRemoteFile(params);
+        }
+
+        return Promise.reject("Invalid storage type");
+    } catch (error) {
+        console.error("[Upload] upload failed:", error);
+        throw error;
+    }
 }
