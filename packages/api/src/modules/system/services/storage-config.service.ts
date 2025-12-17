@@ -1,5 +1,7 @@
+import { RedisService } from "@buildingai/cache";
 import { StorageType } from "@buildingai/constants/shared/storage-config.constant";
 import { Dict, StorageConfig } from "@buildingai/db/entities";
+import { StsService } from "@modules/sts/services/sts.service";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
@@ -18,9 +20,13 @@ interface DictUpdateData {
 @Injectable()
 export class StorageConfigService {
     @InjectRepository(StorageConfig)
-    private repository: Repository<StorageConfig>;
+    private readonly repository: Repository<StorageConfig>;
 
-    constructor(private dataSource: DataSource) {}
+    constructor(
+        private dataSource: DataSource,
+        private readonly cacheService: RedisService,
+        private readonly stsService: StsService,
+    ) {}
 
     async getAllConfigs() {
         return await this.repository
@@ -46,6 +52,11 @@ export class StorageConfigService {
             const res = await manager.update(StorageConfig, { id, storageType }, updateValue);
             if (res.affected === 0) {
                 throw new Error("Update storage config failed");
+            }
+
+            switch (storageType) {
+                case "oss":
+                    await this.stsService.clearOssStsCredentials();
             }
 
             if (dto.isActive) {

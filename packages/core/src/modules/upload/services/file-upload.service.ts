@@ -539,13 +539,16 @@ export class FileUploadService extends BaseService<File> {
 
         const storage = this.fileStorageService.generateStoragePath(metadata, options);
         const urlPath = options?.extensionId
-            ? `/${options.extensionId}/uploads/${storage.fullPath}`
-            : `/uploads/${storage.fullPath}`;
+            ? `${options.extensionId}/uploads/${storage.fullPath}`
+            : `uploads/${storage.fullPath}`;
         const fileUrl = await this.fileUrlService.get(urlPath);
+
+        // Rewrite storage.fullPath, it with '/uploads'
+        const fullPath = urlPath;
 
         return {
             metadata,
-            storage: { ...storage, fileUrl },
+            storage: { ...storage, fileUrl, fullPath },
         };
     }
 }

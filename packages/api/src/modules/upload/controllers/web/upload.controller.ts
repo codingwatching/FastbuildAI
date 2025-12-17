@@ -76,7 +76,7 @@ export class UploadController extends BaseController {
             case StorageType.OSS: {
                 const config = storageConfig.config as AliyunOssConfig;
                 const cloudConf = await this.uploadService.generateCloudStorageInfo(dto);
-                const signature = await this.uploadService.getAliyunOssUploadSignature(config);
+                const signature = await this.uploadService.getAliyunSignature(config);
 
                 return {
                     signature,
