@@ -41,6 +41,7 @@ import { PermissionModule } from "./permission/permission.module";
 import { Pm2Module } from "./pm2/pm2.module";
 import { RechargeModule } from "./recharge/recharge.module";
 import { RoleModule } from "./role/role.module";
+import { ScheduleModule } from "./schedule/schedule.module";
 import { SystemModule } from "./system/system.module";
 import { TagModule } from "./tag/tag.module";
 import { UploadModule } from "./upload/upload.module";
@@ -108,6 +109,7 @@ export class AppModule {
                 AnalyseModule,
                 SecretModule,
                 UserModule,
+                ScheduleModule,
                 await ExtensionCoreModule.register(),
             ],
             controllers: [],
