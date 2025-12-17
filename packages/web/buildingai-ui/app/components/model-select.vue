@@ -92,9 +92,6 @@ function requiresMembership(model: AiModel): boolean {
 function hasModelAccess(model: AiModel): boolean {
     if (props.console) return true;
 
-    // 超级管理员不受会员等级限制
-    if (userStore.userInfo?.isRoot === 1) return true;
-
     // 如果模型不需要会员权限，则所有人都可以访问
     if (!requiresMembership(model)) return true;
 

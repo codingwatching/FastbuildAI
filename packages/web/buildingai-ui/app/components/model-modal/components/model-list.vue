@@ -511,6 +511,11 @@ watch(
                                             {{ $t("common.ai.audio") }}
                                         </UBadge>
                                     </div>
+                                    <UIcon
+                                        v-if="model.membershipLevel.length > 0"
+                                        name="i-lucide-crown"
+                                        class="text-warning size-4"
+                                    />
                                 </div>
                                 <div
                                     v-if="model.billingRule.power > 0"
