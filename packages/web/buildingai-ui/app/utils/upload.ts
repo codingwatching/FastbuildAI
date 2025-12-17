@@ -1,21 +1,34 @@
 import { StorageType } from "@buildingai/constants/shared";
-import { apiUploadFile, type FileUploadResponse } from "@buildingai/service/common";
+import {
+    apiUploadFile,
+    apiUploadFiles,
+    apiUploadRemoteFile,
+    type FileUploadResponse,
+} from "@buildingai/service/common";
 
 import { useStorageStore } from "@/stores/storage";
 
-async function uploadToOSS(
-    params: { file: File; description?: string; extensionId?: string },
-    options?: { onProgress?: (percent: number) => void },
+interface FileUploadParams {
+    file: File;
+    description?: string;
+    extensionId?: string;
+}
+
+interface OssWrappedFileUploadOptions {
+    onProgress?: (percent: number, bytes: number) => void;
+}
+
+async function fileUploadToOSS(
+    params: FileUploadParams,
+    options?: OssWrappedFileUploadOptions,
 ): Promise<FileUploadResponse> {
     const storageStore = useStorageStore();
 
     try {
-        const signatureData = await storageStore.getOSSSignature({
+        const { signature, fullPath, fileUrl, metadata } = await storageStore.getOSSSignature({
             name: params.file.name,
             size: params.file.size,
         });
-
-        const { signature, fullPath, fileUrl, metadata } = signatureData;
 
         const formData = new FormData();
         formData.append("key", fullPath);
@@ -36,7 +49,7 @@ async function uploadToOSS(
                 xhr.upload.addEventListener("progress", (event) => {
                     if (event.lengthComputable) {
                         const percent = Math.round((event.loaded / event.total) * 100);
-                        options.onProgress?.(percent);
+                        options.onProgress?.(percent, event.loaded);
                     }
                 });
             }
@@ -80,32 +93,60 @@ async function uploadToOSS(
     }
 }
 
-async function uploadToLocal(
-    params: { file: File; description?: string; extensionId?: string },
+async function filesUploadToOSS(
+    params: { files: File[]; description?: string; extensionId?: string },
+    options?: OssWrappedFileUploadOptions,
+) {
+    const totalBytes = params.files.reduce((count, file) => count + file.size, 0);
+    let uploadBytes = 0;
+
+    const tasks = Promise.all(
+        params.files.map((file) => {
+            const fileParam: FileUploadParams = { file };
+            if (params.description) fileParam.description = params.description;
+            if (params.extensionId) fileParam.extensionId = params.extensionId;
+
+            const fileOptions: OssWrappedFileUploadOptions = {};
+            if (options?.onProgress) {
+                fileOptions.onProgress = (_: number, bytes) => {
+                    uploadBytes += bytes;
+
+                    const percent = Math.round((uploadBytes / totalBytes) * 100);
+                    options.onProgress?.(percent, totalBytes);
+                };
+            }
+
+            return fileUploadToOSS(fileParam);
+        }),
+    );
+
+    return await tasks;
+}
+
+async function fileUploadToLocal(
+    params: FileUploadParams,
     options?: { onProgress?: (percent: number) => void },
 ): Promise<FileUploadResponse> {
     return await apiUploadFile(params, options);
 }
 
-export async function unifiedFileUpload(
-    params: { file: File; description?: string; extensionId?: string },
+export async function fileUploadUnified(
+    params: FileUploadParams,
     options?: { onProgress?: (percent: number) => void },
 ): Promise<FileUploadResponse> {
     const storageStore = useStorageStore();
 
     try {
         let storageType = storageStore.storageType;
-        console.log(storageType);
-
         if (!storageType) {
             storageType = await storageStore.checkStorageType();
         }
 
         switch (storageType) {
             case StorageType.OSS:
-                return await uploadToOSS(params, options);
+                return await fileUploadToOSS(params, options);
             case StorageType.LOCAL:
-                return await uploadToLocal(params, options);
+                return await fileUploadToLocal(params, options);
         }
 
         return Promise.reject("Invalid storage type");
@@ -113,4 +154,34 @@ export async function unifiedFileUpload(
         console.error("[Upload] upload failed:", error);
         throw error;
     }
+}
+
+export async function filesUploadUnified(
+    params: { files: File[]; description?: string; extensionId?: string },
+    options?: { onProgress?: (percent: number) => void },
+) {
+    const storageStore = useStorageStore();
+
+    try {
+        let storageType = storageStore.storageType;
+        if (!storageType) {
+            storageType = await storageStore.checkStorageType();
+        }
+
+        switch (storageType) {
+            case StorageType.OSS:
+                return await filesUploadToOSS(params, options);
+            case StorageType.LOCAL:
+                return await apiUploadFiles(params, options);
+        }
+
+        return Promise.reject("Invalid storage type");
+    } catch (error) {
+        console.error("[Upload] upload failed:", error);
+        throw error;
+    }
+}
+
+export async function uploadRemoteFileUnified(params: { url: string; description?: string }) {
+    return apiUploadRemoteFile(params);
 }

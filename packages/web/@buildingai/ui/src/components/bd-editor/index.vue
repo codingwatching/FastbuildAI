@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { apiUploadFile } from "@buildingai/service/common";
 import { Color } from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
@@ -13,6 +12,8 @@ import { Editor, EditorContent } from "@tiptap/vue-3";
 import { Markdown } from "tiptap-markdown";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
+
+import { fileUploadUnified } from "@/utils/upload";
 
 import type { BdEditorEmits, BdEditorProps } from "./types";
 
@@ -192,7 +193,7 @@ async function handlePickAndInsertImage() {
             files.map(
                 (file) =>
                     new Promise<{ url: string }>((resolve, reject) => {
-                        apiUploadFile({ file, description: "editor" })
+                        fileUploadUnified({ file, description: "editor" })
                             .then((res: { url: string }) => resolve(res))
                             .catch((err: Error) => reject(err));
                     }),

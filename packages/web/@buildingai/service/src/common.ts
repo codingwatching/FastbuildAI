@@ -256,6 +256,7 @@ function getExtensionId(providedExtensionId?: string): string | undefined {
 /**
  * General file upload method - single file upload
  * @description Upload a single file to the server
+ * @see {@link fileUploadUnified} Please use this wrapped version
  * @param params Upload parameters
  * @param params.file File object to upload
  * @param params.description File description (optional)
@@ -278,6 +279,7 @@ export function apiUploadFile(
 /**
  * General file upload method - multiple file upload
  * @description Upload multiple files to the server
+ * @see {@link filesUploadUnified} Please use this wrapped version
  * @param params Upload parameters
  * @param params.files Array of file objects to upload
  * @param params.description File description (optional)
@@ -298,6 +300,11 @@ export function apiUploadFiles(
 }
 
 /**
+ * ==========================================
+ * Currently, when initializing the system, it is uploaded to the Local by default,
+ * so there is no need to wrap it here. If it is required later, it needs to be rewrapped here.
+ * ==========================================
+ *
  * Initialization file upload method - single file upload for system initialization
  * @description Upload a single file during system initialization (e.g., avatar, logo)
  * @param params Upload parameters
@@ -317,6 +324,7 @@ export function apiUploadInitFile(
 /**
  * Remote file upload method - upload a remote file to the server
  * @description Upload a remote file to the server
+ * @see {@link uploadRemoteFileUnified} Please use this wrapped version
  * @param params Upload parameters
  * @param params.url Remote file URL
  * @param params.description File description (optional)
