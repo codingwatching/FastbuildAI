@@ -101,7 +101,8 @@
         "agreement": "ポリシー契約",
         "channelManagement": "チャネル管理",
         "wechatOaConfig": "公式アカウント設定",
-        "loginConfig": "ログイン設定"
+        "loginConfig": "ログイン設定",
+        "storageConfig": "ストレージ設定"
     },
     "plugin": "アプリ管理",
     "pluginManage": "マイアプリ",
