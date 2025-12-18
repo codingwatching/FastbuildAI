@@ -52,19 +52,6 @@ export class UploadController extends BaseController {
         super();
     }
 
-    @Get("active")
-    async getActiveStorageType() {
-        const storage = await this.storageConfigService.getActiveStorageConfig();
-        if (!storage) {
-            throw HttpErrorFactory.notFound("Storage config is not found");
-        }
-        return {
-            id: storage.id,
-            storageType: storage.storageType,
-            isActive: storage.isActive,
-        };
-    }
-
     @Post("signature")
     async getUploadSignature(@Body() dto: SignatureRequestDto) {
         const storageConfig = await this.storageConfigService.getActiveStorageConfig();

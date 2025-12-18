@@ -21,6 +21,10 @@ export class StorageConfigWebController extends BaseController {
             throw HttpErrorFactory.notFound("Storage config is not found");
         }
 
-        return storage;
+        return {
+            id: storage.id,
+            storageType: storage.storageType,
+            isActive: storage.isActive,
+        };
     }
 }
