@@ -3,9 +3,8 @@ import {
     apiUpdateStorageConfig,
     type StorageConfigTableData,
 } from "@buildingai/service/consoleapi/storage-config";
+import { useStorageStore } from "@buildingai/upload";
 import { boolean, object, string } from "yup";
-
-import { useStorageStore } from "~/stores/storage";
 
 const emit = defineEmits<{ (e: "update"): void }>();
 const props = defineProps({

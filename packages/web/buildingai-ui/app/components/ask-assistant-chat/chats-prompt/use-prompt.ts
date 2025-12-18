@@ -1,7 +1,10 @@
 import type { FileUploadResponse } from "@buildingai/service/common";
 import type { FilesList } from "@buildingai/service/models/message";
-
-import { fileUploadUnified, uploadRemoteFileUnified } from "@/utils/upload";
+import {
+    uploadFileAdaptive,
+    uploadFilesAdaptive,
+    uploadRemoteFileAdaptive,
+} from "@buildingai/upload";
 
 import { getMediaType } from "../../../utils/file";
 
@@ -54,7 +57,7 @@ export function usePromptFiles() {
         });
 
         try {
-            const result = await fileUploadUnified(
+            const result = await uploadFileAdaptive(
                 { file, description: `Prompt file: ${file.name}` },
                 { onProgress: (percent) => updateFileStatus(fileId, { progress: percent }) },
             );
@@ -103,7 +106,7 @@ export function usePromptFiles() {
         });
 
         try {
-            const result = await uploadRemoteFileUnified({
+            const result = await uploadRemoteFileAdaptive({
                 url: trimmedUrl,
                 description: `Remote file: ${fileName}`,
             });
@@ -152,7 +155,7 @@ export function usePromptFiles() {
         Object.assign(file, { status: "uploading", progress: 0, error: undefined });
 
         try {
-            const result = await fileUploadUnified(
+            const result = await uploadFileAdaptive(
                 { file: file.file, description: `Prompt file: ${file.file.name}` },
                 { onProgress: (percent) => (file.progress = percent) },
             );

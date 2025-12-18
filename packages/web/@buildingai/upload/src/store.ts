@@ -1,7 +1,7 @@
+import { defineStore } from "pinia";
 import type { StorageTypeType } from "@buildingai/constants/shared";
 import { apiGetUploadSignature } from "@buildingai/service/common";
 import { apiGetActiveStorage } from "@buildingai/service/webapi/storage-config";
-import { defineStore } from "pinia";
 
 export const useStorageStore = defineStore("storage", {
     state: () => ({
@@ -24,6 +24,10 @@ export const useStorageStore = defineStore("storage", {
         },
 
         async checkStorageType(): Promise<StorageTypeType> {
+            if (this.storageType !== null) {
+                return this.storageType;
+            }
+
             const result = await apiGetActiveStorage();
             this.storageType = result.storageType;
             return result.storageType;

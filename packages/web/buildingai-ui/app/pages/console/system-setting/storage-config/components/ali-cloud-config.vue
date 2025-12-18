@@ -6,9 +6,8 @@ import {
     type StorageConfigTableData,
 } from "@buildingai/service/consoleapi/storage-config";
 import { StorageType } from "@buildingai/service/consoleapi/storage-config";
+import { useStorageStore } from "@buildingai/upload";
 import { boolean, object, string } from "yup";
-
-import { useStorageStore } from "@/stores/storage";
 
 import { aliyunOSSDefaultConfig } from "../config-default";
 
