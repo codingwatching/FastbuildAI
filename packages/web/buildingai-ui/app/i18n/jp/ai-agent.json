@@ -27,7 +27,15 @@
             "descriptionPlaceholder": "説明を入力",
             "mode": "作成モード",
             "modes": {
-                "direct": "直接作成"
+                "direct": "直接作成",
+                "coze": "Cozeエージェント",
+                "dify": "Difyエージェント"
+            },
+            "modesDesc": {
+                "direct": "エージェント情報を手動で設定",
+                "coze": "Coze プラットフォームのエージェントと連携",
+                "dify": "Dify プラットフォームのエージェントと連携",
+                "plugin": "プラグインで拡張されたエージェントタイプ"
             }
         },
         "menu": {

@@ -35,19 +35,19 @@ const createModes = computed(() => {
         {
             value: "direct",
             label: t("ai-agent.backend.create.modes.direct"),
-            description: "手动配置智能体信息",
+            description: t("ai-agent.backend.create.modesDesc.direct"),
             icon: "i-lucide-bot",
         },
         {
             value: "coze",
-            label: "Coze智能体",
-            description: "对接 Coze 平台智能体",
+            label: t("ai-agent.backend.create.modes.coze"),
+            description: t("ai-agent.backend.create.modesDesc.coze"),
             icon: "/images/coze.png",
         },
         {
             value: "dify",
-            label: "Dify智能体",
-            description: "对接 Dify 平台智能体",
+            label: t("ai-agent.backend.create.modes.dify"),
+            description: t("ai-agent.backend.create.modesDesc.dify"),
             icon: "/images/dify.png",
         },
     ];
@@ -55,7 +55,7 @@ const createModes = computed(() => {
     const pluginModes = usePluginSlots("agent:create:modes").value.map((slot) => ({
         value: slot.meta?.value,
         label: t(slot.meta?.label as string),
-        description: slot.meta?.description || "通过插件扩展的智能体类型",
+        description: slot.meta?.description || t("ai-agent.backend.create.modesDesc.plugin"),
         icon: slot.meta?.icon,
     }));
 

@@ -27,7 +27,15 @@
             "descriptionPlaceholder": "请输入智能体描述",
             "mode": "创建模式",
             "modes": {
-                "direct": "直接创建"
+                "direct": "直接创建",
+                "coze": "Coze智能体",
+                "dify": "Dify智能体"
+            },
+            "modesDesc": {
+                "direct": "手动配置智能体信息",
+                "coze": "对接 Coze 平台智能体",
+                "dify": "对接 Dify 平台智能体",
+                "plugin": "通过插件扩展的智能体类型"
             }
         },
         "menu": {

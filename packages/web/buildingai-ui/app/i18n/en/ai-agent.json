@@ -27,7 +27,15 @@
             "descriptionPlaceholder": "Enter description",
             "mode": "Creation Mode",
             "modes": {
-                "direct": "Direct Create"
+                "direct": "Direct Create",
+                "coze": "Coze Agent",
+                "dify": "Dify Agent"
+            },
+            "modesDesc": {
+                "direct": "Manually configure agent info",
+                "coze": "Integrate with Coze platform agent",
+                "dify": "Integrate with Dify platform agent",
+                "plugin": "Agent type extended via plugin"
             }
         },
         "menu": {
