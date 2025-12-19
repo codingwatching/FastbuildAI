@@ -53,6 +53,15 @@ class CopyrightDto {
 
     @IsNotEmpty({ message: "链接URL不能为空" })
     url: string;
+
+    @IsNotEmpty({ message: "版权信息不能为空" })
+    copyrightText: string;
+
+    @IsNotEmpty({ message: "版权品牌不能为空" })
+    copyrightBrand: string;
+
+    @IsNotEmpty({ message: "版权跳转链接不能为空" })
+    copyrightUrl: string;
 }
 
 class StatisticsDto {

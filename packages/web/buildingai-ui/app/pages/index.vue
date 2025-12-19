@@ -284,13 +284,13 @@ definePageMeta({
                             >|</span
                         >
                         <span class="space-x-1">
-                            <span>Powered by</span>
+                            <span>{{ appStore.siteConfig?.copyright.copyrightText }}</span>
                             <a
                                 class="text-primary font-bold"
-                                href="https://www.buildingai.cc"
+                                :href="appStore.siteConfig?.copyright.copyrightUrl"
                                 target="_blank"
                             >
-                                BuildingAI
+                                {{ appStore.siteConfig?.copyright.copyrightBrand }}
                             </a>
                         </span>
                     </div>

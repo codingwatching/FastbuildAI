@@ -95,6 +95,12 @@ export interface WebsiteCopyright {
     iconUrl: string;
     /** Copyright link URL */
     url: string;
+    /** Copyright text */
+    copyrightText: string;
+    /** Copyright brand */
+    copyrightBrand: string;
+    /** Copyright link URL */
+    copyrightUrl: string;
 }
 
 /**
