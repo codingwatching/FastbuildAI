@@ -99,10 +99,14 @@ const { lockFn: handleUpdate, isLock } = useLockFn(async (flag = true) => {
 
 const handleAutoSave = useDebounceFn(() => handleUpdate(false), 1000);
 
+// 第三方模式下禁用自动保存
+const isThirdPartyMode = computed(() => state.createMode !== "direct");
+
 watch(
     () => state,
     () => {
-        if (!isInitialized.value || !enableAutoSave.value) {
+        // 第三方模式下不触发自动保存
+        if (!isInitialized.value || !enableAutoSave.value || isThirdPartyMode.value) {
             return;
         }
         handleAutoSave();
@@ -110,7 +114,10 @@ watch(
     { deep: true },
 );
 
-onMounted(() => {
+/**
+ * 同步 agents 数据到 state
+ */
+function syncAgentsToState() {
     (Reflect.ownKeys({ ...state, tags: [] }) as Array<keyof UpdateAgentConfigParams>).forEach(
         (key) => {
             if (
@@ -125,10 +132,34 @@ onMounted(() => {
             }
         },
     );
+}
+
+onMounted(() => {
+    syncAgentsToState();
     setTimeout(() => {
         isInitialized.value = true;
     }, 1500);
 });
+
+// 监听 agents 变化，当数据刷新后自动同步到 state（用于第三方平台自动同步配置后刷新页面数据）
+watch(
+    () => agents,
+    () => {
+        if (isInitialized.value && unref(agents)) {
+            // 暂时禁用自动保存，避免同步数据时触发保存
+            const prevAutoSave = enableAutoSave.value;
+            enableAutoSave.value = false;
+
+            syncAgentsToState();
+
+            // 恢复自动保存设置
+            nextTick(() => {
+                enableAutoSave.value = prevAutoSave;
+            });
+        }
+    },
+    { deep: true },
+);
 </script>
 
 <template>
@@ -148,7 +179,9 @@ onMounted(() => {
             <div class="flex h-full min-h-0 w-1/2 flex-none flex-col">
                 <!-- 模型参数配置 -->
                 <div class="mb-4 flex items-center justify-end gap-3 p-0.5">
+                    <!-- 第三方模式下隐藏自动保存选项 -->
                     <UCheckbox
+                        v-if="!isThirdPartyMode"
                         v-model="enableAutoSave"
                         :label="t('ai-agent.backend.configuration.enableAutoSave')"
                         class="flex-none"
@@ -166,6 +199,7 @@ onMounted(() => {
                             size="lg"
                             class="flex-none gap-1 px-4"
                             :disabled="isLock"
+                            :loading="isLock"
                             @click="handleUpdate"
                         >
                             {{ $t("ai-agent.backend.configuration.saveConfig") }}

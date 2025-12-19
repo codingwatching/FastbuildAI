@@ -21,6 +21,7 @@ import {
     QueryAgentStatisticsDto,
     UpdateAgentConfigDto,
 } from "../dto/agent";
+import { ThirdPartyIntegrationHandler } from "../handlers/third-party-integration.handler";
 
 @Injectable()
 export class AiAgentService extends BaseService<Agent> {
@@ -41,6 +42,7 @@ export class AiAgentService extends BaseService<Agent> {
         private readonly aiModelRepository: Repository<AiModel>,
         @InjectRepository(AiProvider)
         private readonly aiProviderRepository: Repository<AiProvider>,
+        private readonly thirdPartyIntegrationHandler: ThirdPartyIntegrationHandler,
     ) {
         super(agentRepository);
     }
@@ -200,13 +202,100 @@ export class AiAgentService extends BaseService<Agent> {
 
         return this.withErrorHandling(async () => {
             const { tagIds, ...updateData } = dto;
-            const finalUpdateData = {
+            let finalUpdateData: Record<string, any> = {
                 ...updateData,
                 avatar: updateData.avatar || this.defaultAvatar,
             };
+
             if (finalUpdateData.billingConfig && finalUpdateData.billingConfig.price < 0) {
                 throw HttpErrorFactory.business("积分消耗不能小于 0");
             }
+
+            // 如果是 Dify 智能体且配置了第三方集成，自动获取应用参数
+            const createMode = dto.createMode || agent.createMode;
+            const thirdPartyConfig = dto.thirdPartyIntegration || agent.thirdPartyIntegration;
+
+            this.logger.log(
+                `[Dify] Checking config: createMode=${createMode}, hasApiKey=${!!thirdPartyConfig?.apiKey}, hasBaseURL=${!!thirdPartyConfig?.baseURL}`,
+            );
+
+            if (createMode === "dify" && thirdPartyConfig?.apiKey && thirdPartyConfig?.baseURL) {
+                try {
+                    const difyParams = await this.thirdPartyIntegrationHandler.fetchDifyParameters({
+                        apiKey: thirdPartyConfig.apiKey,
+                        baseURL: thirdPartyConfig.baseURL,
+                    });
+
+                    // 从 Dify 获取的数据直接更新（覆盖本地配置）
+                    if (difyParams.openingStatement) {
+                        finalUpdateData.openingStatement = difyParams.openingStatement;
+                    }
+                    if (difyParams.openingQuestions?.length) {
+                        finalUpdateData.openingQuestions = difyParams.openingQuestions;
+                    }
+                    // 同步自动追问配置（Dify 的 suggested_questions_after_answer 对应本项目的 autoQuestions）
+                    if (difyParams.autoQuestionsEnabled !== undefined) {
+                        finalUpdateData.autoQuestions = {
+                            enabled: difyParams.autoQuestionsEnabled,
+                            customRuleEnabled: false,
+                            customRule: "",
+                        };
+                    }
+
+                    this.logger.log(
+                        `[Dify] Auto-synced parameters for agent ${id}: openingStatement=${!!difyParams.openingStatement}, openingQuestions=${difyParams.openingQuestions?.length || 0}, autoQuestionsEnabled=${difyParams.autoQuestionsEnabled}`,
+                    );
+                } catch (error) {
+                    // 获取 Dify 参数失败不应阻止配置更新
+                    this.logger.warn(
+                        `[Dify] Failed to fetch parameters for agent ${id}: ${error.message}`,
+                    );
+                }
+            }
+
+            // Coze 平台：自动获取 Bot 参数
+            if (
+                createMode === "coze" &&
+                thirdPartyConfig?.apiKey &&
+                thirdPartyConfig?.baseURL &&
+                thirdPartyConfig?.appId
+            ) {
+                try {
+                    const cozeParams = await this.thirdPartyIntegrationHandler.fetchCozeParameters({
+                        apiKey: thirdPartyConfig.apiKey,
+                        baseURL: thirdPartyConfig.baseURL,
+                        botId: thirdPartyConfig.appId,
+                    });
+
+                    // 从 Coze 获取的数据直接更新（覆盖本地配置）
+                    if (cozeParams.openingStatement) {
+                        finalUpdateData.openingStatement = cozeParams.openingStatement;
+                    }
+                    if (cozeParams.openingQuestions?.length) {
+                        finalUpdateData.openingQuestions = cozeParams.openingQuestions;
+                    }
+
+                    this.logger.log(
+                        `[Coze] Auto-synced parameters for agent ${id}: openingStatement=${!!cozeParams.openingStatement}, openingQuestions=${cozeParams.openingQuestions?.length || 0}`,
+                    );
+                } catch (error) {
+                    // 获取 Coze 参数失败不应阻止配置更新
+                    this.logger.warn(
+                        `[Coze] Failed to fetch parameters for agent ${id}: ${error.message}`,
+                    );
+                }
+            }
+
+            this.logger.log(
+                `[Dify] finalUpdateData keys: ${Object.keys(finalUpdateData).join(", ")}`,
+            );
+            this.logger.log(
+                `[Dify] finalUpdateData.openingStatement: ${finalUpdateData.openingStatement?.substring(0, 50) || "none"}`,
+            );
+            this.logger.log(
+                `[Dify] finalUpdateData.openingQuestions: ${JSON.stringify(finalUpdateData.openingQuestions)}`,
+            );
+
             await this.updateById(id, finalUpdateData);
 
             if (tagIds !== undefined) {

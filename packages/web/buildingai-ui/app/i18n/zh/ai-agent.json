@@ -140,6 +140,31 @@
             "mcp": {
                 "title": "MCP 工具服务器",
                 "description": "配置智能体可使用的 MCP 工具服务器"
+            },
+            "thirdParty": {
+                "baseURL": "API 端点地址",
+                "apiKey": "API 密钥",
+                "dify": {
+                    "title": "Dify 平台配置",
+                    "baseURLPlaceholder": "请输入 Dify API 端点地址，如：https://api.dify.ai/v1",
+                    "baseURLHint": "Dify 应用的 API 端点地址",
+                    "apiKeyPlaceholder": "请输入 Dify 应用的 API 密钥",
+                    "apiKeyHint": "在 Dify 应用设置中获取 API 密钥",
+                    "helpTitle": "配置说明",
+                    "helpDesc": "请在 Dify 平台创建应用后，在应用设置中获取 API 密钥和端点地址。"
+                },
+                "coze": {
+                    "title": "Coze 平台配置",
+                    "baseURLPlaceholder": "请输入 Coze API 端点地址",
+                    "baseURLHint": "Coze 应用的 API 端点地址，例如：https://api.coze.cn",
+                    "botId": "Bot ID",
+                    "botIdPlaceholder": "请输入 Coze Bot ID",
+                    "botIdHint": "在 Coze 平台的 Bot 详情页 URL 中获取，例如：7342xxxxx",
+                    "apiKeyPlaceholder": "请输入 Coze 应用的 API 密钥",
+                    "apiKeyHint": "在 Coze 开放平台创建个人访问令牌（PAT）获取",
+                    "helpTitle": "配置说明",
+                    "helpDesc": "请在 Coze 平台创建 Bot 并发布为 API 服务后，获取 Bot ID 和个人访问令牌。"
+                }
             }
         },
         "publish": {

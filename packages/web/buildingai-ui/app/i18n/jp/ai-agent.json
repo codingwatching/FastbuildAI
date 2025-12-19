@@ -140,6 +140,31 @@
             "mcp": {
                 "title": "MCP ツールサーバー",
                 "description": "エージェントが使用可能なMCPツールサーバーを設定"
+            },
+            "thirdParty": {
+                "baseURL": "API エンドポイント",
+                "apiKey": "API キー",
+                "dify": {
+                    "title": "Dify プラットフォーム設定",
+                    "baseURLPlaceholder": "Dify API エンドポイントを入力（例：https://api.dify.ai/v1）",
+                    "baseURLHint": "Dify アプリの API エンドポイント",
+                    "apiKeyPlaceholder": "Dify アプリの API キーを入力",
+                    "apiKeyHint": "Dify アプリ設定で API キーを取得",
+                    "helpTitle": "設定説明",
+                    "helpDesc": "Dify でアプリを作成後、アプリ設定で API キーとエンドポイントを取得してください。"
+                },
+                "coze": {
+                    "title": "Coze プラットフォーム設定",
+                    "baseURLPlaceholder": "Coze API エンドポイントを入力",
+                    "baseURLHint": "Coze アプリの API エンドポイント、例：https://api.coze.cn",
+                    "botId": "Bot ID",
+                    "botIdPlaceholder": "Coze Bot ID を入力",
+                    "botIdHint": "Coze の Bot 詳細ページ URL から取得、例：7342xxxxx",
+                    "apiKeyPlaceholder": "Coze アプリの API キーを入力",
+                    "apiKeyHint": "Coze オープンプラットフォームで個人アクセストークン（PAT）を作成",
+                    "helpTitle": "設定説明",
+                    "helpDesc": "Coze で Bot を作成し API サービスとして公開後、Bot ID と個人アクセストークンを取得してください。"
+                }
             }
         },
         "publish": {
