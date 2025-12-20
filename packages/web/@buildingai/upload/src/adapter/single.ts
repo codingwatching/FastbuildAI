@@ -4,6 +4,7 @@ import { StorageType } from "@buildingai/constants/shared";
 import type { FileUploadParams } from "../types";
 import { useStorageStore } from "../store";
 import { fileUploadToOSS } from "../engines/oss";
+import { omit } from "../utils";
 
 async function uploadFileAdaptive(
     params: FileUploadParams,
@@ -21,7 +22,7 @@ async function uploadFileAdaptive(
             case StorageType.OSS:
                 return await fileUploadToOSS(
                     {
-                        ...params,
+                        ...omit(params, "description"),
                         name: params.file.name,
                         size: params.file.size,
                     },

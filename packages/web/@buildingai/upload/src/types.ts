@@ -5,7 +5,7 @@ export interface FileUploadParams {
 }
 
 export interface FilesUploadParams {
-    files: File;
+    files: File[];
     description?: string;
     extensionId?: string;
 }
