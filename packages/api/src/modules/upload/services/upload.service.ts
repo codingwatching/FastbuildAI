@@ -133,8 +133,11 @@ export class UploadService extends BaseService<File> {
         );
     }
 
-    generateCloudStorageInfo(dto: SignatureRequestDto) {
-        return this.fileUploadService.createCloudStoragePath(dto);
+    generateCloudStorageInfo({ extensionId, ...params }: SignatureRequestDto) {
+        return this.fileUploadService.createCloudStoragePath(
+            params,
+            extensionId ? { extensionId } : undefined,
+        );
     }
 
     getAliyunSignature(config: AliyunOssConfig) {

@@ -29,4 +29,8 @@ export class SignatureRequestDto {
     @IsNotEmpty()
     @IsNumber()
     size: number;
+
+    @IsOptional()
+    @IsString()
+    extensionId?: string;
 }
