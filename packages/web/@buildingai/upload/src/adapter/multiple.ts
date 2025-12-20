@@ -2,9 +2,10 @@ import { apiUploadFiles } from "@buildingai/service/common";
 import { StorageType } from "@buildingai/constants/shared";
 import { useStorageStore } from "../store";
 import { filesUploadToOSS } from "../engines/oss";
+import type { FilesUploadParams } from "../types";
 
 async function uploadFilesAdaptive(
-    params: { files: File[]; description?: string; extensionId?: string },
+    params: FilesUploadParams,
     options?: { onProgress?: (percent: number) => void },
 ) {
     const storageStore = useStorageStore();

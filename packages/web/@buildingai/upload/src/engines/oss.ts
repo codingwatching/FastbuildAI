@@ -1,18 +1,20 @@
 import type { FileUploadResponse } from "@buildingai/service/common";
-import type { OssFileUploadParams, OssWrappedFileUploadOptions } from "../types";
+import type {
+    OssFilesUploadParams,
+    OssFileUploadParams,
+    OssWrappedFileUploadOptions,
+} from "../types";
 import { useStorageStore } from "../store";
 
 async function fileUploadToOSS(
-    params: OssFileUploadParams,
+    { file, ...params }: OssFileUploadParams,
     options?: OssWrappedFileUploadOptions,
 ): Promise<FileUploadResponse> {
     const storageStore = useStorageStore();
 
     try {
-        const { signature, fullPath, fileUrl, metadata } = await storageStore.getOSSSignature({
-            name: params.name,
-            size: params.size,
-        });
+        const { signature, fullPath, fileUrl, metadata } =
+            await storageStore.getOSSSignature(params);
 
         const formData = new FormData();
         formData.append("key", fullPath);
@@ -23,7 +25,7 @@ async function fileUploadToOSS(
         formData.append("x-oss-credential", signature.ossCredential);
         formData.append("x-oss-date", signature.ossDate);
         formData.append("x-oss-security-token", signature.securityToken);
-        formData.append("file", params.file);
+        formData.append("file", file);
 
         const xhr = new XMLHttpRequest();
 
@@ -78,7 +80,7 @@ async function fileUploadToOSS(
 }
 
 async function filesUploadToOSS(
-    params: { files: File[]; description?: string; extensionId?: string },
+    params: OssFilesUploadParams,
     options?: OssWrappedFileUploadOptions,
 ) {
     const totalBytes = params.files.reduce((count, file) => count + file.size, 0);
@@ -87,7 +89,6 @@ async function filesUploadToOSS(
     const tasks = Promise.all(
         params.files.map((file) => {
             const fileParam: OssFileUploadParams = { file, size: file.size, name: file.name };
-            if (params.description) fileParam.description = params.description;
             if (params.extensionId) fileParam.extensionId = params.extensionId;
 
             const fileOptions: OssWrappedFileUploadOptions = {};
@@ -96,7 +97,7 @@ async function filesUploadToOSS(
                     uploadBytes += bytes;
 
                     const percent = Math.round((uploadBytes / totalBytes) * 100);
-                    options.onProgress?.(percent, totalBytes);
+                    options.onProgress?.(Math.max(percent, 100), totalBytes);
                 };
             }
 

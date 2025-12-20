@@ -3,16 +3,19 @@ import type { StorageTypeType } from "@buildingai/constants/shared";
 import { apiGetUploadSignature } from "@buildingai/service/common";
 import { apiGetActiveStorage } from "@buildingai/service/webapi/storage-config";
 
+interface SignatureParams {
+    name: string;
+    size: number;
+    extensionId?: string;
+}
+
 export const useStorageStore = defineStore("storage", {
     state: () => ({
         storageType: null as StorageTypeType | null,
     }),
     actions: {
-        getOSSSignature(file: { name: string; size: number }) {
-            return apiGetUploadSignature({
-                name: file.name,
-                size: file.size,
-            });
+        getOSSSignature(params: SignatureParams) {
+            return apiGetUploadSignature(params);
         },
 
         updateStorageType(storageType: StorageTypeType) {

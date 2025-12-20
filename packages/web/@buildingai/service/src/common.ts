@@ -340,6 +340,7 @@ export function apiUploadRemoteFile(params: {
 export function apiGetUploadSignature(params: {
     name: string;
     size: number;
+    extensionId?: string;
 }): Promise<UploadSignatureResponse> {
     return useWebPost("/upload/signature", params);
 }
