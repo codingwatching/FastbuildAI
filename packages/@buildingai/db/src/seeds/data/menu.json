@@ -1354,7 +1354,7 @@
                 "children": [
                     {
                         "name": "console-menu.systemSettings.storageConfig",
-                        "code": "system-storage-config-list",
+                        "code": "system-storage-config",
                         "path": "storage-config",
                         "icon": "",
                         "component": "/console/system-setting/storage-config/index",

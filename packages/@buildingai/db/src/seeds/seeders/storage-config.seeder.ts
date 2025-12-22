@@ -34,18 +34,18 @@ export class StorageConfigSeeder extends BaseSeeder {
                     config: null,
                     sort: 1,
                 },
-                {
-                    storageType: StorageType.COS,
-                    isActive: false,
-                    config: null,
-                    sort: 2,
-                },
-                {
-                    storageType: StorageType.KODO,
-                    isActive: false,
-                    config: null,
-                    sort: 3,
-                },
+                // {
+                //     storageType: StorageType.COS,
+                //     isActive: false,
+                //     config: null,
+                //     sort: 2,
+                // },
+                // {
+                //     storageType: StorageType.KODO,
+                //     isActive: false,
+                //     config: null,
+                //     sort: 3,
+                // },
             ]);
 
             this.logSuccess("Storage configuration initialized successfully");
