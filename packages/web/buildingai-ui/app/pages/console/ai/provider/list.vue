@@ -210,7 +210,7 @@ onMounted(() => getLists());
                     </span>
                 </div>
 
-                <AccessControl :codes="['ai-provider.backends:delete']">
+                <AccessControl :codes="['ai-providers:delete']">
                     <UButton
                         color="error"
                         variant="subtle"
@@ -225,7 +225,7 @@ onMounted(() => getLists());
                     </UButton>
                 </AccessControl>
 
-                <AccessControl :codes="['ai-provider.backends:create']">
+                <AccessControl :codes="['ai-providers:create']">
                     <UButton icon="i-heroicons-plus" color="primary" @click="handleAddProvider">
                         {{ t("ai-provider.backend.addTitle") }}
                     </UButton>

@@ -177,7 +177,7 @@ onMounted(() => getWebsiteConfig());
                 />
             </UFormField>
 
-            <div class="flex space-x-3 pt-4">
+            <div class="bg-background sticky bottom-0 flex space-x-3 py-4">
                 <AccessControl :codes="['system-website:setConfig']">
                     <UButton
                         type="submit"

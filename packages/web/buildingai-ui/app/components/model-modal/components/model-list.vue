@@ -383,7 +383,7 @@ watch(
                         "
                     />
                 </UDropdownMenu>
-                <AccessControl :codes="['membership:setting']">
+                <AccessControl :codes="['ai-models:update']">
                     <UButton
                         color="primary"
                         variant="soft"
