@@ -699,6 +699,35 @@ export class ExtensionOperationService {
     }
 
     /**
+     * Upgrade extension content to latest version
+     */
+    async upgradeContent(identifier: string, extensionMarketService: ExtensionMarketService) {
+        this.logger.log(`Starting upgrade extension content: ${identifier}`);
+
+        try {
+            const latestVersion = await this.resolveLatestVersion(
+                identifier,
+                extensionMarketService,
+            );
+
+            if (!latestVersion) {
+                throw HttpErrorFactory.badRequest(
+                    `No available version found for extension: ${identifier}`,
+                );
+            }
+
+            return await extensionMarketService.getApplicationUpgradeContent(
+                identifier,
+                latestVersion,
+            );
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to upgrade extension content: ${errorMessage}`);
+            throw error;
+        }
+    }
+
+    /**
      * Upgrade extension to latest version
      * @param identifier Extension identifier
      * @param extensionMarketService Market service instance

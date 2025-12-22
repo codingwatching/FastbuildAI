@@ -185,5 +185,17 @@
         "emptyTip": "先に機能を同期してください",
         "levelPlaceholder": "会員レベルを選択",
         "levelTip": "未選択の場合、全ユーザーがアクセス可能"
+    },
+    "upgradePreview": {
+        "title": "バージョン更新",
+        "newVersion": "新バージョン",
+        "notice": "注意事項",
+        "features": "新機能",
+        "optimizes": "最適化",
+        "fixes": "バグ修正",
+        "noContent": "更新内容なし",
+        "fetchError": "更新内容の取得に失敗",
+        "upgradeError": "アップグレード失敗",
+        "confirmUpgrade": "更新を確認"
     }
 }

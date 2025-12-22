@@ -185,5 +185,17 @@
         "emptyTip": "Please sync features first",
         "levelPlaceholder": "Select membership levels",
         "levelTip": "No selection means all users can access"
+    },
+    "upgradePreview": {
+        "title": "Version Update",
+        "newVersion": "New Version",
+        "notice": "Notice",
+        "features": "New Features",
+        "optimizes": "Optimizations",
+        "fixes": "Bug Fixes",
+        "noContent": "No update content",
+        "fetchError": "Failed to get update content",
+        "upgradeError": "Upgrade failed",
+        "confirmUpgrade": "Confirm Upgrade"
     }
 }

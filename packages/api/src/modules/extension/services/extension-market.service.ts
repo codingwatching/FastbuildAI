@@ -175,6 +175,23 @@ export class ExtensionMarketService {
     }
 
     /**
+     * Get application upgrade content
+     */
+    async getApplicationUpgradeContent(identifier: string, version: string) {
+        try {
+            const response = await this.httpClient.get(`/getVersionInfo/${identifier}/${version}`);
+            return response.data;
+        } catch (error) {
+            const errorMessage = createHttpErrorMessage(error);
+            this.logger.error(
+                `Failed to get application upgrade content for ${identifier}@${version}: ${errorMessage}`,
+                error,
+            );
+            throw HttpErrorFactory.badRequest(error.response?.data?.message);
+        }
+    }
+
+    /**
      * Uninstall application
      */
     async uninstallApplication(identifier: string, version: string) {

@@ -322,7 +322,7 @@ const getErrorMessage = (error: Error | undefined, message: AiMessage): string =
                                     />
                                 </UTooltip>
                             </template>
-                            <span class="text-muted text-xs">
+                            <span v-if="message.status !== 'failed'" class="text-muted text-xs">
                                 {{ t("ai-chat.frontend.messages.aiDisclaimer") }}
                             </span>
                         </div>

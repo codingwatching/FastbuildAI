@@ -24,6 +24,7 @@ const ExtensionChangelogDrawer = defineAsyncComponent(() => import("../component
 const ExtensionDetailDrawer = defineAsyncComponent(() => import("../components/details.vue"));
 const AddLocalExtension = defineAsyncComponent(() => import("../components/add-extension.vue"));
 const FeatureConfigModal = defineAsyncComponent(() => import("../components/feature-config.vue"));
+const UpgradePreviewModal = defineAsyncComponent(() => import("../components/upgrade-preview.vue"));
 
 const { t } = useI18n();
 const overlay = useOverlay();
@@ -116,7 +117,21 @@ const handleInstall = async (extension: ExtensionFormData) => {
     }
 };
 
-const handleUpgrade = async (extension: ExtensionFormData) => {
+/**
+ * 处理插件更新 - 打开更新预览弹框
+ * @param extension 插件数据
+ */
+const handleUpgrade = (extension: ExtensionFormData) => {
+    const modal = overlay.create(UpgradePreviewModal);
+    modal.open({
+        extension,
+        onConfirmUpgrade: () => {
+            handleConfirmUpgrade(extension);
+        },
+    });
+};
+
+const handleConfirmUpgrade = async (extension: ExtensionFormData) => {
     if (upgradingMap[extension.identifier]) {
         return;
     }
@@ -376,14 +391,6 @@ onMounted(() => getLists());
                                                 extension.description ||
                                                 t("extensions.manage.noDescription")
                                             }}
-                                            {{
-                                                extension.description ||
-                                                t("extensions.manage.noDescription")
-                                            }}
-                                            {{
-                                                extension.description ||
-                                                t("extensions.manage.noDescription")
-                                            }}
                                         </span>
 
                                         <div class="mt-1.5 flex items-center gap-2">
@@ -529,8 +536,9 @@ onMounted(() => getLists());
                                             variant="subtle"
                                             icon="i-lucide-circle-fading-arrow-up"
                                             size="sm"
-                                            :loading="upgradingMap[extension.identifier]"
                                             :label="$t('extensions.manage.upgrade')"
+                                            :loading="upgradingMap[extension.identifier]"
+                                            :disabled="upgradingMap[extension.identifier]"
                                             @click="handleUpgrade(extension)"
                                         />
 

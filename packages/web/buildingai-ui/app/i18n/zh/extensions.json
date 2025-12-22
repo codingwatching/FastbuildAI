@@ -185,5 +185,17 @@
         "emptyTip": "请先同步功能后再进行配置",
         "levelPlaceholder": "选择允许访问的会员等级",
         "levelTip": "不选择任何等级表示所有用户都可以访问"
+    },
+    "upgradePreview": {
+        "title": "版本更新提示",
+        "newVersion": "新版本号",
+        "notice": "注意事项",
+        "features": "新增功能",
+        "optimizes": "优化",
+        "fixes": "修复",
+        "noContent": "暂无更新内容",
+        "fetchError": "获取更新内容失败",
+        "upgradeError": "更新失败",
+        "confirmUpgrade": "确认更新"
     }
 }

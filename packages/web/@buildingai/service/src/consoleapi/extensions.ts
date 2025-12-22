@@ -371,6 +371,13 @@ export function apiInstallExtension(
 }
 
 /**
+ * Upgrade extension content
+ */
+export function apiUpgradeExtensionContent(identifier: string): Promise<ExtensionFormData> {
+    return useConsoleGet(`/extensions/upgrade-content/${identifier}`);
+}
+
+/**
  * Upgrade extension
  * @description Upgrades an extension to the latest version
  * @param identifier Extension identifier

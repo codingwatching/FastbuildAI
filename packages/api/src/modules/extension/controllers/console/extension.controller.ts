@@ -129,6 +129,21 @@ export class ExtensionConsoleController extends BaseController {
     }
 
     /**
+     * upgrade content
+     */
+    @Get("upgrade-content/:identifier")
+    @Permissions({
+        code: "upgrade-content",
+        name: "更新应用内容",
+    })
+    async upgradeContent(@Param("identifier") identifier: string) {
+        return await this.extensionOperationService.upgradeContent(
+            identifier,
+            this.extensionMarketService,
+        );
+    }
+
+    /**
      * Upgrade extension
      */
     @Post("upgrade/:identifier")
