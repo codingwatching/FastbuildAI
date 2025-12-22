@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { apiUploadRemoteFile } from "@buildingai/service/common";
 import { apiImportAgentDsl } from "@buildingai/service/consoleapi/ai-agent";
+import { uploadRemoteFileAdaptive } from "@buildingai/upload";
 
 const emits = defineEmits<{
     (e: "close", refresh?: boolean): void;
@@ -25,7 +25,7 @@ const { lockFn: submitImport, isLock } = useLockFn(async () => {
 
         return;
     } else if (activeTab.value === "url" && url.value) {
-        const result = await apiUploadRemoteFile({
+        const result = await uploadRemoteFileAdaptive({
             url: url.value,
             description: `Remote file: ${url.value}`,
         });

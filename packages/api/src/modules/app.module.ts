@@ -24,6 +24,7 @@ import { ChannelModule } from "@modules/channel/channel.module";
 import { ExtensionCoreModule } from "@modules/extension/extension.module";
 import { HealthModule } from "@modules/health/health.module";
 import { MembershipModule } from "@modules/membership/membership.module";
+import { StsModule } from "@modules/sts/sts.module";
 import { DynamicModule, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD } from "@nestjs/core";
@@ -109,6 +110,7 @@ export class AppModule {
                 AnalyseModule,
                 SecretModule,
                 UserModule,
+                StsModule,
                 ScheduleModule,
                 await ExtensionCoreModule.register(),
             ],

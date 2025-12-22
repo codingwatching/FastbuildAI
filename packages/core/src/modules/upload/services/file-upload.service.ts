@@ -10,7 +10,12 @@ import type { Request } from "express";
 import * as mime from "mime-types";
 import * as path from "path";
 
-import type { FileStorageOptions, RemoteFileOptions } from "../interfaces/file-storage.interface";
+import type {
+    FileMetadata,
+    FileStorageOptions,
+    RemoteFileOptions,
+} from "../interfaces/file-storage.interface";
+import { FileTypeDetector } from "../utils/file-type-detector.util";
 import { FileStorageService } from "./file-storage.service";
 
 /**
@@ -46,6 +51,11 @@ export interface UploadFileResult {
      * File extension
      */
     extension: string;
+}
+
+interface CreateCloudStoragePathParams {
+    name: string;
+    size: number;
 }
 
 /**
@@ -510,5 +520,35 @@ export class FileUploadService extends BaseService<File> {
         }
 
         return this.fileStorageService.createReadStream(file.path, options);
+    }
+
+    async createCloudStoragePath(
+        params: CreateCloudStoragePathParams,
+        options?: FileStorageOptions,
+    ) {
+        const mimeType: string = mime.lookup(params.name) || "application/octet-stream";
+        const extension = path.extname(params.name).replace(".", "").toLowerCase();
+        const type = FileTypeDetector.detect(mimeType);
+        const metadata: FileMetadata = {
+            type,
+            mimeType,
+            extension,
+            originalName: params.name,
+            size: params.size,
+        };
+
+        const storage = this.fileStorageService.generateStoragePath(metadata, options);
+        const urlPath = options?.extensionId
+            ? `${options.extensionId}/uploads/${storage.fullPath}`
+            : `uploads/${storage.fullPath}`;
+        const fileUrl = await this.fileUrlService.get(urlPath);
+
+        // Rewrite storage.fullPath, it with '/uploads'
+        const fullPath = urlPath;
+
+        return {
+            metadata,
+            storage: { ...storage, fileUrl, fullPath },
+        };
     }
 }

@@ -101,7 +101,8 @@
         "agreement": "Agreements",
         "channelManagement": "Channels",
         "wechatOaConfig": "WeChat OA Config",
-        "loginConfig": "Login Settings"
+        "loginConfig": "Login Settings",
+        "storageConfig": "Storage Configuration"
     },
     "plugin": "App Management",
     "pluginManage": "My Apps",

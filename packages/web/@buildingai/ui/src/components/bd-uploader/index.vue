@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { apiUploadFile, apiUploadFiles } from "@buildingai/service/common";
+import { uploadFileAdaptive, uploadFilesAdaptive } from "@buildingai/upload";
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import type { Composer } from "vue-i18n";
 
@@ -124,7 +124,7 @@ async function handleMultipleFilesUpload(files: FileList) {
     globalProgress.value = 0;
 
     try {
-        const uploadFn = props.uploadApi || apiUploadFiles;
+        const uploadFn = props.uploadApi || uploadFilesAdaptive;
         const response = await uploadFn(
             {
                 files: validFiles,
@@ -178,7 +178,7 @@ async function uploadAndProcessFile(uploadItem: UploadItem) {
     globalProgress.value = 0;
 
     try {
-        const uploadFn = props.uploadApi || apiUploadFile;
+        const uploadFn = props.uploadApi || uploadFileAdaptive;
         const response = await uploadFn(
             {
                 file: uploadItem.file,

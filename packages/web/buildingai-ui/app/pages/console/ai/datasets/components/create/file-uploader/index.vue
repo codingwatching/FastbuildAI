@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { apiUploadFile } from "@buildingai/service/common";
 import type { FileItem } from "@buildingai/service/models/globals";
+import { uploadFileAdaptive } from "@buildingai/upload";
 
 const FILE_STATUS = Object.freeze({
     PENDING: "pending",
@@ -100,7 +100,7 @@ const uploadFiles = async (items: FileItem[]) => {
         try {
             updateFile(item.id, { status: FILE_STATUS.UPLOADING, progress: 0 });
 
-            const uploadResult = await apiUploadFile(
+            const uploadResult = await uploadFileAdaptive(
                 { file: item.file, description: "datasets files" },
                 {
                     onProgress: (progress) => {

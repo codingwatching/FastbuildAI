@@ -1,6 +1,9 @@
+import { RedisModule } from "@buildingai/cache";
 import { UploadModule as CoreUploadModule } from "@buildingai/core/modules";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
+import { StsModule } from "@modules/sts/sts.module";
+import { SystemModule } from "@modules/system/system.module";
 import { Module } from "@nestjs/common";
 import { MulterModule } from "@nestjs/platform-express";
 import { memoryStorage } from "multer";
@@ -15,11 +18,14 @@ import { UploadService } from "./services/upload.service";
  */
 @Module({
     imports: [
+        SystemModule,
         CoreUploadModule,
+        StsModule,
         TypeOrmModule.forFeature([File]),
         MulterModule.register({
             storage: memoryStorage(),
         }),
+        RedisModule,
     ],
     controllers: [UploadController],
     providers: [UploadService],

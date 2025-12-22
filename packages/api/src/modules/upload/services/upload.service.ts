@@ -1,9 +1,12 @@
 import { BaseService } from "@buildingai/base";
+import { AliyunOssConfig } from "@buildingai/constants";
 import { FileUploadService, type UploadFileResult } from "@buildingai/core/modules";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
+import { StsService } from "@modules/sts/services/sts.service";
 import { RemoteUploadDto } from "@modules/upload/dto/remote-upload.dto";
+import { SignatureRequestDto } from "@modules/upload/dto/upload-file.dto";
 import { Injectable } from "@nestjs/common";
 import { Request } from "express";
 
@@ -14,16 +17,20 @@ import { Request } from "express";
  */
 @Injectable()
 export class UploadService extends BaseService<File> {
+    private readonly CACHE_PREFIX = "sts:credentials";
+
     /**
      * Constructor
      *
      * @param fileRepository File repository
      * @param fileUploadService Core file upload service
+     * @param stsService
      */
     constructor(
         @InjectRepository(File)
         private readonly fileRepository: Repository<File>,
         private readonly fileUploadService: FileUploadService,
+        private readonly stsService: StsService,
     ) {
         super(fileRepository);
     }
@@ -124,5 +131,16 @@ export class UploadService extends BaseService<File> {
             description,
             extensionId ? { extensionId } : undefined,
         );
+    }
+
+    generateCloudStorageInfo({ extensionId, ...params }: SignatureRequestDto) {
+        return this.fileUploadService.createCloudStoragePath(
+            params,
+            extensionId ? { extensionId } : undefined,
+        );
+    }
+
+    getAliyunSignature(config: AliyunOssConfig) {
+        return this.stsService.generateAliyunOssUploadSignature(config);
     }
 }

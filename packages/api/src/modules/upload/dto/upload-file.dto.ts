@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 /**
  * 文件上传DTO
@@ -18,5 +18,19 @@ export class UploadFileDto {
      */
     @IsOptional()
     @IsString({ message: "拓展ID必须是字符串" })
+    extensionId?: string;
+}
+
+export class SignatureRequestDto {
+    @IsNotEmpty()
+    @IsString()
+    name: string;
+
+    @IsNotEmpty()
+    @IsNumber()
+    size: number;
+
+    @IsOptional()
+    @IsString()
     extensionId?: string;
 }

@@ -1,5 +1,6 @@
 import { BaseController } from "@buildingai/base";
 import { BusinessCode } from "@buildingai/constants";
+import { AliyunOssConfig, StorageType } from "@buildingai/constants/shared/storage-config.constant";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
 import { DictService } from "@buildingai/dict";
@@ -7,9 +8,10 @@ import { HttpErrorFactory } from "@buildingai/errors";
 import { UUIDValidationPipe } from "@buildingai/pipe/param-validate.pipe";
 import { SYSTEM_CONFIG } from "@common/constants";
 import { WebController } from "@common/decorators/controller.decorator";
+import { StorageConfigService } from "@modules/system/services/storage-config.service";
 import { QueryFileDto } from "@modules/upload/dto/query-file.dto";
 import { RemoteUploadDto } from "@modules/upload/dto/remote-upload.dto";
-import { UploadFileDto } from "@modules/upload/dto/upload-file.dto";
+import { SignatureRequestDto, UploadFileDto } from "@modules/upload/dto/upload-file.dto";
 import { UploadService } from "@modules/upload/services/upload.service";
 import {
     Body,
@@ -33,19 +35,51 @@ import * as fse from "fs-extra";
  *
  * 处理文件上传、查询和下载等请求
  */
-@WebController("upload")
+@WebController({ path: "upload", skipAuth: true })
 export class UploadController extends BaseController {
     /**
      * 构造函数
      *
      * @param uploadService 文件上传服务
      * @param dictService 字典服务
+     * @param storageConfigService - 存储配置服务
      */
     constructor(
         private readonly uploadService: UploadService,
         private readonly dictService: DictService,
+        private readonly storageConfigService: StorageConfigService,
     ) {
         super();
+    }
+
+    @Post("signature")
+    async getUploadSignature(@Body() dto: SignatureRequestDto) {
+        const storageConfig = await this.storageConfigService.getActiveStorageConfig();
+        if (!storageConfig) {
+            throw HttpErrorFactory.notFound("Config not found");
+        }
+
+        switch (storageConfig.storageType) {
+            case StorageType.OSS: {
+                const config = storageConfig.config as AliyunOssConfig;
+                const cloudConf = await this.uploadService.generateCloudStorageInfo(dto);
+                const signature = await this.uploadService.getAliyunSignature(config);
+
+                return {
+                    signature,
+                    metadata: cloudConf.metadata,
+                    storageType: storageConfig.storageType,
+                    fullPath: cloudConf.storage.fullPath,
+                    fileUrl: cloudConf.storage.fileUrl,
+                };
+            }
+            default: {
+                return {
+                    signature: null,
+                    storageType: storageConfig.storageType,
+                };
+            }
+        }
     }
 
     /**
