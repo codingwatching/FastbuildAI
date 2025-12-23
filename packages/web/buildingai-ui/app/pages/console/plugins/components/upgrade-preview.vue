@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 import type { ExtensionFormData } from "@buildingai/service/consoleapi/extensions";
-import {
-    apiUpgradeExtension,
-    apiUpgradeExtensionContent,
-} from "@buildingai/service/consoleapi/extensions";
+import { apiUpgradeExtensionContent } from "@buildingai/service/consoleapi/extensions";
 
 /**
  * 更新内容数据接口

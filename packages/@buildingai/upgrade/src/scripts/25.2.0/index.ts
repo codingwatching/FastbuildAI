@@ -24,10 +24,10 @@ interface MenuConfig {
 }
 
 /**
- * Upgrade script 26.0.0
+ * Upgrade script 25.2.0
  */
 export class Upgrade extends BaseUpgradeScript {
-    readonly version = "26.0.0";
+    readonly version = "25.2.0";
 
     /**
      * Execute upgrade logic.
@@ -35,7 +35,7 @@ export class Upgrade extends BaseUpgradeScript {
      * @param context Upgrade context.
      */
     async execute(context: UpgradeContext): Promise<void> {
-        this.log("Start upgrading to version 26.0.0");
+        this.log("Start upgrading to version 25.2.0");
 
         try {
             await context.dataSource.transaction(async (manager) => {
@@ -44,7 +44,7 @@ export class Upgrade extends BaseUpgradeScript {
                 await this.createMenus(manager);
             });
         } catch (error) {
-            this.error("Upgrade to version 26.0.0 failed.", error);
+            this.error("Upgrade to version 25.2.0 failed.", error);
             throw error;
         }
     }

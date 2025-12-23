@@ -11,7 +11,7 @@ import { Tag } from "@buildingai/db/entities";
 import { User } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
-import { Injectable } from "@nestjs/common";
+import { HttpException, Injectable } from "@nestjs/common";
 import { randomBytes } from "crypto";
 
 import {
@@ -250,6 +250,8 @@ export class AiAgentService extends BaseService<Agent> {
                     this.logger.warn(
                         `[Dify] Failed to fetch parameters for agent ${id}: ${error.message}`,
                     );
+
+                    throw error;
                 }
             }
 
@@ -279,10 +281,11 @@ export class AiAgentService extends BaseService<Agent> {
                         `[Coze] Auto-synced parameters for agent ${id}: openingStatement=${!!cozeParams.openingStatement}, openingQuestions=${cozeParams.openingQuestions?.length || 0}`,
                     );
                 } catch (error) {
-                    // 获取 Coze 参数失败不应阻止配置更新
-                    this.logger.warn(
+                    // 获取 Coze 参数失败，向前端抛出错误
+                    this.logger.error(
                         `[Coze] Failed to fetch parameters for agent ${id}: ${error.message}`,
                     );
+                    throw error;
                 }
             }
 
@@ -514,6 +517,10 @@ export class AiAgentService extends BaseService<Agent> {
             return await operation();
         } catch (err) {
             this.logger.error(`[!] ${errorMessage}: ${err.message}`, err.stack);
+            // ✅ 如果已经是业务异常，直接透传
+            if (err instanceof HttpException) {
+                throw err;
+            }
             throw HttpErrorFactory.business(errorMessage);
         }
     }
