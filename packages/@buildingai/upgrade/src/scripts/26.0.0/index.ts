@@ -94,7 +94,7 @@ export class Upgrade extends BaseUpgradeScript {
         ];
 
         for (const perm of permissions) {
-            const existing = await permissionRepo.findOne({
+            const existing = await permissionRepo.exists({
                 where: { code: perm.code },
             });
 
@@ -112,6 +112,12 @@ export class Upgrade extends BaseUpgradeScript {
         const systemSettingsMenu = await repo.findOne({ where: { code: "system-settings" } });
         if (!systemSettingsMenu) {
             this.log("Parent menu system-settings not found, skipping menu creation.");
+            return;
+        }
+
+        const existing = await repo.exists({ where: { code: "system-storage-config" } });
+        if (existing) {
+            this.log("The storage-config menu already exists, skipping.");
             return;
         }
 
