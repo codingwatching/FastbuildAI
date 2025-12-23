@@ -87,11 +87,6 @@ onMounted(() => {
     window.addEventListener("message", handleMessage);
     onUnmounted(() => window.removeEventListener("message", handleMessage));
 });
-
-useHead({
-    title: `Extension: ${extensionId.value}`,
-    meta: [{ name: "description", content: `Extension frontend: ${extensionId.value}` }],
-});
 </script>
 
 <template>
