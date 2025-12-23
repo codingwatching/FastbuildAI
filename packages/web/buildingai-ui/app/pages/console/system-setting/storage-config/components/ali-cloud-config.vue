@@ -28,7 +28,7 @@ watch(modalOpenRef, (isOpen) => {
 });
 const updateStorageConfig = async () => {
     const storage = await apiGetStorageConfigDetail<typeof StorageType.OSS>(props.data.id);
-    state.config = storage.config;
+    state.config = storage.config || aliyunOSSDefaultConfig();
 };
 
 const { t } = useI18n();
