@@ -19,6 +19,8 @@ const emit = defineEmits<{
 
 const state = useVModel(props, "modelValue", emit);
 
+const show = ref(false);
+
 // 确保 state 有默认值
 if (!state.value) {
     state.value = {};
@@ -60,13 +62,26 @@ if (!state.value) {
                 >
                     <UInput
                         v-model="state.apiKey"
-                        type="password"
+                        :type="show ? 'text' : 'password'"
                         :placeholder="
                             $t('ai-agent.backend.configuration.thirdParty.dify.apiKeyPlaceholder')
                         "
                         :ui="{ root: 'w-full' }"
                         autocomplete="new-password"
-                    />
+                    >
+                        <template #trailing>
+                            <UButton
+                                color="neutral"
+                                variant="link"
+                                size="sm"
+                                :icon="show ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                                :aria-label="show ? 'Hide password' : 'Show password'"
+                                :aria-pressed="show"
+                                aria-controls="password"
+                                @click="show = !show"
+                            />
+                        </template>
+                    </UInput>
                     <template #hint>
                         {{ $t("ai-agent.backend.configuration.thirdParty.dify.apiKeyHint") }}
                     </template>
