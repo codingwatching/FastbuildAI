@@ -334,6 +334,8 @@ const getErrorMessage = (error: Error | undefined, message: AiMessage): string =
                             class="text-muted-foreground text-xs"
                         />
                     </div>
+
+                    <slot name="after-tools" :message="message" :index="index" />
                 </ChatsBubble>
 
                 <div v-if="message.role === 'user'" class="mt-1 flex items-center gap-2">

@@ -686,7 +686,7 @@ useHead({
                             }"
                             :spacing-offset="160"
                         >
-                            <template #content="{ message, index }">
+                            <template #content="{ message }">
                                 <BdMarkdown
                                     v-if="message.content.length"
                                     :content="message.content.toString()"
@@ -736,16 +736,17 @@ useHead({
                                         </template>
                                     </template>
                                 </BdMarkdown>
-                                <!-- 提问建议 -->
+                            </template>
+                            <template #after-tools="{ message: slotMessage, index: slotIndex }">
                                 <div
                                     v-if="
-                                        message.metadata?.suggestions &&
-                                        messages.length - 1 === index
+                                        slotMessage.metadata?.suggestions &&
+                                        messages.length - 1 === slotIndex
                                     "
-                                    class="mb-2 space-y-2"
+                                    class="m-2 space-y-2"
                                 >
                                     <div
-                                        v-for="suggestion in message.metadata.suggestions"
+                                        v-for="suggestion in slotMessage.metadata.suggestions"
                                         :key="suggestion"
                                     >
                                         <UButton
