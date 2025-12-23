@@ -330,15 +330,22 @@ export class PayService extends BaseService<Payconfig> {
                 endTime.setMonth(endTime.getMonth() + 1);
             }
 
-            // 创建用户订阅记录（每次购买都创建新记录，保留购买历史）
-            await entityManager.save(UserSubscription, {
-                userId: order.userId,
-                levelId: order.levelId,
-                orderId: order.id,
-                startTime,
-                endTime,
-                source: 1,
-            });
+            // 如果存在有效订阅，更新结束时间（时长叠加）；否则创建新记录
+            if (existingSubscription) {
+                await entityManager.update(UserSubscription, existingSubscription.id, {
+                    endTime,
+                    orderId: order.id, // 更新为最新订单ID
+                });
+            } else {
+                await entityManager.save(UserSubscription, {
+                    userId: order.userId,
+                    levelId: order.levelId,
+                    orderId: order.id,
+                    startTime,
+                    endTime,
+                    source: 1,
+                });
+            }
 
             // 立即赠送临时积分(过期时间为 30 天后)
             const levelSnap = order.levelSnap as any;
