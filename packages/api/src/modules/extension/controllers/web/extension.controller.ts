@@ -44,14 +44,18 @@ export class ExtensionWebController extends BaseController {
             extensionsList = installedExtensions.map((ext) => ({
                 ...ext,
                 isInstalled: true,
+                aliasShow: true,
             }));
         }
 
         // Extension filter conditions
         if (query.name) {
-            extensionsList = extensionsList.filter((ext) =>
-                ext.name.toLowerCase().includes(query.name.toLowerCase()),
-            );
+            const keyword = query.name.toLowerCase();
+            extensionsList = extensionsList.filter((ext) => {
+                const alias = ext.alias?.toLowerCase();
+                const name = ext.name?.toLowerCase();
+                return alias?.includes(keyword) || name?.includes(keyword);
+            });
         }
 
         if (query.identifier) {
@@ -71,7 +75,10 @@ export class ExtensionWebController extends BaseController {
         // 默认只返回已启用且已安装的应用
         // status 可能是布尔值 true 或数字 1 (ExtensionStatus.ENABLED)
         extensionsList = extensionsList.filter(
-            (ext) => (ext.status === true || ext.status === 1) && ext.isInstalled === true,
+            (ext) =>
+                (ext.status === true || ext.status === 1) &&
+                ext.isInstalled === true &&
+                ext.aliasShow === true,
         );
 
         return this.paginationResult(extensionsList, extensionsList.length, query);

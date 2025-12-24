@@ -133,7 +133,16 @@ const getErrorMessage = (error: Error | undefined, message: AiMessage): string =
         return getMessageTextContent(message.content) || t("common.chat.messages.sendFailed");
     if (typeof error === "string") return error || t("common.chat.messages.sendFailed");
     if (typeof error === "object") {
+        let errorMessage = "";
+        try {
+            const errorData = JSON.parse(error.message);
+            errorMessage = errorData.message;
+        } catch {
+            // If parsing fails, use the original error message
+        }
+
         return (
+            errorMessage ||
             error.message ||
             (error as Error & { content?: string }).content ||
             getMessageTextContent(message.content) ||

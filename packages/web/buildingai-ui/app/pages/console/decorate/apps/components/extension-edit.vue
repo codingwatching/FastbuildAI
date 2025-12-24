@@ -18,6 +18,9 @@ interface ExtensionCreateParams {
     version: string;
     type: number;
     alias?: string;
+    aliasDescription?: string;
+    aliasIcon?: string;
+    aliasShow?: boolean;
     supportTerminal: ExtensionSupportTerminalType[];
     author?: {
         avatar?: string;
@@ -57,6 +60,9 @@ const formData = reactive<ExtensionCreateParams>({
     version: "",
     type: 1,
     alias: "",
+    aliasDescription: "",
+    aliasIcon: "",
+    aliasShow: true,
     supportTerminal: [],
     author: {
         avatar: "",
@@ -102,6 +108,9 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
             },
             type: formData.type,
             alias: formData.alias,
+            aliasDescription: formData.aliasDescription,
+            aliasIcon: formData.aliasIcon,
+            aliasShow: formData.aliasShow,
             status: 1,
             supportTerminal: formData.supportTerminal.map((terminal) => Number(terminal)),
         };
@@ -121,9 +130,15 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
         return true;
     } catch (error) {
         console.error("Failed to submit form:", error);
-        message.error(t("extensions.develop.messages.submitError"));
         return false;
     }
+});
+
+onMounted(() => {
+    console.log(props.initialData);
+    if (!formData.alias) formData.alias = formData.name;
+    if (!formData.aliasDescription) formData.aliasDescription = formData.description;
+    if (!formData.aliasIcon) formData.aliasIcon = formData.icon;
 });
 </script>
 
@@ -145,17 +160,17 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
                 <UInput
                     v-model="formData.name"
                     variant="subtle"
-                    readonly
+                    :disabled="true"
                     :placeholder="t('extensions.develop.form.nameInput')"
                     size="lg"
                     :ui="{ root: 'w-full' }"
                 />
             </UFormField>
 
-            <UFormField label="显示名称" name="alias">
+            <UFormField :label="t('decorate.apps.extensionEdit.displayName')" name="alias">
                 <UInput
                     v-model="formData.alias"
-                    placeholder="请输入显示名称"
+                    :placeholder="t('decorate.apps.extensionEdit.displayNamePlaceholder')"
                     size="lg"
                     :ui="{ root: 'w-full' }"
                 />
@@ -167,9 +182,8 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
                 name="description"
             >
                 <UTextarea
-                    v-model="formData.description"
+                    v-model="formData.aliasDescription"
                     :placeholder="t('extensions.develop.form.descriptionInput')"
-                    readonly
                     size="lg"
                     :rows="2"
                     :ui="{ root: 'w-full' }"
@@ -178,9 +192,7 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
 
             <UFormField :label="t('extensions.develop.form.icon')" required name="icon">
                 <BdUploader
-                    :showReplaceButton="false"
-                    :showRemoveButton="false"
-                    v-model="formData.icon"
+                    v-model="formData.aliasIcon"
                     class="size-20"
                     :text="t('extensions.develop.form.addIcon')"
                     icon="i-lucide-upload"
@@ -193,6 +205,17 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
                         {{ t("extensions.develop.form.iconRecommendation") }}
                     </span>
                 </template>
+            </UFormField>
+
+            <UFormField
+                :label="t('decorate.apps.extensionEdit.aliasShowLabel')"
+                required
+                name="aliasShow"
+            >
+                <USwitch
+                    v-model="formData.aliasShow"
+                    :description="t('decorate.apps.extensionEdit.aliasShowDescription')"
+                />
             </UFormField>
 
             <div class="flex justify-end gap-4 pt-8">

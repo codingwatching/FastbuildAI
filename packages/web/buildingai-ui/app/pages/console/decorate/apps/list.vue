@@ -44,6 +44,9 @@ const handleEdit = async (extension: ExtensionFormData) => {
             icon: extension.icon,
             type: extension.type,
             alias: extension.alias,
+            aliasDescription: extension.aliasDescription,
+            aliasIcon: extension.aliasIcon,
+            aliasShow: extension.aliasShow,
             supportTerminal: extension.supportTerminal || [],
             author: extension.author || {
                 avatar: "",

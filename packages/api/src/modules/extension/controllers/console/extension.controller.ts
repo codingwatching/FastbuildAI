@@ -208,7 +208,7 @@ export class ExtensionConsoleController extends BaseController {
         code: "list",
         name: "查看应用列表",
     })
-    @BuildFileUrl(["**.icon", "**.avatar"])
+    @BuildFileUrl(["**.icon", "**.avatar", "**.aliasIcon"])
     async lists(@Query() query: QueryExtensionDto) {
         // Get extension list (handles platformSecret check internally)
         let extensionsList = await this.extensionMarketService.getMixedApplicationList();
@@ -462,7 +462,7 @@ export class ExtensionConsoleController extends BaseController {
      * @returns Updated extension
      */
     @Patch(":id")
-    @BuildFileUrl(["**.icon", "**.author.avatar"])
+    @BuildFileUrl(["**.icon", "**.author.avatar", "++.aliasIcon"])
     @Permissions({
         code: "update",
         name: "更新应用",

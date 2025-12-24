@@ -74,6 +74,12 @@ export interface ExtensionFormData extends BaseEntity {
     describe?: string;
     /** Extension alias */
     alias?: string;
+    /** Extension alias description */
+    aliasDescription?: string;
+    /** Extension alias icon */
+    aliasIcon?: string;
+    /** Extension alias show */
+    aliasShow?: boolean;
 }
 
 /**
