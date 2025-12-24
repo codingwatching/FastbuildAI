@@ -314,7 +314,7 @@ defineExpose({
                     <template #content="{ message }">
                         <BdMarkdown :content="message.content.toString()" class="mb-2" />
 
-                        <div class="flex flex-col gap-2">
+                        <div v-if="agent.openingQuestions.length > 0" class="flex flex-col gap-2">
                             <div class="text-muted-foreground text-sm">
                                 {{ t("ai-agent.backend.configuration.youCanAskMe") }}
                             </div>

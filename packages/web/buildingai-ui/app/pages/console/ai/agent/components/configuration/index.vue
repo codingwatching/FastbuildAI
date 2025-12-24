@@ -39,6 +39,12 @@ const showVariableInput = shallowRef(true);
 const enableAutoSave = useCookie<boolean>("agent-config-auto-save", {
     default: () => true,
 });
+const DEFAULT_OPENING_STATEMENT = "你好，我是智能体默认开场白，你可以在界面配置中修改我";
+const THIRD_PARTY_OPENING_STATEMENTS: Record<string, string> = {
+    coze: "开场白和问题预设请前往Coze平台设置，发布为 API 服务后即可生效",
+    dify: "开场白和问题预设请前往Dify平台设置",
+};
+
 const state = reactive<UpdateAgentConfigParams>({
     name: "",
     description: "",
@@ -59,7 +65,7 @@ const state = reactive<UpdateAgentConfigParams>({
     },
     datasetIds: [],
     mcpServerIds: [],
-    openingStatement: "你好，我是智能体默认开场白，你可以在界面配置中修改我",
+    openingStatement: DEFAULT_OPENING_STATEMENT,
     openingQuestions: [
         "我打算去北京旅游，有什么推荐的路线吗？",
         "预算大约2万，能帮我规划一下行程吗？",
@@ -101,6 +107,19 @@ const handleAutoSave = useDebounceFn(() => handleUpdate(false), 1000);
 
 // 第三方模式下禁用自动保存
 const isThirdPartyMode = computed(() => state.createMode !== "direct");
+
+watch(
+    () => state.createMode,
+    (mode) => {
+        if (mode === "coze" || mode === "dify") {
+            state.openingStatement = THIRD_PARTY_OPENING_STATEMENTS[mode];
+            state.openingQuestions = [];
+        } else if (!state.openingStatement) {
+            state.openingStatement = DEFAULT_OPENING_STATEMENT;
+        }
+    },
+    { immediate: true },
+);
 
 watch(
     () => state,
