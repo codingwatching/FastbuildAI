@@ -1,9 +1,12 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
+import { StorageConfig } from "@buildingai/db/entities";
 import { Module } from "@nestjs/common";
 
+import { CloudStorageModule } from "../cloud-storage";
 import { FileStorageService } from "./services/file-storage.service";
 import { FileUploadService } from "./services/file-upload.service";
+import { UploadService } from "./services/upload.service";
 
 /**
  * File upload module
@@ -12,8 +15,8 @@ import { FileUploadService } from "./services/file-upload.service";
  * Can be used by both API and extensions
  */
 @Module({
-    imports: [TypeOrmModule.forFeature([File])],
-    providers: [FileStorageService, FileUploadService],
-    exports: [FileStorageService, FileUploadService],
+    imports: [TypeOrmModule.forFeature([File, StorageConfig]), CloudStorageModule],
+    providers: [FileStorageService, FileUploadService, UploadService],
+    exports: [FileStorageService, FileUploadService, UploadService],
 })
 export class UploadModule {}

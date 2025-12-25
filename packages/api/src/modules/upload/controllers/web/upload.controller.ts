@@ -1,6 +1,7 @@
 import { BaseController } from "@buildingai/base";
 import { BusinessCode } from "@buildingai/constants";
-import { AliyunOssConfig, StorageType } from "@buildingai/constants/shared/storage-config.constant";
+import { StorageType } from "@buildingai/constants/shared/storage-config.constant";
+import { CloudStorageService, UploadService as CoreUploadService } from "@buildingai/core";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
 import { DictService } from "@buildingai/dict";
@@ -12,7 +13,6 @@ import { StorageConfigService } from "@modules/system/services/storage-config.se
 import { QueryFileDto } from "@modules/upload/dto/query-file.dto";
 import { RemoteUploadDto } from "@modules/upload/dto/remote-upload.dto";
 import { SignatureRequestDto, UploadFileDto } from "@modules/upload/dto/upload-file.dto";
-import { UploadService } from "@modules/upload/services/upload.service";
 import {
     Body,
     Delete,
@@ -30,12 +30,14 @@ import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import type { Request, Response } from "express";
 import * as fse from "fs-extra";
 
+import { UploadService } from "../../services/upload.service";
+
 /**
  * 文件上传控制器
  *
  * 处理文件上传、查询和下载等请求
  */
-@WebController({ path: "upload" })
+@WebController({ path: "upload", skipAuth: true })
 export class UploadController extends BaseController {
     /**
      * 构造函数
@@ -43,13 +45,24 @@ export class UploadController extends BaseController {
      * @param uploadService 文件上传服务
      * @param dictService 字典服务
      * @param storageConfigService - 存储配置服务
+     * @param cloudStorageService
+     * @param coreUploadService
      */
     constructor(
         private readonly uploadService: UploadService,
         private readonly dictService: DictService,
         private readonly storageConfigService: StorageConfigService,
+        private readonly cloudStorageService: CloudStorageService,
+        private readonly coreUploadService: CoreUploadService,
     ) {
         super();
+    }
+
+    @Post("cloud-upload")
+    @Public()
+    @UseInterceptors(FileInterceptor("file"))
+    async uploadCloud(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
+        return this.coreUploadService.uploadFile(file, req) as unknown as Promise<void>;
     }
 
     @Post("signature")
@@ -61,9 +74,8 @@ export class UploadController extends BaseController {
 
         switch (storageConfig.storageType) {
             case StorageType.OSS: {
-                const config = storageConfig.config as AliyunOssConfig;
                 const cloudConf = await this.uploadService.generateCloudStorageInfo(dto);
-                const signature = await this.uploadService.getAliyunSignature(config);
+                const signature = await this.cloudStorageService.signature(storageConfig);
 
                 return {
                     signature,

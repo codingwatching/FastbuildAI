@@ -6,6 +6,8 @@ import { getCredential } from "ali-oss/lib/common/signUtils";
 import { getStandardRegion } from "ali-oss/lib/common/utils/getStandardRegion";
 import { policy2Str } from "ali-oss/lib/common/utils/policy2Str";
 
+import { CloudStorageParams } from "../interfaces/cloud-storage.interface";
+
 interface AliyunSTSResult {
     accessKeyId: string;
     accessKeySecret: string;
@@ -13,12 +15,28 @@ interface AliyunSTSResult {
 }
 
 @Injectable()
-export class StsService {
+export class OssStorageService {
     private readonly CACHE_PREFIX = "sts:credentials";
+    private ossClient: OSS | null = null;
 
     constructor(private readonly cacheService: RedisService) {}
 
-    async generateAliyunOssUploadSignature(config: AliyunOssConfig) {
+    async upload({ storageConfig, file, ...params }: CloudStorageParams) {
+        const config = storageConfig.config as AliyunOssConfig;
+        const client = this.getOssClient(config);
+
+        return await client.put(params.path, file.buffer, {
+            mime: "",
+            headers: {
+                "Content-Disposition": `attachment; filename="${encodeURIComponent(file.originalname)}"`,
+            },
+        });
+    }
+
+    /**
+     * web
+     */
+    async generateOssUploadSignature(config: AliyunOssConfig) {
         const stsResult = await this.getSTSCredentials(config);
         const signature = await this.getAliyunSignature(config, stsResult);
 
@@ -33,6 +51,22 @@ export class StsService {
     async clearOssStsCredentials() {
         const cacheKey = `${this.CACHE_PREFIX}:oss`;
         await this.cacheService.del(cacheKey);
+    }
+
+    private getOssClient(config: AliyunOssConfig) {
+        if (this.ossClient) {
+            return this.ossClient;
+        }
+
+        this.ossClient = new OSS({
+            region: `oss-${config.region}`,
+            accessKeyId: config.accessKey,
+            accessKeySecret: config.secretKey,
+            bucket: config.bucket,
+            secure: true,
+        });
+
+        return this.ossClient;
     }
 
     private async getAliyunSignature(config: AliyunOssConfig, sts: AliyunSTSResult) {

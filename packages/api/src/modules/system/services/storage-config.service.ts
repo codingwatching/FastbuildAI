@@ -1,8 +1,7 @@
-import { RedisService } from "@buildingai/cache";
 import { StorageType } from "@buildingai/constants/shared/storage-config.constant";
+import { CloudStorageService } from "@buildingai/core";
 import { Dict, StorageConfig } from "@buildingai/db/entities";
 import { FileUrlProcessorUtil } from "@buildingai/utils";
-import { StsService } from "@modules/sts/services/sts.service";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
@@ -25,8 +24,7 @@ export class StorageConfigService {
 
     constructor(
         private dataSource: DataSource,
-        private readonly cacheService: RedisService,
-        private readonly stsService: StsService,
+        private readonly cloudStorageService: CloudStorageService,
     ) {}
 
     async getAllConfigs() {
@@ -52,8 +50,11 @@ export class StorageConfigService {
                 },
             );
 
-            await this.updateCurrentActiveConfigToDict(manager);
-            await this.stsService.clearOssStsCredentials();
+            const activeStorage = await manager.findOne(StorageConfig, {
+                where: { isActive: true },
+            });
+            await this.cloudStorageService.clearCachedCredentials(activeStorage.storageType);
+            await this.updateCurrentActiveConfigToDict(manager, activeStorage);
 
             FileUrlProcessorUtil.clearCache();
         });
@@ -71,9 +72,8 @@ export class StorageConfigService {
         return this.repository.findOne({ where: { id } });
     }
 
-    private async updateCurrentActiveConfigToDict(manager: EntityManager) {
+    private async updateCurrentActiveConfigToDict(manager: EntityManager, storage: StorageConfig) {
         const group = "storage_config";
-        const storage = await manager.findOne(StorageConfig, { where: { isActive: true } });
 
         await this.upsertDict(manager, {
             key: "engine",

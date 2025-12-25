@@ -1,4 +1,5 @@
 import { CacheService } from "@buildingai/cache";
+import { CloudStorageModule } from "@buildingai/core";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { User } from "@buildingai/db/entities";
 import { Payconfig } from "@buildingai/db/entities";
@@ -11,7 +12,6 @@ import { StorageConfig } from "@buildingai/db/entities";
 import { RolePermissionService } from "@common/modules/auth/services/role-permission.service";
 import { PayModule } from "@common/modules/pay/pay.module";
 import { AuthModule } from "@modules/auth/auth.module";
-import { StsModule } from "@modules/sts/sts.module";
 import { UserService } from "@modules/user/services/user.service";
 import { forwardRef, Module } from "@nestjs/common";
 
@@ -31,7 +31,7 @@ import { WebsiteService } from "./services/website.service";
 @Module({
     imports: [
         AuthModule,
-        StsModule,
+        CloudStorageModule,
         TypeOrmModule.forFeature([
             Dict,
             Permission,
