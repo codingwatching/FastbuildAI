@@ -35,7 +35,7 @@ import * as fse from "fs-extra";
  *
  * 处理文件上传、查询和下载等请求
  */
-@WebController({ path: "upload", skipAuth: true })
+@WebController({ path: "upload" })
 export class UploadController extends BaseController {
     /**
      * 构造函数
