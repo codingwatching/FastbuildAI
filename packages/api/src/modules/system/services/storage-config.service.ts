@@ -39,36 +39,22 @@ export class StorageConfigService {
 
     async updateConfig(id: string, dto: UpdateStorageConfigDto) {
         await this.dataSource.manager.transaction(async (manager) => {
-            const activeStorage = await manager.findOne(StorageConfig, {
-                where: { isActive: true },
-            });
-
-            // Deactivate the currently active storage
-            if (activeStorage.id !== id && dto.isActive) {
-                activeStorage.isActive = false;
-                await manager.save(activeStorage);
-            }
-
-            const { storageType, ...updateValue } = dto;
-            const res = await manager.update(StorageConfig, { id, storageType }, updateValue);
-            if (res.affected === 0) {
-                throw new Error("Update storage config failed");
-            }
-
-            switch (storageType) {
-                case "oss":
-                    await this.stsService.clearOssStsCredentials();
-            }
-
             if (dto.isActive) {
-                const newActiveConfig = await manager.findOne(StorageConfig, {
-                    where: { id },
-                });
-
-                if (newActiveConfig) {
-                    await this.syncToDict(manager, newActiveConfig);
-                }
+                await manager.update(StorageConfig, { isActive: true }, { isActive: false });
             }
+
+            await manager.update(
+                StorageConfig,
+                { id },
+                {
+                    config: dto.config,
+                    isActive: dto.isActive,
+                },
+            );
+
+            await this.updateCurrentActiveConfigToDict(manager);
+            await this.stsService.clearOssStsCredentials();
+
             FileUrlProcessorUtil.clearCache();
         });
     }
@@ -85,8 +71,9 @@ export class StorageConfigService {
         return this.repository.findOne({ where: { id } });
     }
 
-    private async syncToDict(manager: EntityManager, storage: StorageConfig) {
+    private async updateCurrentActiveConfigToDict(manager: EntityManager) {
         const group = "storage_config";
+        const storage = await manager.findOne(StorageConfig, { where: { isActive: true } });
 
         await this.upsertDict(manager, {
             key: "engine",

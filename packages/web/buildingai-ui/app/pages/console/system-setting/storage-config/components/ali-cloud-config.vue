@@ -28,6 +28,7 @@ watch(modalOpenRef, (isOpen) => {
 });
 const updateStorageConfig = async () => {
     const storage = await apiGetStorageConfigDetail<typeof StorageType.OSS>(props.data.id);
+    state.isActive = storage.isActive;
     state.config = storage.config || aliyunOSSDefaultConfig();
 };
 
@@ -49,6 +50,8 @@ const state = reactive<StorageConfig<typeof StorageType.OSS>>({
     ...props.data,
     config: aliyunOSSDefaultConfig(),
 });
+
+console.log(state);
 
 async function handleSubmit() {
     try {

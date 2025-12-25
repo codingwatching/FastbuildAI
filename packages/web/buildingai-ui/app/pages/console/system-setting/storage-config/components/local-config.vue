@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {
+    apiGetStorageConfigDetail,
     apiUpdateStorageConfig,
     type StorageConfigTableData,
+    StorageType,
 } from "@buildingai/service/consoleapi/storage-config";
 import { useStorageStore } from "@buildingai/upload";
 import { boolean, object, string } from "yup";
@@ -16,6 +18,16 @@ const props = defineProps({
 
 const modalOpenRef = ref(false);
 const loadingRef = ref(false);
+
+watch(modalOpenRef, (isOpen) => {
+    if (isOpen) {
+        updateStorageConfig();
+    }
+});
+const updateStorageConfig = async () => {
+    const storage = await apiGetStorageConfigDetail<typeof StorageType.LOCAL>(props.data.id);
+    state.isActive = storage.isActive;
+};
 
 const form = useTemplateRef("form");
 const schema = object({
