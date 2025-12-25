@@ -327,6 +327,7 @@ watch(
                 variant="soft"
                 :placeholder="t('ai-provider.backend.model.searchPlaceholder')"
                 :ui="{ root: 'w-full', base: 'bg-accent' }"
+                @change="getLists()"
             />
         </div>
         <div class="mb-4 flex items-center justify-between pl-2">
