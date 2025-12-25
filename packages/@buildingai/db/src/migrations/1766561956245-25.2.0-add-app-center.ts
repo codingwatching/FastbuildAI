@@ -13,32 +13,35 @@ export class Migration1766561956245 implements MigrationInterface {
     name = "Migration1766561956245";
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        // 重建前清理已存在的表/类型，避免重复迁移失败
-        await queryRunner.query(`DROP TABLE IF EXISTS "storage_config" CASCADE`);
-        await queryRunner.query(`DROP TYPE IF EXISTS "public"."storage_config_storage_type_enum"`);
+        // 如果类型已存在则跳过，避免重复迁移失败
         await queryRunner.query(
-            `ALTER TABLE "extension" DROP COLUMN IF EXISTS "alias_description"`,
+            `DO $$ BEGIN
+                CREATE TYPE "public"."storage_config_storage_type_enum" AS ENUM('local', 'oss', 'cos', 'kodo');
+            EXCEPTION
+                WHEN duplicate_object THEN NULL;
+            END $$;`,
         );
-        await queryRunner.query(`ALTER TABLE "extension" DROP COLUMN IF EXISTS "alias_icon"`);
-        await queryRunner.query(`ALTER TABLE "extension" DROP COLUMN IF EXISTS "alias_show"`);
 
         await queryRunner.query(
-            `CREATE TYPE "public"."storage_config_storage_type_enum" AS ENUM('local', 'oss', 'cos', 'kodo')`,
+            `CREATE TABLE IF NOT EXISTS "storage_config" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "storage_type" "public"."storage_config_storage_type_enum" NOT NULL, "is_active" boolean NOT NULL DEFAULT false, "sort" integer NOT NULL DEFAULT '0', "config" jsonb, CONSTRAINT "PK_8f0080cdbee7cf8a5b945d92bff" PRIMARY KEY ("id")); COMMENT ON COLUMN "storage_config"."storage_type" IS '存储类型'; COMMENT ON COLUMN "storage_config"."is_active" IS '是否激活'; COMMENT ON COLUMN "storage_config"."sort" IS '排序'; COMMENT ON COLUMN "storage_config"."config" IS '存储配置内容'`,
         );
         await queryRunner.query(
-            `CREATE TABLE "storage_config" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "storage_type" "public"."storage_config_storage_type_enum" NOT NULL, "is_active" boolean NOT NULL DEFAULT false, "sort" integer NOT NULL DEFAULT '0', "config" jsonb, CONSTRAINT "PK_8f0080cdbee7cf8a5b945d92bff" PRIMARY KEY ("id")); COMMENT ON COLUMN "storage_config"."storage_type" IS '存储类型'; COMMENT ON COLUMN "storage_config"."is_active" IS '是否激活'; COMMENT ON COLUMN "storage_config"."sort" IS '排序'; COMMENT ON COLUMN "storage_config"."config" IS '存储配置内容'`,
-        );
-        await queryRunner.query(
-            `CREATE INDEX "IDX_8f0080cdbee7cf8a5b945d92bf" ON "storage_config" ("id") `,
+            `CREATE INDEX IF NOT EXISTS "IDX_8f0080cdbee7cf8a5b945d92bf" ON "storage_config" ("id") `,
         );
         await queryRunner.query(`COMMENT ON TABLE "storage_config" IS '存储配置'`);
-        await queryRunner.query(`ALTER TABLE "extension" ADD "alias_description" text`);
+        await queryRunner.query(
+            `ALTER TABLE "extension" ADD COLUMN IF NOT EXISTS "alias_description" text`,
+        );
         await queryRunner.query(
             `COMMENT ON COLUMN "extension"."alias_description" IS '对外显示描述'`,
         );
-        await queryRunner.query(`ALTER TABLE "extension" ADD "alias_icon" text`);
+        await queryRunner.query(
+            `ALTER TABLE "extension" ADD COLUMN IF NOT EXISTS "alias_icon" text`,
+        );
         await queryRunner.query(`COMMENT ON COLUMN "extension"."alias_icon" IS '外显示图标'`);
-        await queryRunner.query(`ALTER TABLE "extension" ADD "alias_show" boolean DEFAULT true`);
+        await queryRunner.query(
+            `ALTER TABLE "extension" ADD COLUMN IF NOT EXISTS "alias_show" boolean DEFAULT true`,
+        );
         await queryRunner.query(`COMMENT ON COLUMN "extension"."alias_show" IS '是否对外显示'`);
     }
 
