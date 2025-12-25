@@ -1,7 +1,7 @@
 {
     "alter": {
         "title": "Friendly reminder:",
-        "content": "1. When using object storage, resource files in the public directory need to be transferred to the object storage space while retaining their original directory paths. \n2. Do not switch storage methods arbitrarily, as this may cause images to become unviewable. \n3. You need to set up domain CORS in the object storage backend, otherwise scenarios like image generation (e.g., poster synthesis) cannot be used. \n4. The image domain of the object storage needs to be added to the WeChat Mini Program official backend as a legal domain for requests and downloadFile."
+        "content": "1. To use object storage, you need to transfer the resource files under the storage directory to the object storage space with the original directory path. Check the migration document for details. \r\n2. Do not switch the storage method at will, it may lead to images and other resources can not be viewed. \r\n3. Domain cross-domain needs to be set in the object store background, otherwise the resource may not be viewable after uploading to OSS."
     },
     "table": {
         "storageType": "Storage method",

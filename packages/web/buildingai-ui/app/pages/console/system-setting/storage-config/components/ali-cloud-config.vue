@@ -70,7 +70,7 @@ async function handleSubmit() {
 <template>
     <UModal
         v-model:open="modalOpenRef"
-        :title="$t('storage-config.storage.local')"
+        :title="$t('storage-config.storage.oss')"
         :ui="{ footer: 'justify-end' }"
         :dismissible="loadingRef"
     >
