@@ -24,7 +24,7 @@ export class ExtensionWebController extends BaseController {
      */
     @Get()
     @Public()
-    @BuildFileUrl(["**.icon"])
+    @BuildFileUrl(["**.icon", "**.aliasIcon"])
     async lists(@Query() query: QueryExtensionDto) {
         // Check if platform secret is configured
         const platformSecret = await this.dictService.get<string | null>(

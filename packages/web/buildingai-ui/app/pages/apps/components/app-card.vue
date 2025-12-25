@@ -38,14 +38,18 @@ const handleClick = () => {
                     </h3>
                 </UTooltip>
                 <p class="text-muted-foreground mt-1 line-clamp-2 h-10 text-sm">
-                    {{ extension.description || $t("extensions.manage.noDescription") }}
+                    {{
+                        extension.aliasDescription ||
+                        extension.description ||
+                        $t("extensions.manage.noDescription")
+                    }}
                 </p>
             </div>
             <div
                 class="bg-background flex size-18 flex-none items-center justify-center overflow-hidden rounded-lg"
             >
                 <UAvatar
-                    :src="extension.icon"
+                    :src="extension.aliasIcon ? extension.aliasIcon : extension.icon"
                     :alt="extension.name"
                     icon="i-lucide-puzzle"
                     :ui="{

@@ -242,6 +242,12 @@ export class ExtensionConsoleController extends BaseController {
             extensionsList = extensionsList.filter((ext) => ext.isInstalled === query.isInstalled);
         }
 
+        extensionsList = extensionsList.sort(
+            (a, b) =>
+                new Date(b.createdAt || b.updatedAt || 0).getTime() -
+                new Date(a.createdAt || a.updatedAt || 0).getTime(),
+        );
+
         return this.paginationResult(extensionsList, extensionsList.length, query);
     }
 

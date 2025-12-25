@@ -46,9 +46,8 @@ const currentComponent = computed(() => {
             />
         </div>
 
-        <component
-            :is="currentComponent"
-            class="flex-1 overflow-y-auto lg:max-w-2xl xl:max-w-4xl"
-        />
+        <div class="flex-1 overflow-y-auto">
+            <component :is="currentComponent" class="lg:max-w-2xl xl:max-w-4xl" />
+        </div>
     </div>
 </template>

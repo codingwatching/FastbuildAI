@@ -28,8 +28,8 @@
             "mode": "创建模式",
             "modes": {
                 "direct": "直接创建",
-                "coze": "Coze智能体",
-                "dify": "Dify智能体"
+                "coze": "Coze",
+                "dify": "Dify"
             },
             "modesDesc": {
                 "direct": "手动配置智能体信息",
@@ -105,9 +105,9 @@
             "tagsDesc": "为智能体添加标签，便于分类和管理",
             "feedback": "问答标注",
             "feedbackDesc": "支持管理员和用户标注问题和答案",
-            "public": "公开智能体",
+            "public": "公开",
             "publicDesc": "在智能体广场列表中可见，其他用户可发现并使用。智能体为已发布的状态下才生效,",
-            "private": "私有智能体",
+            "private": "私有",
             "prologue": "开场白",
             "prologueDesc": "编辑器工具如果被遮住则使用鼠标按住左右拖地即可查看剩余工具",
             "problem": "开场问题",
@@ -154,7 +154,7 @@
                 "apiKey": "API 密钥",
                 "dify": {
                     "title": "Dify 平台配置",
-                    "baseURLPlaceholder": "请输入 Dify API 端点地址，如：https://api.dify.ai/v1",
+                    "baseURLPlaceholder": "请输入 Dify API 端点地址，默认：https://api.dify.ai/v1",
                     "baseURLHint": "Dify 应用的 API 端点地址",
                     "apiKeyPlaceholder": "请输入 Dify 应用的 API 密钥",
                     "apiKeyHint": "在 Dify 应用设置中获取 API 密钥",
@@ -164,7 +164,7 @@
                 "coze": {
                     "title": "Coze 平台配置",
                     "baseURLPlaceholder": "请输入 Coze API 端点地址",
-                    "baseURLHint": "Coze 应用的 API 端点地址，例如：https://api.coze.cn",
+                    "baseURLHint": "Coze 应用的 API 端点地址，默认：https://api.coze.cn",
                     "botId": "Bot ID",
                     "botIdPlaceholder": "请输入 Coze Bot ID",
                     "botIdHint": "在 Coze 平台的 Bot 详情页 URL 中获取，例如：7342xxxxx",

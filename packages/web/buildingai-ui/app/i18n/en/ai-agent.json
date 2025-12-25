@@ -28,8 +28,8 @@
             "mode": "Creation Mode",
             "modes": {
                 "direct": "Direct Create",
-                "coze": "Coze Agent",
-                "dify": "Dify Agent"
+                "coze": "Coze",
+                "dify": "Dify"
             },
             "modesDesc": {
                 "direct": "Manually configure agent info",
@@ -105,9 +105,9 @@
             "tagsDesc": "Add tags to agents for better categorization and management",
             "feedback": "Q&A Annotation",
             "feedbackDesc": "Support admin/user Q&A annotation",
-            "public": "Public Agent",
+            "public": "Public",
             "publicDesc": "Visible in Agent Square. Requires published status.",
-            "private": "Private Agent",
+            "private": "Private",
             "prologue": "Prologue",
             "prologueDesc": "Drag left/right if tools are obscured",
             "problem": "Opening Question",
@@ -154,7 +154,7 @@
                 "apiKey": "API Key",
                 "dify": {
                     "title": "Dify Platform Configuration",
-                    "baseURLPlaceholder": "Enter the Dify API endpoint, e.g. https://api.dify.ai/v1",
+                    "baseURLPlaceholder": "Enter the Dify API endpoint, default: https://api.dify.ai/v1",
                     "baseURLHint": "API endpoint for the Dify app",
                     "apiKeyPlaceholder": "Enter the Dify app API key",
                     "apiKeyHint": "Get the API key in Dify app settings",
@@ -164,7 +164,7 @@
                 "coze": {
                     "title": "Coze Platform Configuration",
                     "baseURLPlaceholder": "Enter the Coze API endpoint",
-                    "baseURLHint": "API endpoint for the Coze app, e.g., https://api.coze.cn",
+                    "baseURLHint": "API endpoint for the Coze app, default: https://api.coze.cn",
                     "botId": "Bot ID",
                     "botIdPlaceholder": "Enter the Coze Bot ID",
                     "botIdHint": "Get from the Bot detail page URL on Coze, e.g., 7342xxxxx",

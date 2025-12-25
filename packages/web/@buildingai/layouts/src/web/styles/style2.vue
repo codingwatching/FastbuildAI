@@ -71,8 +71,11 @@ onMounted(() => {
 
             <!-- 中央浮动导航 -->
             <div
-                class="pointer-events-none fixed top-4 left-1/2 z-50 -translate-x-1/2"
-                v-if="!hasPreview"
+                :class="[
+                    hasPreview
+                        ? 'pointer-events-none absolute top-4 left-1/2 z-50 -translate-x-1/2'
+                        : 'pointer-events-none fixed top-4 left-1/2 z-50 -translate-x-1/2',
+                ]"
             >
                 <div class="pointer-events-auto relative">
                     <!-- 左箭头 -->

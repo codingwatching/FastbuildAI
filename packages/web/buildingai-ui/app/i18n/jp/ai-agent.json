@@ -28,8 +28,8 @@
             "mode": "作成モード",
             "modes": {
                 "direct": "直接作成",
-                "coze": "Cozeエージェント",
-                "dify": "Difyエージェント"
+                "coze": "Coze",
+                "dify": "Dify"
             },
             "modesDesc": {
                 "direct": "エージェント情報を手動で設定",
@@ -105,9 +105,9 @@
             "tagsDesc": "エージェントにタグを追加して、分類と管理を簡単に",
             "feedback": "QA注釈",
             "feedbackDesc": "管理者とユーザーによる質問と回答の注釈をサポート",
-            "public": "公開エージェント",
-            "publicDesc": "エージェント広場で表示、他のユーザーが発見・利用可能（公開状態時のみ有効）",
-            "private": "非公開エージェント",
+            "public": "公開",
+            "publicDesc": "エージェント広場で表示されます。公開済み状態で有効。",
+            "private": "非公開",
             "prologue": "オープニング",
             "prologueDesc": "エディターツールが隠れた場合は左右にドラッグ",
             "problem": "オープニング質問",
@@ -154,7 +154,7 @@
                 "apiKey": "API キー",
                 "dify": {
                     "title": "Dify プラットフォーム設定",
-                    "baseURLPlaceholder": "Dify API エンドポイントを入力（例：https://api.dify.ai/v1）",
+                    "baseURLPlaceholder": "Dify API エンドポイントを入力（デフォルト：https://api.dify.ai/v1）",
                     "baseURLHint": "Dify アプリの API エンドポイント",
                     "apiKeyPlaceholder": "Dify アプリの API キーを入力",
                     "apiKeyHint": "Dify アプリ設定で API キーを取得",
@@ -164,7 +164,7 @@
                 "coze": {
                     "title": "Coze プラットフォーム設定",
                     "baseURLPlaceholder": "Coze API エンドポイントを入力",
-                    "baseURLHint": "Coze アプリの API エンドポイント、例：https://api.coze.cn",
+                    "baseURLHint": "Coze アプリの API エンドポイント（デフォルト：https://api.coze.cn）",
                     "botId": "Bot ID",
                     "botIdPlaceholder": "Coze Bot ID を入力",
                     "botIdHint": "Coze の Bot 詳細ページ URL から取得、例：7342xxxxx",

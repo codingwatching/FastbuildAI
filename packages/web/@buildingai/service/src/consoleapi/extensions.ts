@@ -208,7 +208,7 @@ export interface ExtensionInstallRequest {
  */
 export function apiCreateExtension(data: ExtensionCreateRequest): Promise<ExtensionFormData> {
     return useConsolePost("/extensions", data, {
-        timeout: 300000,
+        timeout: 1800000,
     });
 }
 
@@ -372,7 +372,7 @@ export function apiInstallExtension(
 ): Promise<ExtensionFormData> {
     const data: ExtensionInstallRequest = version ? { version } : {};
     return useConsolePost(`/extensions/install/${identifier}`, data, {
-        timeout: 300000,
+        timeout: 1800000,
     });
 }
 
@@ -394,7 +394,7 @@ export function apiUpgradeExtension(identifier: string): Promise<ExtensionFormDa
         `/extensions/upgrade/${identifier}`,
         {},
         {
-            timeout: 300000,
+            timeout: 1800000,
         },
     );
 }
@@ -420,7 +420,7 @@ export function apiEnableExtension(id: string): Promise<ExtensionFormData> {
         `/extensions/${id}/enable`,
         {},
         {
-            timeout: 300000,
+            timeout: 1800000,
         },
     );
 }
@@ -436,7 +436,7 @@ export function apiDisableExtension(id: string): Promise<ExtensionFormData> {
         `/extensions/${id}/disable`,
         {},
         {
-            timeout: 300000,
+            timeout: 1800000,
         },
     );
 }
