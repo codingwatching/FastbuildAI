@@ -1,8 +1,10 @@
 import { BaseService } from "@buildingai/base";
+import { StorageType } from "@buildingai/constants";
 import { BusinessCode } from "@buildingai/constants/shared/business-code.constant";
 import { FileUrlService } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
+import { StorageConfig } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { Injectable } from "@nestjs/common";
@@ -10,6 +12,7 @@ import type { Request } from "express";
 import * as mime from "mime-types";
 import * as path from "path";
 
+import { CloudStorageService } from "../../cloud-storage";
 import type {
     FileMetadata,
     FileStorageOptions,
@@ -66,11 +69,15 @@ interface CreateCloudStoragePathParams {
  */
 @Injectable()
 export class FileUploadService extends BaseService<File> {
+    @InjectRepository(StorageConfig)
+    private readonly storageConfigRepo: Repository<StorageConfig>;
+
     constructor(
         @InjectRepository(File)
         private readonly fileRepository: Repository<File>,
         private readonly fileStorageService: FileStorageService,
         private readonly fileUrlService: FileUrlService,
+        private readonly cloudStorageService: CloudStorageService,
     ) {
         super(fileRepository);
     }
@@ -265,7 +272,7 @@ export class FileUploadService extends BaseService<File> {
      * @param options Storage options
      * @returns Upload result
      */
-    async uploadFile(
+    async uploadFileToDisk(
         file: Buffer | Express.Multer.File,
         request: Request,
         description?: string,
@@ -344,7 +351,7 @@ export class FileUploadService extends BaseService<File> {
      * @param options Storage options
      * @returns Array of upload results
      */
-    async uploadFiles(
+    async uploadFilesToDisk(
         files: (Buffer | Express.Multer.File)[],
         request: Request,
         description?: string,
@@ -357,7 +364,7 @@ export class FileUploadService extends BaseService<File> {
         const results: UploadFileResult[] = [];
 
         for (const file of files) {
-            const result = await this.uploadFile(file, request, description, options);
+            const result = await this.uploadFileToDisk(file, request, description, options);
             results.push(result);
         }
 
@@ -373,7 +380,7 @@ export class FileUploadService extends BaseService<File> {
      * @param options Storage options
      * @returns Upload result
      */
-    async uploadRemoteFile(
+    async uploadRemoteFileToDisk(
         url: string,
         request: Request,
         description?: string,
@@ -451,6 +458,70 @@ export class FileUploadService extends BaseService<File> {
                 BusinessCode.REQUEST_FAILED,
             );
         }
+    }
+
+    async uploadFile(
+        file: Express.Multer.File,
+        request: Request,
+        description?: string,
+        options?: FileStorageOptions,
+    ) {
+        const storageConfig = await this.getActiveStorageConfig();
+        if (storageConfig.storageType === StorageType.LOCAL) {
+            return await this.uploadFileToDisk(file, request, description, options);
+        }
+
+        const pathConfig = await this.createCloudStoragePath(
+            { name: file.originalname, size: file.size },
+            options,
+        );
+
+        const uploadResult = await this.cloudStorageService.upload({
+            file,
+            description,
+            storageConfig,
+            path: pathConfig.storage.fullPath,
+        });
+
+        return {
+            id: "",
+            url: uploadResult.url,
+            originalName: pathConfig.metadata.originalName,
+            size: pathConfig.metadata.size,
+            mimeType: pathConfig.metadata.mimeType,
+            extension: pathConfig.metadata.extension,
+        };
+    }
+
+    async uploadFiles(
+        files: Array<Express.Multer.File>,
+        request: Request,
+        description?: string,
+        options?: FileStorageOptions,
+    ) {
+        const tasks = files.map((file) => {
+            return this.uploadFile(file, request, description, options);
+        });
+
+        return Promise.all(tasks);
+    }
+
+    async uploadRemoteFile(
+        url: string,
+        request: Request,
+        description?: string,
+        options?: FileStorageOptions,
+    ) {
+        const storageConfig = await this.getActiveStorageConfig();
+        if (storageConfig.storageType === StorageType.LOCAL) {
+            return await this.uploadRemoteFileToDisk(url, request, description, options);
+        }
+
+        throw new Error("Not implemented.");
+    }
+
+    private getActiveStorageConfig(): Promise<StorageConfig> {
+        return this.storageConfigRepo.findOne({ where: { isActive: true } });
     }
 
     /**

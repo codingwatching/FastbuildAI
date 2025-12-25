@@ -46,7 +46,7 @@ export class UploadService extends BaseService<File> {
         description?: string,
         extensionId?: string,
     ): Promise<UploadFileResult> {
-        return this.fileUploadService.uploadFile(
+        return this.fileUploadService.uploadFileToDisk(
             file,
             request,
             description,
@@ -69,7 +69,7 @@ export class UploadService extends BaseService<File> {
         description?: string,
         extensionId?: string,
     ): Promise<UploadFileResult[]> {
-        return this.fileUploadService.uploadFiles(
+        return this.fileUploadService.uploadFilesToDisk(
             files,
             request,
             description,
@@ -121,7 +121,7 @@ export class UploadService extends BaseService<File> {
     ): Promise<UploadFileResult> {
         const { url, description, extensionId } = remoteUploadDto;
 
-        return this.fileUploadService.uploadRemoteFile(
+        return this.fileUploadService.uploadRemoteFileToDisk(
             url,
             request,
             description,

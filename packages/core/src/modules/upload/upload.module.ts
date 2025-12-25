@@ -6,7 +6,6 @@ import { Module } from "@nestjs/common";
 import { CloudStorageModule } from "../cloud-storage";
 import { FileStorageService } from "./services/file-storage.service";
 import { FileUploadService } from "./services/file-upload.service";
-import { UploadService } from "./services/upload.service";
 
 /**
  * File upload module
@@ -16,7 +15,7 @@ import { UploadService } from "./services/upload.service";
  */
 @Module({
     imports: [TypeOrmModule.forFeature([File, StorageConfig]), CloudStorageModule],
-    providers: [FileStorageService, FileUploadService, UploadService],
-    exports: [FileStorageService, FileUploadService, UploadService],
+    providers: [FileStorageService, FileUploadService],
+    exports: [FileStorageService, FileUploadService],
 })
 export class UploadModule {}

@@ -1,7 +1,7 @@
 import { BaseController } from "@buildingai/base";
 import { BusinessCode } from "@buildingai/constants";
 import { StorageType } from "@buildingai/constants/shared/storage-config.constant";
-import { CloudStorageService, UploadService as CoreUploadService } from "@buildingai/core";
+import { CloudStorageService } from "@buildingai/core";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
 import { DictService } from "@buildingai/dict";
@@ -37,7 +37,7 @@ import { UploadService } from "../../services/upload.service";
  *
  * 处理文件上传、查询和下载等请求
  */
-@WebController({ path: "upload", skipAuth: true })
+@WebController({ path: "upload" })
 export class UploadController extends BaseController {
     /**
      * 构造函数
@@ -46,23 +46,14 @@ export class UploadController extends BaseController {
      * @param dictService 字典服务
      * @param storageConfigService - 存储配置服务
      * @param cloudStorageService
-     * @param coreUploadService
      */
     constructor(
         private readonly uploadService: UploadService,
         private readonly dictService: DictService,
         private readonly storageConfigService: StorageConfigService,
         private readonly cloudStorageService: CloudStorageService,
-        private readonly coreUploadService: CoreUploadService,
     ) {
         super();
-    }
-
-    @Post("cloud-upload")
-    @Public()
-    @UseInterceptors(FileInterceptor("file"))
-    async uploadCloud(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
-        return this.coreUploadService.uploadFile(file, req) as unknown as Promise<void>;
     }
 
     @Post("signature")
@@ -173,6 +164,8 @@ export class UploadController extends BaseController {
      *
      * @param query 查询参数
      * @returns 分页的文件列表
+     *
+     * @deprecated
      */
     @Get()
     @BuildFileUrl(["**.url"])
@@ -204,6 +197,8 @@ export class UploadController extends BaseController {
      *
      * @param id 文件ID
      * @returns 文件详情
+     *
+     * @deprecated
      */
     @Get(":id")
     @BuildFileUrl(["**.url"])
@@ -216,6 +211,8 @@ export class UploadController extends BaseController {
      *
      * @param id 文件ID
      * @param res 响应对象
+     *
+     * @deprecated
      */
     @Get("download/:id")
     async downloadFile(@Param("id", UUIDValidationPipe) id: string, @Res() res: Response) {
@@ -260,6 +257,8 @@ export class UploadController extends BaseController {
      *
      * @param id 文件ID
      * @returns 删除结果
+     *
+     * @deprecated
      */
     @Delete(":id")
     async deleteFile(@Param("id", UUIDValidationPipe) id: string) {
