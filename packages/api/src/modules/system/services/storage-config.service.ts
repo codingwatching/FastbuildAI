@@ -1,6 +1,7 @@
 import { RedisService } from "@buildingai/cache";
 import { StorageType } from "@buildingai/constants/shared/storage-config.constant";
 import { Dict, StorageConfig } from "@buildingai/db/entities";
+import { FileUrlProcessorUtil } from "@buildingai/utils";
 import { StsService } from "@modules/sts/services/sts.service";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -68,6 +69,7 @@ export class StorageConfigService {
                     await this.syncToDict(manager, newActiveConfig);
                 }
             }
+            FileUrlProcessorUtil.clearCache();
         });
     }
 
