@@ -5,6 +5,7 @@ import type {
 } from "@buildingai/service/consoleapi/ai-agent";
 import { apiAgentChat, apiCreateAgentAnnotation } from "@buildingai/service/consoleapi/ai-agent";
 import type { AiMessage } from "@buildingai/service/models/message";
+import type { AiModel } from "@buildingai/service/webapi/ai-conversation";
 
 const AgentAnnotationModal = defineAsyncComponent(() => import("./logs/annotation-modal.vue"));
 const ChatsContextModal = defineAsyncComponent(
@@ -38,7 +39,7 @@ const initialMessages: AiMessage[] = [];
 
 const currentContext = shallowRef<AiMessage[]>([]);
 
-const { messages, input, handleSubmit, reload, stop, status, error } = useChat({
+const { messages, input, files, handleSubmit, reload, stop, status, error } = useChat({
     api: apiAgentChat,
     initialMessages: initialMessages,
     chatConfig: {
@@ -478,7 +479,9 @@ defineExpose({
             </div>
             <ChatsPrompt
                 v-model="input"
+                v-model:file-list="files"
                 :is-loading="isLoading"
+                :model-config="agent.modelConfig"
                 class="sticky bottom-0 z-10 [view-transition-name:chat-prompt]"
                 @stop="stop"
                 @submit="handleSubmitMessage"

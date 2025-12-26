@@ -17,6 +17,12 @@ const emits = defineEmits<{
     (e: "stop"): void;
 }>();
 
+interface ModelConfigInput {
+    /** 模型配置：包含模型 ID 及参数、特性等信息 */
+    id?: string;
+    options?: Record<string, unknown>;
+}
+
 const props = withDefaults(
     defineProps<{
         modelValue: string;
@@ -26,6 +32,8 @@ const props = withDefaults(
         rows?: number;
         needAuth?: boolean;
         attachmentSizeLimit?: number;
+        /** 智能体专属模型配置，包含模型 ID 与参数 */
+        modelConfig?: ModelConfigInput;
     }>(),
     {
         modelValue: "",
@@ -285,6 +293,7 @@ onMounted(() =>
                     <PromptFileUpload
                         :disabled="isUploading"
                         :maxSize="attachmentSizeLimit"
+                        :model-config="modelConfig"
                         @file-select="handleFileSelect"
                         @url-submit="handleUrlSubmit"
                     />

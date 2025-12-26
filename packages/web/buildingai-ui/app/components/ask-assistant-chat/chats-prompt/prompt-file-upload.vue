@@ -1,13 +1,27 @@
 <script setup lang="ts">
+import { apiGetAiModel } from "@buildingai/service/webapi/ai-conversation";
 const emits = defineEmits<{
     (e: "file-select", file: File): void;
     (e: "url-submit", url: string): void;
 }>();
 
+interface ModelConfigInput {
+    /** 模型配置：包含模型 ID 及参数、特性等信息 */
+    id?: string;
+    options?: {
+        /** 模型特性列表（如 vision/audio 等），从模型参数中透传 */
+        features?: string[];
+        /** 其他模型参数 */
+        [key: string]: unknown;
+    };
+}
+
 const props = defineProps<{
     disabled?: boolean;
     maxSize?: number;
     accept?: string;
+    /** 当外部传入模型配置时优先使用，未传则回退全局选中的模型 */
+    modelConfig?: ModelConfigInput;
 }>();
 
 const controlsStore = useControlsStore();
@@ -17,12 +31,47 @@ const isOpen = shallowRef(false);
 const toast = useMessage();
 const { t } = useI18n();
 
+const remoteModelFeatures = shallowRef<string[]>([]);
+const modelFeatures = computed<string[]>(() => {
+    if (remoteModelFeatures.value.length > 0) {
+        return remoteModelFeatures.value;
+    }
+    if (props.modelConfig?.options?.features?.length) {
+        return props.modelConfig.options.features;
+    }
+    return controlsStore.selectedModel?.features || [];
+});
+
+/**
+ * 根据模型 ID 远程获取模型特性
+ * @param modelId 模型 ID
+ */
+const fetchModelFeatures = async (modelId?: string) => {
+    if (!modelId) {
+        remoteModelFeatures.value = [];
+        return;
+    }
+    try {
+        const detail = await apiGetAiModel(modelId);
+        remoteModelFeatures.value = detail?.features || [];
+    } catch (error) {
+        console.error("获取模型信息失败:", error);
+        remoteModelFeatures.value = [];
+    }
+};
+
+watch(
+    () => props.modelConfig?.id,
+    (id) => fetchModelFeatures(id),
+    { immediate: true },
+);
+
 const supportedFileTypes = computed(() => {
-    if (!controlsStore.selectedModel) {
+    if (!props.modelConfig && !controlsStore.selectedModel) {
         return ".pdf,.doc,.docx,.txt,.md";
     }
 
-    const features = controlsStore.selectedModel.features || [];
+    const features = modelFeatures.value || [];
     const supportedTypes: string[] = [];
 
     // 始终支持文档类型（因为提示内容说"支持各类文档"）
@@ -59,7 +108,7 @@ const supportedFileTypes = computed(() => {
 const tooltipContent = computed(() => {
     const maxCount = 10;
     const maxSize = props.maxSize || 100;
-    const supportsImage = controlsStore.selectedModel?.features?.includes("vision") || false;
+    const supportsImage = modelFeatures.value.includes("vision");
 
     const firstLine = t("common.chat.messages.uploadAttachmentTextOnly");
     const secondLine = t("common.chat.messages.fileUploadLimit", {
