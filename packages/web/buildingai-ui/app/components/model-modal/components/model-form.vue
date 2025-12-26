@@ -573,7 +573,7 @@ onMounted(() => {
         </BdScrollArea>
 
         <!-- 底部操作按钮 -->
-        <div class="flex justify-end gap-4">
+        <div class="bg-background sticky bottom-0 z-10 flex justify-end gap-4 py-3">
             <UButton color="neutral" variant="outline" @click="handleCancel" class="px-8">
                 {{ t("console-common.cancel") }}
             </UButton>

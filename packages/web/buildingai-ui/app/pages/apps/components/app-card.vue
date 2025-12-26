@@ -46,14 +46,14 @@ const handleClick = () => {
                 </p>
             </div>
             <div
-                class="bg-background flex size-18 flex-none items-center justify-center overflow-hidden rounded-lg"
+                class="bg-background flex size-18 flex-none items-center justify-center overflow-hidden rounded-xl"
             >
                 <UAvatar
                     :src="extension.aliasIcon ? extension.aliasIcon : extension.icon"
                     :alt="extension.name"
                     icon="i-lucide-puzzle"
                     :ui="{
-                        root: `size-full rounded-md ${extension.icon ? '' : 'bg-primary'}`,
+                        root: `size-full rounded-xl ${extension.icon ? '' : 'bg-primary'}`,
                         icon: 'size-7 text-white',
                     }"
                 >
