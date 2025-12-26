@@ -522,7 +522,7 @@ async function handlePopoverUpdate(value: boolean) {
                                 </UPopover>
                             </li>
                         </ul>
-                        <div class="sticky bottom-0">
+                        <div class="bg-muted sticky bottom-0">
                             <UButton
                                 color="primary"
                                 variant="subtle"

@@ -5,7 +5,6 @@ import type {
 } from "@buildingai/service/consoleapi/ai-agent";
 import { apiAgentChat, apiCreateAgentAnnotation } from "@buildingai/service/consoleapi/ai-agent";
 import type { AiMessage } from "@buildingai/service/models/message";
-import type { AiModel } from "@buildingai/service/webapi/ai-conversation";
 
 const AgentAnnotationModal = defineAsyncComponent(() => import("./logs/annotation-modal.vue"));
 const ChatsContextModal = defineAsyncComponent(

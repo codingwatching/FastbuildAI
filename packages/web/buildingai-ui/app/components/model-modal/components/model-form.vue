@@ -232,7 +232,7 @@ onMounted(() => {
 
 <template>
     <UForm ref="formRef" :state="formData" :schema="schema" class="space-y-8" @submit="submitForm">
-        <BdScrollArea class="h-130" :shadow="false">
+        <BdScrollArea :shadow="false">
             <div class="space-y-4 rounded-lg lg:col-span-2">
                 <!-- 默认模型 -->
                 <div class="flex items-center justify-between">
