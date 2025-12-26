@@ -40,6 +40,11 @@ const enableAutoSave = useCookie<boolean>("agent-config-auto-save", {
     default: () => true,
 });
 const DEFAULT_OPENING_STATEMENT = "你好，我是智能体默认开场白，你可以在界面配置中修改我";
+const DEFAULT_OPENING_QUESTIONS = [
+    "我打算去北京旅游，有什么推荐的路线吗？",
+    "预算大约2万，能帮我规划一下行程吗？",
+    "我对历史文化很感兴趣，有合适的目的地推荐吗？",
+];
 const THIRD_PARTY_OPENING_STATEMENTS: Record<string, string> = {
     coze: "开场白和问题预设请前往Coze平台设置，发布为 API 服务后即可生效",
     dify: "开场白和问题预设请前往Dify平台设置",
@@ -66,11 +71,7 @@ const state = reactive<UpdateAgentConfigParams>({
     datasetIds: [],
     mcpServerIds: [],
     openingStatement: DEFAULT_OPENING_STATEMENT,
-    openingQuestions: [
-        "我打算去北京旅游，有什么推荐的路线吗？",
-        "预算大约2万，能帮我规划一下行程吗？",
-        "我对历史文化很感兴趣，有合适的目的地推荐吗？",
-    ],
+    openingQuestions: [...DEFAULT_OPENING_QUESTIONS],
     isPublic: false,
     quickCommands: [],
     autoQuestions: {
@@ -111,11 +112,28 @@ const isThirdPartyMode = computed(() => state.createMode !== "direct");
 watch(
     () => state.createMode,
     (mode) => {
-        if (mode === "coze" || mode === "dify") {
-            state.openingStatement = THIRD_PARTY_OPENING_STATEMENTS[mode];
-            state.openingQuestions = [];
-        } else if (!state.openingStatement) {
-            state.openingStatement = DEFAULT_OPENING_STATEMENT;
+        const isThirdParty = mode === "coze" || mode === "dify";
+        const isDefaultStatement = state.openingStatement === DEFAULT_OPENING_STATEMENT;
+        const isDefaultQuestions =
+            state.openingQuestions.length === DEFAULT_OPENING_QUESTIONS.length &&
+            state.openingQuestions.every(
+                (q: string, idx: number) => q === DEFAULT_OPENING_QUESTIONS[idx],
+            );
+
+        if (isThirdParty) {
+            if (isDefaultStatement) {
+                state.openingStatement = THIRD_PARTY_OPENING_STATEMENTS[mode];
+            }
+            if (isDefaultQuestions) {
+                state.openingQuestions = [];
+            }
+        } else {
+            if (!state.openingStatement) {
+                state.openingStatement = DEFAULT_OPENING_STATEMENT;
+            }
+            if (state.openingQuestions.length === 0) {
+                state.openingQuestions = [...DEFAULT_OPENING_QUESTIONS];
+            }
         }
     },
     { immediate: true },
