@@ -288,8 +288,6 @@ export class FileUploadService extends BaseService<File> {
         description?: string,
         options?: FileStorageOptions,
     ): Promise<UploadFileResult> {
-        console.log("不会吧!");
-
         const clientIp = this.getClientIP(request);
         const uploaderId = this.getUploaderId(request);
         if (!file) {
