@@ -102,9 +102,6 @@ export class FileUploadService extends BaseService<File> {
                 protocol = protocol.split(",")[0].trim();
             }
 
-            // Ensure protocol is http or https
-            protocol = protocol === "https" ? "https" : "http";
-
             // Get host (including port), prioritize proxy headers (X-Forwarded-Host)
             let host =
                 request.get("x-forwarded-host") ||
@@ -131,10 +128,23 @@ export class FileUploadService extends BaseService<File> {
                 host = host.split(",")[0].trim();
             }
 
-            // Check port first and correct protocol based on port
+            // Force https for production domains (non-localhost/IP without port)
+            const isProductionDomain =
+                !host.includes("localhost") &&
+                !host.includes("127.0.0.1") &&
+                !host.match(/^\d+\.\d+\.\d+\.\d+/) &&
+                !host.includes(":");
+
+            if (isProductionDomain && protocol !== "https") {
+                protocol = "https";
+            } else {
+                // Ensure protocol is http or https
+                protocol = protocol === "https" ? "https" : "http";
+            }
+
+            // Check port and correct protocol based on port
             if (host.includes(":443")) {
                 protocol = "https";
-                console.log(`[FileUpload] Detected :443 port, corrected protocol to https`);
             } else if (host.includes(":80")) {
                 protocol = "http";
             }
