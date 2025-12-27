@@ -1,12 +1,17 @@
 import { BaseService } from "@buildingai/base";
+import { StorageType } from "@buildingai/constants/shared/storage-config.constant";
+import { CloudStorageService } from "@buildingai/core";
 import { FileUploadService, type UploadFileResult } from "@buildingai/core/modules";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
-import { RemoteUploadDto } from "@modules/upload/dto/remote-upload.dto";
-import { SignatureRequestDto } from "@modules/upload/dto/upload-file.dto";
+import { HttpErrorFactory } from "@buildingai/errors";
+import { StorageConfigService } from "@modules/system/services/storage-config.service";
 import { Injectable } from "@nestjs/common";
 import { Request } from "express";
+
+import { RemoteUploadDto } from "../dto/remote-upload.dto";
+import { SignatureRequestDto } from "../dto/upload-file.dto";
 
 /**
  * File upload service (API layer)
@@ -15,18 +20,20 @@ import { Request } from "express";
  */
 @Injectable()
 export class UploadService extends BaseService<File> {
-    private readonly CACHE_PREFIX = "sts:credentials";
-
     /**
      * Constructor
      *
      * @param fileRepository File repository
      * @param fileUploadService Core file upload service
+     * @param cloudStorageService
+     * @param storageConfigService
      */
     constructor(
         @InjectRepository(File)
         private readonly fileRepository: Repository<File>,
         private readonly fileUploadService: FileUploadService,
+        private readonly storageConfigService: StorageConfigService,
+        private readonly cloudStorageService: CloudStorageService,
     ) {
         super(fileRepository);
     }
@@ -52,6 +59,40 @@ export class UploadService extends BaseService<File> {
             description,
             extensionId ? { extensionId } : undefined,
         );
+    }
+
+    /**
+     * For cloud storage
+     */
+    async getUploadSignatureInfo(dto: SignatureRequestDto) {
+        const storageConfig = await this.storageConfigService.getActiveStorageConfig();
+        if (!storageConfig) {
+            throw HttpErrorFactory.notFound("Config not found");
+        }
+
+        switch (storageConfig.storageType) {
+            case StorageType.OSS: {
+                const cloudConf = await this.fileUploadService.createCloudStoragePath(
+                    { name: dto.name, size: dto.size },
+                    dto.extensionId ? { extensionId: dto.extensionId } : undefined,
+                );
+                const signature = await this.cloudStorageService.signature(storageConfig);
+
+                return {
+                    signature,
+                    metadata: cloudConf.metadata,
+                    storageType: storageConfig.storageType,
+                    fullPath: cloudConf.storage.fullPath,
+                    fileUrl: cloudConf.storage.fileUrl,
+                };
+            }
+            default: {
+                return {
+                    signature: null,
+                    storageType: storageConfig.storageType,
+                };
+            }
+        }
     }
 
     /**

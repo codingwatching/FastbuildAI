@@ -19,6 +19,7 @@ import type {
     RemoteFileOptions,
 } from "../interfaces/file-storage.interface";
 import { FileTypeDetector } from "../utils/file-type-detector.util";
+import { RequestUtil } from "../utils/request.util";
 import { FileStorageService } from "./file-storage.service";
 
 /**
@@ -56,11 +57,6 @@ export interface UploadFileResult {
     extension: string;
 }
 
-interface CreateCloudStoragePathParams {
-    name: string;
-    size: number;
-}
-
 /**
  * File upload service
  *
@@ -83,197 +79,6 @@ export class FileUploadService extends BaseService<File> {
     }
 
     /**
-     * Extract request domain from request
-     *
-     * @param request Express request object
-     * @returns Request domain (format: protocol://host)
-     */
-    private getRequestDomain(request: Request): string | undefined {
-        try {
-            // Get protocol, prioritize proxy headers (X-Forwarded-Proto)
-            let protocol =
-                request.get("x-forwarded-proto") ||
-                request.headers?.["x-forwarded-proto"] ||
-                request.protocol ||
-                "http";
-
-            // Handle multiple protocol values (comma-separated), take the first one
-            if (typeof protocol === "string" && protocol.includes(",")) {
-                protocol = protocol.split(",")[0].trim();
-            }
-
-            // Get host (including port), prioritize proxy headers (X-Forwarded-Host)
-            let host =
-                request.get("x-forwarded-host") ||
-                request.headers?.["x-forwarded-host"] ||
-                request.get("host") ||
-                request.headers?.host;
-
-            if (!host) {
-                return undefined;
-            }
-
-            // Convert to string if it's an array
-            if (Array.isArray(host)) {
-                host = host[0];
-            }
-
-            // Ensure host is a string
-            if (typeof host !== "string") {
-                return undefined;
-            }
-
-            // Handle multiple host values (comma-separated), take the first one
-            if (host.includes(",")) {
-                host = host.split(",")[0].trim();
-            }
-
-            // Force https for production domains (non-localhost/IP without port)
-            const isProductionDomain =
-                !host.includes("localhost") &&
-                !host.includes("127.0.0.1") &&
-                !host.match(/^\d+\.\d+\.\d+\.\d+/) &&
-                !host.includes(":");
-
-            if (isProductionDomain && protocol !== "https") {
-                protocol = "https";
-            } else {
-                // Ensure protocol is http or https
-                protocol = protocol === "https" ? "https" : "http";
-            }
-
-            // Check port and correct protocol based on port
-            if (host.includes(":443")) {
-                protocol = "https";
-            } else if (host.includes(":80")) {
-                protocol = "http";
-            }
-
-            // Remove default ports (http:80, https:443)
-            host = this.normalizeHost(host, protocol);
-
-            // Handle localhost/127.0.0.1 addresses
-            if (host.includes("127.0.0.1") || host.includes("localhost")) {
-                console.warn(
-                    `[FileUpload] Detected internal address (${host}), attempting to resolve from referer or environment variable`,
-                );
-
-                // Try to extract from referer header
-                const referer = request.get("referer") || request.headers?.referer;
-                if (referer && typeof referer === "string") {
-                    try {
-                        const refererUrl = new URL(referer);
-                        const refererHost = refererUrl.host;
-
-                        // Validate referer host is not also localhost
-                        if (
-                            !refererHost.includes("127.0.0.1") &&
-                            !refererHost.includes("localhost")
-                        ) {
-                            host = refererHost;
-                            protocol = refererUrl.protocol.replace(":", "") as "http" | "https";
-                            console.log(
-                                `[FileUpload] Resolved domain from referer: ${protocol}://${host}`,
-                            );
-                        }
-                    } catch (_error) {
-                        console.warn(`[FileUpload] Failed to parse referer: ${referer}`);
-                    }
-                }
-
-                // If still localhost, fallback to APP_DOMAIN environment variable
-                if (host.includes("127.0.0.1") || host.includes("localhost")) {
-                    const appDomain = process.env.APP_DOMAIN;
-                    if (appDomain) {
-                        try {
-                            const domainUrl = new URL(
-                                appDomain.startsWith("http") ? appDomain : `https://${appDomain}`,
-                            );
-                            host = domainUrl.host;
-                            protocol = domainUrl.protocol.replace(":", "") as "http" | "https";
-                            console.log(
-                                `[FileUpload] Using APP_DOMAIN from environment: ${protocol}://${host}`,
-                            );
-                        } catch {
-                            console.error(
-                                `[FileUpload] Invalid APP_DOMAIN format: ${appDomain}. Using localhost as fallback.`,
-                            );
-                        }
-                    } else {
-                        console.error(
-                            `[FileUpload] No APP_DOMAIN configured. File URLs will use localhost and may be inaccessible externally.`,
-                        );
-                    }
-                }
-            }
-
-            const result = `${protocol}://${host}`;
-
-            return result;
-        } catch (error) {
-            console.error(error);
-            return undefined;
-        }
-    }
-
-    /**
-     * Normalize host by removing default ports
-     *
-     * @param host Host name (may include port)
-     * @param protocol Protocol
-     * @returns Normalized host name
-     */
-    private normalizeHost(host: string, protocol: string): string {
-        // Use regex to remove default ports
-        const normalizedHost =
-            protocol === "https"
-                ? host.replace(/:443$/, "") // Remove https :443
-                : host.replace(/:80$/, ""); // Remove http :80
-
-        // Debug log
-        if (normalizedHost !== host) {
-            console.log(`[FileUpload] Port normalized: ${host} -> ${normalizedHost}`);
-        }
-
-        return normalizedHost;
-    }
-
-    /**
-     * Extract client IP from request
-     *
-     * @param request Express request object
-     * @returns Client IP address
-     */
-    private getClientIP(request: Request): string {
-        // Check x-forwarded-for header (real IP behind proxy)
-        const xForwardedFor = request.headers["x-forwarded-for"] as string;
-        if (xForwardedFor) {
-            const ips = xForwardedFor.split(",").map((ip) => ip.trim());
-            const clientIP = ips[0];
-            if (clientIP) {
-                return clientIP.startsWith("::ffff:") ? clientIP.substring(7) : clientIP;
-            }
-        }
-
-        // Use connection address
-        const remoteAddress = request.socket?.remoteAddress || request.ip;
-        return remoteAddress?.startsWith("::ffff:")
-            ? remoteAddress.substring(7)
-            : remoteAddress || "unknown";
-    }
-
-    /**
-     * Extract uploader ID from request
-     *
-     * @param request Express request object
-     * @returns Uploader ID or null
-     */
-    private getUploaderId(request: Request): string | null {
-        const user = (request as any).user;
-        return user?.id || null;
-    }
-
-    /**
      * Upload single file from buffer or Multer file
      *
      * @param file File buffer or Multer file
@@ -288,8 +93,8 @@ export class FileUploadService extends BaseService<File> {
         description?: string,
         options?: FileStorageOptions,
     ): Promise<UploadFileResult> {
-        const clientIp = this.getClientIP(request);
-        const uploaderId = this.getUploaderId(request);
+        const clientIp = RequestUtil.getClientIP(request);
+        const uploaderId = RequestUtil.getUploaderId(request);
         if (!file) {
             throw HttpErrorFactory.badRequest("No file provided", BusinessCode.PARAM_INVALID);
         }
@@ -312,7 +117,7 @@ export class FileUploadService extends BaseService<File> {
             const urlPath = options?.extensionId
                 ? `/${options.extensionId}/uploads/${storagePath.fullPath}`
                 : `/uploads/${storagePath.fullPath}`;
-            const requestDomain = this.getRequestDomain(request);
+            const requestDomain = RequestUtil.getRequestDomain(request);
             const fileUrl = await this.fileUrlService.get(urlPath, requestDomain);
 
             // Save to database
@@ -394,26 +199,10 @@ export class FileUploadService extends BaseService<File> {
         description?: string,
         options?: FileStorageOptions,
     ): Promise<UploadFileResult> {
-        const clientIp = this.getClientIP(request);
-        const uploaderId = this.getUploaderId(request);
+        const clientIp = RequestUtil.getClientIP(request);
+        const uploaderId = RequestUtil.getUploaderId(request);
         try {
-            // Parse URL to get file name
-            const urlPath = new URL(url).pathname;
-            const originalName = path.basename(urlPath) || "remote-file";
-            const extension = path.extname(originalName).replace(".", "").toLowerCase();
-
-            // Determine MIME type (will be updated after download)
-            const mimeType = mime.lookup(originalName) || "application/octet-stream";
-
-            // Extract metadata
-            const metadata = this.fileStorageService.extractMetadata(
-                Buffer.from([]),
-                originalName,
-                mimeType,
-            );
-
-            // Generate storage path
-            const storagePath = this.fileStorageService.generateStoragePath(metadata, options);
+            const { storagePath, metadata } = this.createRemoteFileStoragePath(url, options);
 
             // Download and save remote file
             const remoteOptions: RemoteFileOptions = { url };
@@ -428,19 +217,19 @@ export class FileUploadService extends BaseService<File> {
                 const urlPath = options?.extensionId
                     ? `/${options.extensionId}/uploads/${storagePath.fullPath}`
                     : `/uploads/${storagePath.fullPath}`;
-                const requestDomain = this.getRequestDomain(request);
+                const requestDomain = RequestUtil.getRequestDomain(request);
                 const fileUrl = await this.fileUrlService.get(urlPath, requestDomain);
 
                 // Save to database
                 const savedFile = await this.create({
                     url: fileUrl,
                     ip: clientIp,
-                    originalName,
+                    originalName: metadata.originalName,
                     storageName: storagePath.fileName,
                     type: metadata.type,
                     mimeType: metadata.mimeType,
                     size,
-                    extension,
+                    extension: metadata.extension,
                     path: storagePath.fullPath,
                     description: description || `Remote file from ${url}`,
                     uploaderId,
@@ -520,12 +309,28 @@ export class FileUploadService extends BaseService<File> {
         description?: string,
         options?: FileStorageOptions,
     ) {
-        const storageConfig = await this.getActiveStorageConfig();
-        if (storageConfig.storageType === StorageType.LOCAL) {
-            return await this.uploadRemoteFileToDisk(url, request, description, options);
-        }
+        try {
+            const storageConfig = await this.getActiveStorageConfig();
+            if (storageConfig.storageType === StorageType.LOCAL) {
+                return await this.uploadRemoteFileToDisk(url, request, description, options);
+            }
 
-        throw new Error("Not implemented.");
+            const response = await fetch(url);
+            const arrayBuffer = await response.arrayBuffer();
+            const pathConfig = this.createRemoteFileStoragePath(url, options);
+            const multerFile = this.createMulterFileFromArrayBuffer(
+                arrayBuffer,
+                pathConfig.metadata.originalName,
+                pathConfig.metadata.mimeType,
+            );
+
+            return this.uploadFile(multerFile, request, description, options);
+        } catch (error) {
+            throw HttpErrorFactory.internal(
+                `Failed to upload remote file: ${error.message}`,
+                BusinessCode.REQUEST_FAILED,
+            );
+        }
     }
 
     private getActiveStorageConfig(): Promise<StorageConfig> {
@@ -603,8 +408,53 @@ export class FileUploadService extends BaseService<File> {
         return this.fileStorageService.createReadStream(file.path, options);
     }
 
+    private createRemoteFileStoragePath(url: string, options: FileStorageOptions) {
+        // Parse URL to get file name
+        const urlPath = new URL(url).pathname;
+        const originalName = path.basename(urlPath) || "remote-file";
+
+        // Determine MIME type (will be updated after download)
+        const mimeType = mime.lookup(originalName) || "application/octet-stream";
+
+        // Extract metadata
+        const metadata = this.fileStorageService.extractMetadata(
+            Buffer.from([]),
+            originalName,
+            mimeType,
+        );
+
+        const storagePath = this.fileStorageService.generateStoragePath(metadata, options);
+
+        return {
+            storagePath,
+            metadata,
+            presetUrl: "",
+        };
+    }
+
+    private createMulterFileFromArrayBuffer(
+        data: ArrayBuffer,
+        filename: string,
+        mimetype: string,
+    ): Express.Multer.File {
+        const buffer = Buffer.from(data);
+
+        return {
+            fieldname: "file",
+            originalname: filename,
+            encoding: "7bit",
+            mimetype: mimetype,
+            size: buffer.length,
+            buffer: buffer,
+            destination: "",
+            filename: filename,
+            path: "",
+            stream: null as any,
+        };
+    }
+
     async createCloudStoragePath(
-        params: CreateCloudStoragePathParams,
+        params: { name: string; size: number },
         options?: FileStorageOptions,
     ) {
         const mimeType: string = mime.lookup(params.name) || "application/octet-stream";
@@ -630,6 +480,7 @@ export class FileUploadService extends BaseService<File> {
         return {
             metadata,
             storage: { ...storage, fileUrl, fullPath },
+            presetUrl: fileUrl,
         };
     }
 }

@@ -1,5 +1,5 @@
 import { RedisModule } from "@buildingai/cache";
-import { CloudStorageModule, UploadModule as CoreUploadModule } from "@buildingai/core/modules";
+import { CloudStorageModule, UploadModule as CoreUploadModule } from "@buildingai/core";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import { File } from "@buildingai/db/entities";
 import { SystemModule } from "@modules/system/system.module";

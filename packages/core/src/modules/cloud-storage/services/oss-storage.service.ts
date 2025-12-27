@@ -25,11 +25,16 @@ export class OssStorageService {
         const config = storageConfig.config as AliyunOssConfig;
         const client = this.getOssClient(config);
 
+        const uploadHeader: Record<string, string> = {
+            "Content-Disposition": `attachment; filename="${encodeURIComponent(file.originalname)}"`,
+        };
+        if (params.description) {
+            uploadHeader["x-oss-meta-description"] = params.description;
+        }
+
         return await client.put(params.path, file.buffer, {
-            mime: "",
-            headers: {
-                "Content-Disposition": `attachment; filename="${encodeURIComponent(file.originalname)}"`,
-            },
+            mime: file.mimetype,
+            headers: uploadHeader,
         });
     }
 
