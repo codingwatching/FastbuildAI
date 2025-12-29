@@ -99,23 +99,26 @@ export class FileUploadService extends BaseService<File> {
             throw HttpErrorFactory.badRequest("No file provided", BusinessCode.PARAM_INVALID);
         }
 
+        // Get effective extensionId from options or request path (must be resolved before storage)
+        const extensionId = RequestUtil.getEffectiveExtensionId(request, options?.extensionId);
+        const effectiveOptions: FileStorageOptions | undefined = extensionId
+            ? { ...options, extensionId }
+            : options;
+
         // Extract file metadata
         const metadata = this.fileStorageService.extractMetadata(file);
 
         // Generate storage path
-        const storagePath = this.fileStorageService.generateStoragePath(metadata, options);
+        const storagePath = this.fileStorageService.generateStoragePath(metadata, effectiveOptions);
 
         // Save file to storage
         if (Buffer.isBuffer(file)) {
-            await this.fileStorageService.saveBuffer(file, storagePath, options);
+            await this.fileStorageService.saveBuffer(file, storagePath, effectiveOptions);
         } else {
-            await this.fileStorageService.saveMulterFile(file, storagePath, options);
+            await this.fileStorageService.saveMulterFile(file, storagePath, effectiveOptions);
         }
 
         try {
-            // Get effective extensionId from options or request path
-            const extensionId = RequestUtil.getEffectiveExtensionId(request, options?.extensionId);
-
             // Build file URL based on extensionId
             const urlPath = extensionId
                 ? `/${extensionId}/uploads/${storagePath.fullPath}`
@@ -150,7 +153,7 @@ export class FileUploadService extends BaseService<File> {
         } catch (error) {
             console.error(error);
             // Clean up on error
-            await this.fileStorageService.deleteFile(storagePath.fullPath, options);
+            await this.fileStorageService.deleteFile(storagePath.fullPath, effectiveOptions);
             throw HttpErrorFactory.internal(
                 "Failed to save file record",
                 BusinessCode.INTERNAL_SERVER_ERROR,
@@ -204,24 +207,28 @@ export class FileUploadService extends BaseService<File> {
     ): Promise<UploadFileResult> {
         const clientIp = RequestUtil.getClientIP(request);
         const uploaderId = RequestUtil.getUploaderId(request);
+
+        // Get effective extensionId from options or request path (must be resolved before storage)
+        const extensionId = RequestUtil.getEffectiveExtensionId(request, options?.extensionId);
+        const effectiveOptions: FileStorageOptions | undefined = extensionId
+            ? { ...options, extensionId }
+            : options;
+
         try {
-            const { storagePath, metadata } = this.createRemoteFileStoragePath(url, options);
+            const { storagePath, metadata } = this.createRemoteFileStoragePath(
+                url,
+                effectiveOptions,
+            );
 
             // Download and save remote file
             const remoteOptions: RemoteFileOptions = { url };
             const { size } = await this.fileStorageService.saveRemoteFile(
                 remoteOptions,
                 storagePath,
-                options,
+                effectiveOptions,
             );
 
             try {
-                // Get effective extensionId from options or request path
-                const extensionId = RequestUtil.getEffectiveExtensionId(
-                    request,
-                    options?.extensionId,
-                );
-
                 // Build file URL based on extensionId
                 const urlPath = extensionId
                     ? `/${extensionId}/uploads/${storagePath.fullPath}`
@@ -255,7 +262,7 @@ export class FileUploadService extends BaseService<File> {
                 };
             } catch (error) {
                 // Clean up on error
-                await this.fileStorageService.deleteFile(storagePath.fullPath, options);
+                await this.fileStorageService.deleteFile(storagePath.fullPath, effectiveOptions);
                 throw error;
             }
         } catch (error) {
