@@ -3,7 +3,7 @@ import { StorageType } from "@buildingai/constants/shared";
 import { useStorageStore } from "../store";
 import { filesUploadToOSS } from "../engines/oss";
 import type { FilesUploadParams } from "../types";
-import { omit } from "../utils";
+import { getExtensionId, omit } from "../utils";
 
 async function uploadFilesAdaptive(
     params: FilesUploadParams,
@@ -19,7 +19,11 @@ async function uploadFilesAdaptive(
 
         switch (storageType) {
             case StorageType.OSS: {
-                return await filesUploadToOSS(omit(params, 'description'), options);
+                const extensionId = getExtensionId(params.extensionId);
+                return await filesUploadToOSS(
+                    { ...omit(params, "description"), ...(extensionId && { extensionId }) },
+                    options,
+                );
             }
             case StorageType.LOCAL:
                 return await apiUploadFiles(params, options);
