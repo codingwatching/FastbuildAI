@@ -68,6 +68,8 @@ export interface BdUploaderProps {
     showRemoveButton?: boolean;
     /** Custom add button class */
     addButtonClassName?: string;
+    /** Extension ID for file storage isolation */
+    extensionId?: string;
 }
 
 export interface BdUploaderEmits {

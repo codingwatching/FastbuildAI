@@ -128,6 +128,7 @@ async function handleMultipleFilesUpload(files: FileList) {
         const response = await uploadFn(
             {
                 files: validFiles,
+                ...(props.extensionId && { extensionId: props.extensionId }),
             },
             {
                 onProgress: (progress: number) => {
@@ -182,6 +183,7 @@ async function uploadAndProcessFile(uploadItem: UploadItem) {
         const response = await uploadFn(
             {
                 file: uploadItem.file,
+                ...(props.extensionId && { extensionId: props.extensionId }),
             },
             {
                 onProgress: (progress: number) => {
