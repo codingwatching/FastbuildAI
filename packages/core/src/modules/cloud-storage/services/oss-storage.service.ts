@@ -29,7 +29,8 @@ export class OssStorageService {
             "Content-Disposition": `attachment; filename="${encodeURIComponent(file.originalname)}"`,
         };
         if (params.description) {
-            uploadHeader["x-oss-meta-description"] = params.description;
+            // Encode description to handle non-ASCII characters (e.g., Chinese)
+            uploadHeader["x-oss-meta-description"] = encodeURIComponent(params.description);
         }
 
         return await client.put(params.path, file.buffer, {
