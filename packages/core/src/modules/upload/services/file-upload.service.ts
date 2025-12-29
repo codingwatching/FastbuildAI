@@ -465,9 +465,20 @@ export class FileUploadService extends BaseService<File> {
 
     async createCloudStoragePath(
         params: { name: string; size: number },
-        request: Request,
+        requestOrOptions?: Request | FileStorageOptions,
         options?: FileStorageOptions,
     ) {
+        // Handle overloaded parameters
+        let request: Request | undefined;
+        let opts: FileStorageOptions | undefined;
+
+        if (requestOrOptions && "originalUrl" in requestOrOptions) {
+            request = requestOrOptions as Request;
+            opts = options;
+        } else {
+            opts = requestOrOptions as FileStorageOptions | undefined;
+        }
+
         const mimeType: string = mime.lookup(params.name) || "application/octet-stream";
         const extension = path.extname(params.name).replace(".", "").toLowerCase();
         const type = FileTypeDetector.detect(mimeType);
@@ -480,9 +491,11 @@ export class FileUploadService extends BaseService<File> {
         };
 
         // Get effective extensionId from options or request path
-        const extensionId = RequestUtil.getEffectiveExtensionId(request, options?.extensionId);
+        const extensionId = request
+            ? RequestUtil.getEffectiveExtensionId(request, opts?.extensionId)
+            : opts?.extensionId;
 
-        const storage = this.fileStorageService.generateStoragePath(metadata, options);
+        const storage = this.fileStorageService.generateStoragePath(metadata, opts);
         const urlPath = extensionId
             ? `${extensionId}/uploads/${storage.fullPath}`
             : `uploads/${storage.fullPath}`;
