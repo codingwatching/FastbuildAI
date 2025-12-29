@@ -113,9 +113,12 @@ export class FileUploadService extends BaseService<File> {
         }
 
         try {
+            // Get effective extensionId from options or request path
+            const extensionId = RequestUtil.getEffectiveExtensionId(request, options?.extensionId);
+
             // Build file URL based on extensionId
-            const urlPath = options?.extensionId
-                ? `/${options.extensionId}/uploads/${storagePath.fullPath}`
+            const urlPath = extensionId
+                ? `/${extensionId}/uploads/${storagePath.fullPath}`
                 : `/uploads/${storagePath.fullPath}`;
             const requestDomain = RequestUtil.getRequestDomain(request);
             const fileUrl = await this.fileUrlService.get(urlPath, requestDomain);
@@ -133,7 +136,7 @@ export class FileUploadService extends BaseService<File> {
                 path: storagePath.fullPath,
                 description: description || null,
                 uploaderId,
-                extensionIdentifier: options?.extensionId || null,
+                extensionIdentifier: extensionId || null,
             });
 
             return {
@@ -213,9 +216,15 @@ export class FileUploadService extends BaseService<File> {
             );
 
             try {
+                // Get effective extensionId from options or request path
+                const extensionId = RequestUtil.getEffectiveExtensionId(
+                    request,
+                    options?.extensionId,
+                );
+
                 // Build file URL based on extensionId
-                const urlPath = options?.extensionId
-                    ? `/${options.extensionId}/uploads/${storagePath.fullPath}`
+                const urlPath = extensionId
+                    ? `/${extensionId}/uploads/${storagePath.fullPath}`
                     : `/uploads/${storagePath.fullPath}`;
                 const requestDomain = RequestUtil.getRequestDomain(request);
                 const fileUrl = await this.fileUrlService.get(urlPath, requestDomain);
@@ -233,7 +242,7 @@ export class FileUploadService extends BaseService<File> {
                     path: storagePath.fullPath,
                     description: description || `Remote file from ${url}`,
                     uploaderId,
-                    extensionIdentifier: options?.extensionId || null,
+                    extensionIdentifier: extensionId || null,
                 });
 
                 return {
@@ -270,6 +279,7 @@ export class FileUploadService extends BaseService<File> {
 
         const pathConfig = await this.createCloudStoragePath(
             { name: file.originalname, size: file.size },
+            request,
             options,
         );
 
@@ -455,6 +465,7 @@ export class FileUploadService extends BaseService<File> {
 
     async createCloudStoragePath(
         params: { name: string; size: number },
+        request: Request,
         options?: FileStorageOptions,
     ) {
         const mimeType: string = mime.lookup(params.name) || "application/octet-stream";
@@ -468,9 +479,12 @@ export class FileUploadService extends BaseService<File> {
             size: params.size,
         };
 
+        // Get effective extensionId from options or request path
+        const extensionId = RequestUtil.getEffectiveExtensionId(request, options?.extensionId);
+
         const storage = this.fileStorageService.generateStoragePath(metadata, options);
-        const urlPath = options?.extensionId
-            ? `${options.extensionId}/uploads/${storage.fullPath}`
+        const urlPath = extensionId
+            ? `${extensionId}/uploads/${storage.fullPath}`
             : `uploads/${storage.fullPath}`;
         const fileUrl = await this.fileUrlService.get(urlPath);
 

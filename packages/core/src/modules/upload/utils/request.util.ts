@@ -191,6 +191,54 @@ class RequestUtil {
         const user = (request as any).user;
         return user?.id || null;
     }
+
+    /**
+     * Extract extension ID from request path
+     *
+     * Plugin path format: /extensionId/api/xxx or /extensionId/consoleapi/xxx
+     * Main app path format: /api/xxx or /consoleapi/xxx
+     *
+     * @param request Express request object
+     * @returns Extension ID or undefined if main app
+     */
+    static getExtensionIdFromPath(request: Request): string | undefined {
+        try {
+            const path = request.originalUrl || request.url || "";
+            // Match pattern: /extensionId/api/... or /extensionId/consoleapi/...
+            const match = path.match(/^\/([^/]+)\/(api|consoleapi)\//);
+
+            if (match && match[1]) {
+                const potentialExtensionId = match[1];
+                // Exclude main app paths (api, consoleapi themselves)
+                if (potentialExtensionId !== "api" && potentialExtensionId !== "consoleapi") {
+                    return potentialExtensionId;
+                }
+            }
+
+            return undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
+    /**
+     * Get effective extension ID from options or request path
+     *
+     * @param request Express request object
+     * @param providedExtensionId Explicitly provided extension ID
+     * @returns Extension ID or undefined
+     */
+    static getEffectiveExtensionId(
+        request: Request,
+        providedExtensionId?: string,
+    ): string | undefined {
+        // Explicit extensionId takes priority
+        if (providedExtensionId) {
+            return providedExtensionId;
+        }
+        // Try to extract from request path
+        return this.getExtensionIdFromPath(request);
+    }
 }
 
 export { RequestUtil };
