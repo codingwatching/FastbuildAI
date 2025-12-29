@@ -841,6 +841,7 @@ useHead({
                         :is-loading="isLoading"
                         :placeholder="t('ai-chat.frontend.and', { name: agent.name })"
                         :attachmentSizeLimit="chatConfig?.attachmentSizeLimit"
+                        :model-features="agent.modelFeatures"
                         class="sticky bottom-0 z-10 [view-transition-name:chat-prompt]"
                         :rows="1"
                         @stop="stop"

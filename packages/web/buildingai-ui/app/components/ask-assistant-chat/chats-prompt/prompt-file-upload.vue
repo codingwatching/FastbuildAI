@@ -22,6 +22,11 @@ const props = defineProps<{
     accept?: string;
     /** 当外部传入模型配置时优先使用，未传则回退全局选中的模型 */
     modelConfig?: ModelConfigInput;
+    /**
+     * 直接传入模型特性列表（优先级最高）
+     * 用于前台智能体场景，后端直接返回模型特性而不暴露模型配置
+     */
+    modelFeatures?: string[];
 }>();
 
 const controlsStore = useControlsStore();
@@ -33,6 +38,10 @@ const { t } = useI18n();
 
 const remoteModelFeatures = shallowRef<string[]>([]);
 const modelFeatures = computed<string[]>(() => {
+    // 优先使用直接传入的 modelFeatures
+    if (props.modelFeatures?.length) {
+        return props.modelFeatures;
+    }
     if (remoteModelFeatures.value.length > 0) {
         return remoteModelFeatures.value;
     }
@@ -47,6 +56,11 @@ const modelFeatures = computed<string[]>(() => {
  * @param modelId 模型 ID
  */
 const fetchModelFeatures = async (modelId?: string) => {
+    // 如果已经通过 modelFeatures prop 直接传入了，无需远程获取
+    if (props.modelFeatures?.length) {
+        remoteModelFeatures.value = [];
+        return;
+    }
     if (!modelId) {
         remoteModelFeatures.value = [];
         return;
@@ -67,7 +81,8 @@ watch(
 );
 
 const supportedFileTypes = computed(() => {
-    if (!props.modelConfig && !controlsStore.selectedModel) {
+    // 如果没有任何模型特性来源，只支持文档类型
+    if (!props.modelFeatures?.length && !props.modelConfig && !controlsStore.selectedModel) {
         return ".pdf,.doc,.docx,.txt,.md";
     }
 
