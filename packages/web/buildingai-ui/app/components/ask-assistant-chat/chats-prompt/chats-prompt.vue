@@ -34,6 +34,11 @@ const props = withDefaults(
         attachmentSizeLimit?: number;
         /** 智能体专属模型配置，包含模型 ID 与参数 */
         modelConfig?: ModelConfigInput;
+        /**
+         * 直接传入模型特性列表（优先级高于 modelConfig）
+         * 用于前台智能体场景，后端直接返回模型特性而不暴露模型配置
+         */
+        modelFeatures?: string[];
     }>(),
     {
         modelValue: "",
@@ -294,6 +299,7 @@ onMounted(() =>
                         :disabled="isUploading"
                         :maxSize="attachmentSizeLimit"
                         :model-config="modelConfig"
+                        :model-features="modelFeatures"
                         @file-select="handleFileSelect"
                         @url-submit="handleUrlSubmit"
                     />

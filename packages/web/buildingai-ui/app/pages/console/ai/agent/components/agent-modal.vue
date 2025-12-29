@@ -254,7 +254,7 @@ onMounted(async () => {
                 </UFormField>
             </div>
 
-            <div class="mt-6 flex justify-end gap-2">
+            <div class="bg-background sticky bottom-0 z-10 flex justify-end gap-4 py-3">
                 <UButton color="neutral" variant="soft" size="lg" @click="emits('close', false)">
                     {{ $t("console-common.cancel") }}
                 </UButton>

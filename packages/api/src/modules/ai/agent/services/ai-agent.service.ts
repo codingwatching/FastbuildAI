@@ -771,7 +771,9 @@ export class AiAgentService extends BaseService<Agent> {
      * 通过发布令牌获取公开智能体信息
      * @description 只返回公开可见的字段，过滤掉所有私密信息
      */
-    async getPublicAgentByToken(publishToken: string): Promise<Agent> {
+    async getPublicAgentByToken(
+        publishToken: string,
+    ): Promise<Agent & { modelFeatures?: string[] }> {
         const agent = await this.agentRepository
             .createQueryBuilder("agent")
             .select([
@@ -792,6 +794,7 @@ export class AiAgentService extends BaseService<Agent> {
                 "agent.showContext",
                 "agent.formFields",
                 "agent.quickCommands",
+                "agent.modelConfig",
             ])
             .leftJoin("agent.tags", "tag")
             .addSelect(["tag.id", "tag.name", "tag.type", "tag.createdAt", "tag.updatedAt"])
@@ -806,7 +809,23 @@ export class AiAgentService extends BaseService<Agent> {
             await this.incrementUserCount(agent.id);
         }
 
-        return agent as Agent;
+        // 提取模型特性（如 vision、audio），用于前端判断是否支持多模态上传
+        let modelFeatures: string[] = [];
+        if (agent.modelConfig?.id) {
+            const model = await this.aiModelRepository.findOne({
+                where: { id: agent.modelConfig.id },
+                select: ["features"],
+            });
+            modelFeatures = model?.features || [];
+        }
+
+        // 移除敏感的 modelConfig，只返回 modelFeatures
+        const { modelConfig: _modelConfig, ...publicAgent } = agent;
+
+        return {
+            ...publicAgent,
+            modelFeatures,
+        } as Agent & { modelFeatures?: string[] };
     }
 
     /**
