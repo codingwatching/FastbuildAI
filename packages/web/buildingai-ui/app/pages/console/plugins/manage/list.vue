@@ -30,20 +30,26 @@ const { t } = useI18n();
 const overlay = useOverlay();
 const toast = useMessage();
 
-const extensionTypeItems: TabsItem[] = [
+const statistics = ref<{ total: number; installed: number; uninstalled: number }>({
+    total: 0,
+    installed: 0,
+    uninstalled: 0,
+});
+
+const extensionTypeItems = computed<TabsItem[]>(() => [
     {
-        label: t("extensions.manage.tabs.all"),
+        label: `${t("extensions.manage.tabs.all")} (${statistics.value.total})`,
         value: "all",
     },
     {
-        label: t("extensions.manage.tabs.installed"),
+        label: `${t("extensions.manage.tabs.installed")} (${statistics.value.installed})`,
         value: "installed",
     },
     {
-        label: t("extensions.manage.tabs.uninstalled"),
+        label: `${t("extensions.manage.tabs.uninstalled")} (${statistics.value.uninstalled})`,
         value: "uninstalled",
     },
-];
+]);
 
 const selectedTab = shallowRef("all");
 
@@ -66,6 +72,19 @@ const { paging, getLists } = usePaging({
     fetchFun: apiGetExtensionList,
     params: searchForm,
 });
+
+watch(
+    () =>
+        paging.extend as { statistics: { total: number; installed: number; uninstalled: number } },
+    (extend: { statistics: { total: number; installed: number; uninstalled: number } }) => {
+        if (extend?.statistics) {
+            statistics.value = extend.statistics;
+        } else {
+            statistics.value = { total: 0, installed: 0, uninstalled: 0 };
+        }
+    },
+    { deep: true },
+);
 
 const hasMore = computed(() => paging.items.length < paging.total);
 
@@ -263,7 +282,7 @@ onMounted(() => getLists());
                             :placeholder="t('extensions.manage.search')"
                             @update:model-value="handleSearch"
                         />
-                        <USelect
+                        <!-- <USelect
                             v-model="searchForm.type"
                             :items="[
                                 {
@@ -281,6 +300,26 @@ onMounted(() => getLists());
                             ]"
                             class="block w-auto"
                             :placeholder="t('extensions.manage.selectType')"
+                        /> -->
+                        <USelect
+                            v-model="searchForm.status"
+                            :items="[
+                                {
+                                    label: '全部状态',
+                                    value: undefined,
+                                },
+                                {
+                                    label: '已启用',
+                                    value: ExtensionStatus.ENABLED,
+                                },
+                                {
+                                    label: '已禁用',
+                                    value: ExtensionStatus.DISABLED,
+                                },
+                            ]"
+                            class="block w-auto"
+                            placeholder="全部状态"
+                            @update:model-value="handleSearch"
                         />
                         <UButton
                             icon="i-lucide-plus"

@@ -211,9 +211,17 @@ export class ExtensionConsoleController extends BaseController {
     @BuildFileUrl(["**.icon", "**.avatar", "**.aliasIcon"])
     async lists(@Query() query: QueryExtensionDto) {
         // Get extension list (handles platformSecret check internally)
-        let extensionsList = await this.extensionMarketService.getMixedApplicationList();
+        const allExtensionsList = await this.extensionMarketService.getMixedApplicationList();
+
+        // 统计全部、已安装、未安装的数量（在筛选之前统计）
+        const statistics = {
+            total: allExtensionsList.length,
+            installed: allExtensionsList.filter((ext) => ext.isInstalled === true).length,
+            uninstalled: allExtensionsList.filter((ext) => ext.isInstalled === false).length,
+        };
 
         // Extension filter conditions
+        let extensionsList = allExtensionsList;
         if (query.name) {
             extensionsList = extensionsList.filter((ext) =>
                 ext.name.toLowerCase().includes(query.name.toLowerCase()),
@@ -248,7 +256,8 @@ export class ExtensionConsoleController extends BaseController {
                 new Date(a.createdAt || a.updatedAt || 0).getTime(),
         );
 
-        return this.paginationResult(extensionsList, extensionsList.length, query);
+        const result = this.paginationResult(extensionsList, extensionsList.length, query);
+        return { ...result, extend: { statistics } };
     }
 
     /**
