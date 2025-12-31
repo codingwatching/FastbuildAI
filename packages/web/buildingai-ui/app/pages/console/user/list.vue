@@ -39,27 +39,35 @@ const filteredUsers = computed(() => {
 });
 
 const handleUserSelect = (user: UserInfo, selected: boolean | "indeterminate") => {
-    if (typeof selected === "boolean") {
-        const userId = user.id as string;
-        if (selected) {
-            selectedUsers.value.add(userId);
-        } else {
-            selectedUsers.value.delete(userId);
-        }
+    if (typeof selected !== "boolean") return;
+
+    const userId = user.id as string;
+    const next = new Set(selectedUsers.value);
+
+    if (selected) {
+        next.add(userId);
+    } else {
+        next.delete(userId);
     }
+
+    selectedUsers.value = next;
 };
 
 const handleSelectAll = (value: boolean | "indeterminate") => {
     const isSelected = value === true;
+    const next = new Set(selectedUsers.value);
+
     if (isSelected) {
         filteredUsers.value.forEach((user: UserInfo) => {
             if (user.id) {
-                selectedUsers.value.add(user.id as string);
+                next.add(user.id);
             }
         });
     } else {
-        selectedUsers.value.clear();
+        next.clear();
     }
+
+    selectedUsers.value = next;
 };
 
 const handleDelete = async (id: number | string | number[] | string[]) => {

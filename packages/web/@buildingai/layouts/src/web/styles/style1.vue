@@ -27,8 +27,9 @@ const updateScrollState = () => {
     if (!el) return;
 
     isOverflowing.value = el.scrollWidth > el.clientWidth;
-    canScrollLeft.value = el.scrollLeft > 0;
-    canScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    canScrollLeft.value = el.scrollLeft > 1;
+    // 使用更宽松的容差，确保在接近右边界时也能显示按钮
+    canScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
 };
 
 const scrollLeftFn = () => {
@@ -40,7 +41,20 @@ const scrollRightFn = () => {
 };
 
 onMounted(() => {
-    nextTick(updateScrollState);
+    nextTick(() => {
+        updateScrollState();
+        // 使用 ResizeObserver 监听导航列表尺寸变化
+        if (navListRef.value) {
+            const resizeObserver = new ResizeObserver(() => {
+                updateScrollState();
+            });
+            resizeObserver.observe(navListRef.value);
+            // 清理函数
+            onUnmounted(() => {
+                resizeObserver.disconnect();
+            });
+        }
+    });
 });
 
 watch(
@@ -62,10 +76,10 @@ useEventListener(window, "resize", updateScrollState);
                 <SiteLogo layout="mixture" />
 
                 <!-- 中间导航（带滑动） -->
-                <div class="relative mx-4 flex items-center">
+                <div class="relative mx-4 flex items-center overflow-hidden">
                     <!-- 左箭头 -->
                     <div
-                        class="from-background/90 absolute left-0 z-10 flex h-full items-center bg-gradient-to-r to-transparent"
+                        class="bg-muted pointer-events-none absolute left-0 z-10 flex h-full items-center"
                     >
                         <UButton
                             v-if="isOverflowing && canScrollLeft"
@@ -73,7 +87,7 @@ useEventListener(window, "resize", updateScrollState);
                             @click="scrollLeftFn"
                             variant="ghost"
                             size="lg"
-                            class="px-2"
+                            class="pointer-events-auto px-2"
                         />
                     </div>
 
@@ -81,7 +95,7 @@ useEventListener(window, "resize", updateScrollState);
                     <ul
                         ref="navListRef"
                         @scroll="updateScrollState"
-                        class="scrollbar-hide flex max-w-[70vw] gap-2 overflow-x-auto px-8 font-medium whitespace-nowrap"
+                        class="scrollbar-hide flex max-w-[70vw] gap-2 overflow-x-auto px-10 font-medium whitespace-nowrap"
                     >
                         <li v-for="item in props.navigationConfig.items" :key="item.id">
                             <NuxtLink
@@ -102,14 +116,15 @@ useEventListener(window, "resize", updateScrollState);
 
                     <!-- 右箭头 -->
                     <div
-                        class="from-background/90 absolute right-0 z-10 flex h-full items-center bg-gradient-to-l to-transparent"
+                        class="bg-muted pointer-events-none absolute right-0 z-10 flex h-full items-center"
                     >
                         <UButton
+                            v-if="isOverflowing && canScrollRight"
                             icon="i-lucide-chevron-right"
                             @click="scrollRightFn"
                             variant="ghost"
                             size="lg"
-                            class="px-2"
+                            class="pointer-events-auto px-2"
                         />
                     </div>
                 </div>
