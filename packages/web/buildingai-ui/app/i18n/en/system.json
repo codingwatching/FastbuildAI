@@ -83,7 +83,7 @@
             "copyrightInfo": {
                 "label": "Copyright Info",
                 "textPlaceholder": "Powered by",
-                "brandPlaceholder": "BuildingAI",
+                "brandPlaceholder": "Site AI Name",
                 "required": "Please complete copyright info"
             },
             "copyrightUrl": {

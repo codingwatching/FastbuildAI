@@ -305,20 +305,20 @@ onMounted(() => getLists());
                             v-model="searchForm.status"
                             :items="[
                                 {
-                                    label: '全部状态',
+                                    label: t('extensions.manage.status.all'),
                                     value: undefined,
                                 },
                                 {
-                                    label: '已启用',
+                                    label: t('extensions.manage.status.enabled'),
                                     value: ExtensionStatus.ENABLED,
                                 },
                                 {
-                                    label: '已禁用',
+                                    label: t('extensions.manage.status.disabled'),
                                     value: ExtensionStatus.DISABLED,
                                 },
                             ]"
                             class="block w-auto"
-                            placeholder="全部状态"
+                            :placeholder="t('extensions.manage.status.all')"
                             @update:model-value="handleSearch"
                         />
                         <UButton

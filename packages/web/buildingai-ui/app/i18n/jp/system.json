@@ -83,7 +83,7 @@
             "copyrightInfo": {
                 "label": "著作権情報",
                 "textPlaceholder": "Powered by",
-                "brandPlaceholder": "BuildingAI",
+                "brandPlaceholder": "サイトAI名称",
                 "required": "著作権情報を完全に入力してください"
             },
             "copyrightUrl": {

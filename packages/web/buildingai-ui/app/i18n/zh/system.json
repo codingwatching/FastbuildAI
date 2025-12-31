@@ -83,7 +83,7 @@
             "copyrightInfo": {
                 "label": "版权信息",
                 "textPlaceholder": "Powered by",
-                "brandPlaceholder": "BuildingAI",
+                "brandPlaceholder": "站点AI名称",
                 "required": "请完整填写版权信息"
             },
             "copyrightUrl": {
