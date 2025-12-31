@@ -102,7 +102,7 @@ const isPathMatch = (path1: string, path2: string): boolean => {
 </script>
 
 <template>
-    <div class="container mx-auto flex h-full justify-between gap-12 py-8">
+    <div class="container mx-auto flex h-full justify-between gap-12 px-4 py-8">
         <div
             class="bg-muted flex w-52 flex-col gap-2 rounded-lg p-4"
             :style="{
