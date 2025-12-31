@@ -27,15 +27,6 @@ const schema = object({
     displayName: string().required(t("system.website.copyright.displayName.required")),
     iconUrl: string().required(t("system.website.copyright.icon.required")),
     url: string().required(t("system.website.copyright.url.required")),
-    copyrightText: string().test(
-        "copyright-info-required",
-        t("system.website.copyright.copyrightInfo.required"),
-        function (value) {
-            const { copyrightBrand } = this.parent;
-            return !!(value && copyrightBrand);
-        },
-    ),
-    copyrightUrl: string().required(t("system.website.copyright.copyrightUrl.required")),
 });
 
 const { lockFn: getWebsiteConfig, isLock: isLoadingConfig } = useLockFn(async () => {
@@ -146,7 +137,6 @@ onMounted(() => getWebsiteConfig());
             <UFormField
                 name="copyrightText"
                 :label="t('system.website.copyright.copyrightInfo.label')"
-                required
             >
                 <div class="flex w-full gap-4">
                     <UInput
@@ -167,7 +157,6 @@ onMounted(() => getWebsiteConfig());
             <UFormField
                 name="copyrightUrl"
                 :label="t('system.website.copyright.copyrightUrl.label')"
-                required
             >
                 <UInput
                     v-model="state.copyrightUrl"

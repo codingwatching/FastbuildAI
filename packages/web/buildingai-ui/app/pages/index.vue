@@ -278,8 +278,10 @@ definePageMeta({
                         </a>
                         <span
                             v-if="
-                                appStore.siteConfig?.copyright.displayName ||
-                                appStore.siteConfig?.copyright.iconUrl
+                                (appStore.siteConfig?.copyright.displayName ||
+                                    appStore.siteConfig?.copyright.iconUrl) &&
+                                (appStore.siteConfig?.copyright.copyrightText ||
+                                    appStore.siteConfig?.copyright.copyrightBrand)
                             "
                             >|</span
                         >
