@@ -466,13 +466,22 @@ export class UserConsoleController extends BaseController {
             throw HttpErrorFactory.notFound("用户不存在");
         }
 
-        // 获取用户会员等级信息
-        const membershipLevel = await this.userService.getUserMembershipLevel(id);
+        // 获取用户会员等级信息（查找系统来源的订阅记录）
+        const systemSubscription = await this.userSubscriptionRepository.findOne({
+            where: {
+                userId: id,
+                source: 0, // 0-系统
+            },
+            relations: ["level"],
+            order: { createdAt: "DESC" },
+        });
 
         return {
             ...result,
-            level: membershipLevel?.name || null,
-            levelEndTime: membershipLevel?.endTime || null,
+            level: systemSubscription?.levelId || null,
+            levelEndTime: systemSubscription?.endTime
+                ? systemSubscription.endTime.toISOString()
+                : null,
         };
     }
 

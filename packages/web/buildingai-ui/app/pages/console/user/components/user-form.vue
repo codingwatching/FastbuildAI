@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { apiGetLevelListAll } from "@buildingai/service/consoleapi/membership-level";
 import { apiGetUserRolesList } from "@buildingai/service/consoleapi/user";
 import type { UserCreateRequest } from "@buildingai/service/webapi/user";
 import {
@@ -59,6 +60,7 @@ const formData = shallowReactive<UserCreateRequest>({
 });
 
 const roleOptions = shallowRef<{ label: string; value: string }[]>([]);
+const levelOptions = shallowRef<{ label: string; value: string | null }[]>([]);
 
 // 区号选项 - 使用公共配置
 const areaCodeOptions = computed(() => {
@@ -123,6 +125,24 @@ const getRoleList = async () => {
     }
 };
 
+const getLevelList = async () => {
+    try {
+        const response = await apiGetLevelListAll();
+        levelOptions.value = [
+            { label: "普通用户", value: null }, // 添加普通用户选项，使用 null 作为值
+            ...response
+                .filter((level) => level.status) // 只显示启用状态的等级
+                .map((level) => ({
+                    label: level.name,
+                    value: level.id,
+                })),
+        ];
+    } catch (error) {
+        console.error("Get level list failed:", error);
+        message.error("获取会员等级列表失败");
+    }
+};
+
 const resetForm = () => {
     Object.keys(formData).forEach((key) => {
         const typedKey = key as keyof UserCreateRequest;
@@ -172,6 +192,11 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
         if (formData.roleId === "null") {
             formData.roleId = undefined;
         }
+        // // 处理会员等级：如果为 null 或空字符串，则设置为 undefined
+        // if (formData.level === null || formData.level === "") {
+        //     formData.level = undefined;
+        //     formData.levelEndTime = undefined;
+        // }
         // 发送事件，由父组件处理提交逻辑
         emit("submit-success", { ...formData });
     } catch (error) {
@@ -180,7 +205,10 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
     }
 });
 
-onMounted(() => getRoleList());
+onMounted(() => {
+    getRoleList();
+    getLevelList();
+});
 </script>
 
 <template>
@@ -409,28 +437,29 @@ onMounted(() => getRoleList());
                     </div>
 
                     <div class="grid grid-cols-2 gap-6">
-                        <!-- 角色 -->
-                        <UFormField label="会员等级" name="roleId">
+                        <!-- 会员等级 -->
+                        <UFormField label="会员等级" name="level">
                             <USelect
                                 v-model="formData.level"
+                                :items="levelOptions"
+                                label-key="label"
+                                value-key="value"
                                 placeholder="普通用户"
                                 size="xl"
                                 class="w-full"
-                                variant="subtle"
-                                :disabled="true"
+                                :disabled="levelOptions.length === 0"
                             />
                         </UFormField>
 
                         <!-- 有效期 -->
                         <UFormField label="有效期" name="levelEndTime">
                             <BdDatePicker
-                                :disabled="true"
                                 v-model="formData.levelEndTime"
                                 show-time
                                 size="xl"
                                 class="w-full"
-                                variant="subtle"
                                 :ui="{ root: 'w-full' }"
+                                :disabled="!formData.level"
                             />
                         </UFormField>
                     </div>
