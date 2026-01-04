@@ -1110,6 +1110,15 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
         // 需要同时解析 event 行和 data 行
         let currentEventType = "";
 
+        // 追踪工具调用，用于匹配 function_call 和 tool_response
+        // key: function_call 的消息 ID，value: { toolId, toolName, input }
+        const pendingToolCalls: Map<
+            string,
+            { toolId: string; toolName: string; input: Record<string, any> }
+        > = new Map();
+        // 按顺序存储待处理的工具调用 ID（用于顺序匹配）
+        const pendingToolCallIds: string[] = [];
+
         try {
             while (true) {
                 const { done, value } = await reader.read();
@@ -1172,6 +1181,15 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                                         const funcCall = JSON.parse(data.content || "{}");
                                         const toolId = data.id || `tool_${Date.now()}`;
                                         const toolName = funcCall.name || "unknown_tool";
+                                        const toolInput = funcCall.arguments || {};
+
+                                        // 保存工具调用信息，用于后续 tool_response 匹配
+                                        pendingToolCalls.set(toolId, {
+                                            toolId,
+                                            toolName,
+                                            input: toolInput,
+                                        });
+                                        pendingToolCallIds.push(toolId);
 
                                         res.write(
                                             `data: ${JSON.stringify({
@@ -1180,7 +1198,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                                                     id: toolId,
                                                     mcpServer: { name: "Coze", id: "coze" },
                                                     tool: { name: toolName, description: "" },
-                                                    input: funcCall.arguments || {},
+                                                    input: toolInput,
                                                     output: null,
                                                     timestamp: Date.now(),
                                                     status: "pending",
@@ -1192,18 +1210,38 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                                             `[Coze] Failed to parse function_call: ${data.content}`,
                                         );
                                     }
-                                } else if (messageType === "tool_output") {
+                                } else if (
+                                    messageType === "tool_output" ||
+                                    messageType === "tool_response"
+                                ) {
                                     // 工具输出结果 - 更新状态为 success
-                                    const toolId = data.id || `tool_${Date.now()}`;
+                                    // Coze 的 tool_response/tool_output 可能没有直接关联到 function_call 的 ID
+                                    // 按顺序匹配：取第一个待处理的工具调用
+                                    let matchedToolId = pendingToolCallIds.shift();
+                                    let matchedToolInfo = matchedToolId
+                                        ? pendingToolCalls.get(matchedToolId)
+                                        : null;
+
+                                    if (!matchedToolId) {
+                                        // 如果没有待处理的工具调用，使用当前消息 ID
+                                        matchedToolId = data.id || `tool_${Date.now()}`;
+                                    }
+
+                                    if (matchedToolInfo) {
+                                        pendingToolCalls.delete(matchedToolInfo.toolId);
+                                    }
 
                                     res.write(
                                         `data: ${JSON.stringify({
                                             type: "mcp_tool_result",
                                             data: {
-                                                id: toolId,
+                                                id: matchedToolId,
                                                 mcpServer: { name: "Coze", id: "coze" },
-                                                tool: { name: "tool", description: "" },
-                                                input: {},
+                                                tool: {
+                                                    name: matchedToolInfo?.toolName || "tool",
+                                                    description: "",
+                                                },
+                                                input: matchedToolInfo?.input || {},
                                                 output: data.content,
                                                 timestamp: Date.now(),
                                                 status: "success",
