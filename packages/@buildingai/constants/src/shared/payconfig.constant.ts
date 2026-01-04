@@ -1,6 +1,6 @@
 export const PayConfigPayType = {
-    WECHAT: "wechat", //微信支付
-    ALIPAY: "alipay", //支付宝支付
+    WECHAT: 1, //微信支付
+    ALIPAY: 2, //支付宝支付
 } as const;
 export type PayConfigType = (typeof PayConfigPayType)[keyof typeof PayConfigPayType];
 

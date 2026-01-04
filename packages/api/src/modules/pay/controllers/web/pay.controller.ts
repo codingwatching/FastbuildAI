@@ -1,4 +1,5 @@
 import { BaseController } from "@buildingai/base";
+import { PayConfigPayType } from "@buildingai/constants";
 import { type UserPlayground } from "@buildingai/db";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
@@ -83,7 +84,9 @@ export class PayWebController extends BaseController {
             // }
 
             const orderNo = query.out_trade_no;
-            return res.redirect(`/payment/success?orderNo=${orderNo}&payType=2`);
+            return res.redirect(
+                `/payment/success?orderNo=${orderNo}&payType=${PayConfigPayType.ALIPAY}}`,
+            );
         } catch (error) {
             console.error("Alipay sync callback processing failed:", error);
             return res.redirect("/payment/fail");

@@ -39,7 +39,9 @@ export interface PayWayList {
     /** Payment provider name */
     name: string;
     /** Payment type */
-    payType: number;
+    payType: PayConfigType;
+    /** Default payment method */
+    isDefault: number;
 }
 
 /**
@@ -78,7 +80,7 @@ export interface OrderParams {
     /** Recharge rule ID */
     id: string;
     /** Payment method */
-    payType: number;
+    payType: PayConfigType;
 }
 
 /**
@@ -104,7 +106,7 @@ export interface PrepaidParams {
     /** Order ID */
     orderId: string;
     /** Payment method */
-    payType: number;
+    payType: PayConfigType;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { BaseService } from "@buildingai/base";
-import { PayConfigPayType, PayConfigType } from "@buildingai/constants/shared/payconfig.constant";
+import { PayConfigType } from "@buildingai/constants/shared/payconfig.constant";
 import { BooleanNumber } from "@buildingai/constants/shared/status-codes.constant";
 import { type UserTerminalType } from "@buildingai/constants/shared/status-codes.constant";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
@@ -104,7 +104,7 @@ export class RechargeService extends BaseService<Dict> {
             where: {
                 isEnable: BooleanNumber.YES,
             },
-            select: ["name", "payType", "logo"],
+            select: ["name", "payType", "logo", "isDefault"],
         });
         return {
             user,

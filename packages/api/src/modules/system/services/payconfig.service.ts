@@ -6,10 +6,7 @@ import {
     PaymentConfig,
     WeChatPayConfig,
 } from "@buildingai/constants/shared/payconfig.constant";
-import {
-    BooleanNumber,
-    type BooleanNumberType,
-} from "@buildingai/constants/shared/status-codes.constant";
+import { BooleanNumber } from "@buildingai/constants/shared/status-codes.constant";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { Payconfig } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";

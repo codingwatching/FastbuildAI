@@ -11,13 +11,13 @@ const componentMap: Record<PayConfigType, () => Promise<Component>> = {
 };
 
 const formComponent = computed(() => {
-    const type = route.query.type as PayConfigType;
+    const type = parseInt(route.query.type as string) as PayConfigType;
     const loader = componentMap[type];
     return loader ? defineAsyncComponent(loader) : null;
 });
 
 const pageTitle = computed(() => {
-    const type = route.query.type as PayConfigType;
+    const type = parseInt(route.query.type as string) as PayConfigType;
     switch (type) {
         case PayConfigPayType.WECHAT:
             return t("payment-config.wxTitle");

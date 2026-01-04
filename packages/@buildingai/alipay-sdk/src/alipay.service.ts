@@ -73,8 +73,6 @@ export class AlipayService {
 
                 const sdk = new AlipaySdk(sdkConfig);
                 this.logger.log("Alipay SDK was initialized successfully");
-                this.logger.debug(`Gateway: ${this.config.gateway}`);
-                this.logger.debug(`Cert mode: ${this.config.useCert ? "Yes" : "No"}`);
 
                 return sdk;
             }
