@@ -6,12 +6,15 @@
  * @author BuildingAI Teams
  */
 
-import type { PayConfigType } from "@buildingai/constants/shared";
+import type {
+    AlipayPayConfigInfo,
+    PayConfigInfo,
+    PayConfigType,
+    WeChatPayConfigInfo,
+} from "@buildingai/constants/shared";
 import { PayConfigPayType } from "@buildingai/constants/shared";
 
 // ==================== Type Definitions ====================
-
-export { PayConfigPayType, type PayConfigType };
 
 /**
  * Payment method key type
@@ -126,9 +129,18 @@ export function apiGetPayconfigList(): Promise<PayconfigTableData[]> {
  * Get payment configuration by ID
  * @description Get detailed payment configuration information by ID
  * @param id Payment configuration ID
+ * @param _payType
  * @returns Promise with payment configuration details
  */
-export function apiGetPayconfigById(id: string): Promise<PayconfigInfo> {
+export function apiGetPayconfigById(
+    id: string,
+    _payType: typeof PayConfigPayType.WECHAT,
+): Promise<WeChatPayConfigInfo>;
+export function apiGetPayconfigById(
+    id: string,
+    _payType: typeof PayConfigPayType.ALIPAY,
+): Promise<AlipayPayConfigInfo>;
+export function apiGetPayconfigById(id: string): Promise<PayConfigInfo> {
     return useConsoleGet(`/system-payconfig/${id}`);
 }
 
@@ -152,6 +164,6 @@ export function apiUpdatePayconfigStatus(
  * @param data Updated payment configuration data
  * @returns Promise with updated payment configuration
  */
-export function apiUpdatePayconfig(data: UpdatePayconfigDto): Promise<PayconfigInfo> {
+export function apiUpdatePayconfig(data: PayConfigInfo): Promise<PayConfigInfo> {
     return useConsolePost(`/system-payconfig`, data);
 }

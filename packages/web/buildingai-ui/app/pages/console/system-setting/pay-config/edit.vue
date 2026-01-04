@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PayConfigPayType, type PayConfigType } from "@buildingai/service/consoleapi/payconfig";
+import { PayConfigPayType, type PayConfigType } from "@buildingai/constants/shared";
 
 const { t } = useI18n();
 const router = useRouter();

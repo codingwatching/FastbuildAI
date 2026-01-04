@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { PayconfigInfo } from "@buildingai/service/consoleapi/payconfig";
 import {
-    PayConfigPayTypeLabels,
+    type AlipayConfig,
+    type AlipayPayConfigInfo,
+    PayConfigPayType,
     type PayConfigType,
-} from "@buildingai/service/consoleapi/payconfig";
+} from "@buildingai/constants/shared";
+import { PayConfigPayTypeLabels } from "@buildingai/service/consoleapi/payconfig";
 import { apiGetPayconfigById, apiUpdatePayconfig } from "@buildingai/service/consoleapi/payconfig";
 import { number, object, string } from "yup";
 
@@ -12,39 +14,49 @@ const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 
-const formData = shallowReactive<PayconfigInfo>({
+type AlipayFormType = AlipayPayConfigInfo & { config: AlipayConfig };
+const formData = shallowReactive<AlipayFormType>({
     id: "",
     name: "",
     logo: "",
-    isEnable: 0,
+    isEnable: 1,
     isDefault: 0,
-    payType: 1,
     sort: 0,
-    payVersion: "",
-    merchantType: "",
-    mchId: "",
-    apiKey: "",
-    paySignKey: "",
-    cert: "",
-    payAuthDir: "",
-    appId: "",
+    payType: PayConfigPayType.ALIPAY,
+    config: {
+        appId: "",
+        gateway: "",
+        privateKey: "",
+        appCert: "",
+        alipayPublicCert: "",
+        alipayRootCert: "",
+    },
 });
+
 const payType = computed(() => {
     const payTypeValue = formData.payType;
     return PayConfigPayTypeLabels[payTypeValue as PayConfigType] ?? "未知支付方式";
 });
-const payconfigId = computed(() => route.query.id as string);
-/** 获取支付配置详情 */
+
+const payConfigId = computed(() => route.query.id as string);
+
 const { lockFn: getPayconfigDetail, isLock } = useLockFn(async () => {
-    if (!payconfigId.value) {
+    if (!payConfigId.value) {
         message.error(t("payment-config.form.getPayconfigDetailFailedHelp"));
         router.back();
         return;
     }
     try {
-        const data = await apiGetPayconfigById(payconfigId.value);
-
-        useFormData(formData, data);
+        const data = await apiGetPayconfigById(payConfigId.value, PayConfigPayType.ALIPAY);
+        formData.id = data.id;
+        formData.name = data.name;
+        formData.logo = data.logo;
+        formData.isEnable = data.isEnable;
+        formData.isDefault = data.isDefault;
+        formData.sort = data.sort;
+        if (data.config) {
+            formData.config = data.config;
+        }
     } catch (_error) {
         message.error(t("payment-config.form.getPayconfigDetailFailed"));
         router.back();
@@ -55,8 +67,7 @@ onMounted(() => {
 });
 const { lockFn: submitForm, isLock: isSubmitting } = useLockFn(async () => {
     try {
-        const { payType: _payType, ...rest } = formData;
-        await apiUpdatePayconfig(rest);
+        await apiUpdatePayconfig(formData);
         message.success(t("payment-config.form.updateSuccess"));
         router.back();
     } catch (error) {
@@ -66,14 +77,19 @@ const { lockFn: submitForm, isLock: isSubmitting } = useLockFn(async () => {
 });
 const schema = object({
     name: string().required(t("payment-config.validation.nameRequired")),
-    payVersion: string().required(t("payment-config.validation.payVersionRequired")),
-    merchantType: string().required(t("payment-config.validation.merchantTypeRequired")),
-    mchId: string().required(t("payment-config.validation.mchIdRequired")),
-    apiKey: string().required(t("payment-config.validation.apiKeyRequired")),
-    paySignKey: string().required(t("payment-config.validation.paySignKeyRequired")),
-    cert: string().required(t("payment-config.validation.certRequired")),
     sort: number().required(t("payment-config.validation.sortRequired")),
-    appId: string().required(t("payment-config.validation.appIdRequired")),
+    config: object({
+        appId: string().required(t("payment-config.validation.appIdRequired")),
+        gateway: string()
+            .required(t("payment-config.validation.gatewayRequired"))
+            .url(t("payment-config.validation.gatewayUrl")),
+        privateKey: string().required(t("payment-config.validation.privateKeyRequired")),
+        appCert: string().required(t("payment-config.validation.appCertRequired")),
+        alipayPublicCert: string().required(
+            t("payment-config.validation.alipayPublicCertRequired"),
+        ),
+        alipayRootCert: string().required(t("payment-config.validation.alipayRootCertRequired")),
+    }).required(),
 });
 </script>
 <template>
@@ -111,7 +127,7 @@ const schema = object({
                                 {{ t("payment-config.form.enable") }}
                             </h4>
                             <p class="text-muted-foreground mt-2 text-xs">
-                                {{ t("payment-config.form.enableHelp") }}
+                                {{ t("payment-config.form.alipayEnableHelp") }}
                             </p>
                         </div>
                         <USwitch
@@ -170,121 +186,114 @@ const schema = object({
                             class="w-full"
                         />
                     </UFormField>
-                    <!-- 支付接口版本 -->
-                    <!--                    <UFormField-->
-                    <!--                        :label="t('payment-config.form.payVersion')"-->
-                    <!--                        :description="t('payment-config.form.payVersionHelp')"-->
-                    <!--                        name="payVersion"-->
-                    <!--                        required-->
-                    <!--                    >-->
-                    <!--                        <URadioGroup v-model="formData.payVersion" :items="['V3']" />-->
-                    <!--                    </UFormField>-->
-                    <!-- 商户类型 -->
-                    <!--                    <UFormField-->
-                    <!--                        :label="t('payment-config.form.merchantType')"-->
-                    <!--                        :description="t('payment-config.form.merchantTypeHelp')"-->
-                    <!--                        name="merchantType"-->
-                    <!--                        required-->
-                    <!--                    >-->
-                    <!--                        <URadioGroup-->
-                    <!--                            v-model="formData.merchantType"-->
-                    <!--                            :items="[-->
-                    <!--                                {-->
-                    <!--                                    label: t('payment-config.form.merchantTypeOptions.ordinary'),-->
-                    <!--                                    value: 'ordinary',-->
-                    <!--                                },-->
-                    <!--                            ]"-->
-                    <!--                        />-->
-                    <!--                    </UFormField>-->
-                    <!-- 商户号 -->
-                    <UFormField
-                        :label="t('payment-config.form.mchId')"
-                        name="mchId"
-                        required
-                        :description="t('payment-config.form.mchIdHelp')"
-                    >
-                        <UInput
-                            v-model="formData.mchId"
-                            :placeholder="t('payment-config.form.mchIdInput')"
-                            class="w-full"
-                        />
-                    </UFormField>
-                    <!-- 商户api密钥 -->
-                    <UFormField
-                        :label="t('payment-config.form.apiKey')"
-                        name="apiKey"
-                        required
-                        :description="t('payment-config.form.apiKeyHelp')"
-                    >
-                        <UInput
-                            v-model="formData.apiKey"
-                            :placeholder="t('payment-config.form.apiKeyInput')"
-                            class="w-full"
-                        />
-                    </UFormField>
-                    <!-- 微信支付证书 -->
-                    <UFormField
-                        :label="t('payment-config.form.cert')"
-                        name="cert"
-                        required
-                        :description="t('payment-config.form.certHelp')"
-                    >
-                        <UTextarea
-                            v-model="formData.cert"
-                            :placeholder="t('payment-config.form.certInput')"
-                            class="w-full"
-                            autoresize
-                            :maxrows="3"
-                        />
-                    </UFormField>
-                    <!-- 微信支付密钥 -->
-                    <UFormField
-                        :label="t('payment-config.form.paySignKey')"
-                        name="paySignKey"
-                        required
-                        :description="t('payment-config.form.paySignKeyHelp')"
-                    >
-                        <UTextarea
-                            v-model="formData.paySignKey"
-                            :placeholder="t('payment-config.form.paySignKeyInput')"
-                            class="w-full"
-                            autoresize
-                            :maxrows="3"
-                        />
-                    </UFormField>
-
-                    <!-- 支付授权目录 -->
-                    <!-- <UFormField
-                        :label="t('payment-config.form.payAuthDir')"
-                        name="payAuthDir"
-                        :description="t('payment-config.form.payAuthDirHelp')"
-                    >
-                        <UInput
-                            v-model="formData.payAuthDir"
-                            variant="subtle"
-                            :placeholder="t('payment-config.form.payAuthDirHelp')"
-
-                            :disabled="true"
-                            class="w-full"
-                        >
-                            <template #trailing>
-                                <span class="text-primary cursor-pointer text-xs">
-                                    {{ t("payment-config.form.copy") }}
-                                </span>
-                            </template>
-                        </UInput>
-                    </UFormField> -->
-                    <!-- appId -->
+                    <!-- APPID -->
                     <UFormField
                         :label="t('payment-config.form.appId')"
-                        name="appId"
+                        name="config.appId"
                         required
                         :description="t('payment-config.form.appIdHelp')"
                     >
                         <UInput
-                            v-model="formData.appId"
+                            v-model="formData.config.appId"
                             :placeholder="t('payment-config.form.appIdInput')"
                             class="w-full"
+                        />
+                    </UFormField>
+                    <!-- 网关地址 -->
+                    <UFormField
+                        :label="t('payment-config.form.gateway') || '网关地址'"
+                        name="config.gateway"
+                        required
+                        :description="
+                            t('payment-config.form.gatewayHelp') || '支付宝开放平台网关地址'
+                        "
+                    >
+                        <UInput
+                            v-model="formData.config.gateway"
+                            :placeholder="
+                                t('payment-config.form.gatewayInput') ||
+                                'https://openapi.alipay.com/gateway.do'
+                            "
+                            class="w-full"
+                        />
+                    </UFormField>
+                    <!-- 应用私钥 -->
+                    <UFormField
+                        :label="t('payment-config.form.privateKey') || '应用私钥'"
+                        name="config.privateKey"
+                        required
+                        :description="t('payment-config.form.privateKeyHelp') || '应用私钥内容'"
+                    >
+                        <UTextarea
+                            v-model="formData.config.privateKey"
+                            :placeholder="
+                                t('payment-config.form.privateKeyInput') || '请输入应用私钥'
+                            "
+                            class="w-full"
+                            autoresize
+                            :maxrows="3"
+                        />
+                    </UFormField>
+                    <!-- 应用公钥证书 -->
+                    <UFormField
+                        :label="t('payment-config.form.appCert') || '应用公钥证书'"
+                        name="config.appCert"
+                        required
+                        :description="
+                            t('payment-config.form.appCertHelp') ||
+                            '应用公钥证书内容(appCertPublicKey)'
+                        "
+                    >
+                        <UTextarea
+                            v-model="formData.config.appCert"
+                            :placeholder="
+                                t('payment-config.form.appCertInput') || '请输入应用公钥证书内容'
+                            "
+                            class="w-full"
+                            autoresize
+                            :maxrows="3"
+                        />
+                    </UFormField>
+                    <!-- 支付宝公钥证书 -->
+                    <UFormField
+                        :label="t('payment-config.form.alipayPublicCert') || '支付宝公钥证书'"
+                        name="config.alipayPublicCert"
+                        required
+                        :description="
+                            t('payment-config.form.alipayPublicCertHelp') ||
+                            '支付宝公钥证书内容(alipayCertPublicKey)'
+                        "
+                    >
+                        <UTextarea
+                            v-model="formData.config.alipayPublicCert"
+                            :placeholder="
+                                t('payment-config.form.alipayPublicCertInput') ||
+                                '请输入支付宝公钥证书内容'
+                            "
+                            class="w-full"
+                            autoresize
+                            :maxrows="3"
+                        />
+                    </UFormField>
+                    <!-- 支付宝根证书 -->
+                    <UFormField
+                        :label="t('payment-config.form.alipayRootCert') || '支付宝根证书'"
+                        name="config.alipayRootCert"
+                        required
+                        :description="
+                            t('payment-config.form.alipayRootCertHelp') ||
+                            '支付宝根证书内容(alipayRootCert)'
+                        "
+                    >
+                        <UTextarea
+                            v-model="formData.config.alipayRootCert"
+                            :placeholder="
+                                t('payment-config.form.alipayRootCertInput') ||
+                                '请输入支付宝根证书内容'
+                            "
+                            class="w-full"
+                            autoresize
+                            :maxrows="3"
                         />
                     </UFormField>
                     <!-- 排序 -->

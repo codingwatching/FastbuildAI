@@ -60,7 +60,7 @@
         "updateSuccess": "支払い設定を更新しました",
         "updateFailed": "支払い設定の更新に失敗",
         "appId": "APPID",
-        "appIdHelp": "WeChat開発プラットフォームで申請したアプリケーションIDを入力",
+        "appIdHelp": "開発プラットフォームが申請したアプリケーションID情報です",
         "appIdInput": "APPIDを入力"
     },
     "validation": {

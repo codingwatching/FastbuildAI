@@ -51,8 +51,6 @@ const state = reactive<StorageConfig<typeof StorageType.OSS>>({
     config: aliyunOSSDefaultConfig(),
 });
 
-console.log(state);
-
 async function handleSubmit() {
     try {
         loadingRef.value = true;

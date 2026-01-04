@@ -1,9 +1,8 @@
 <script lang="ts" setup>
+import { PayConfigPayType, type PayConfigType } from "@buildingai/constants/shared";
 import {
     type BooleanNumberType,
-    PayConfigPayType,
     type PayconfigTableData,
-    type PayConfigType,
 } from "@buildingai/service/consoleapi/payconfig";
 import {
     apiGetPayconfigList,

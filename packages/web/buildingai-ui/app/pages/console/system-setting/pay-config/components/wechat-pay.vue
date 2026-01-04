@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import type { PayconfigInfo } from "@buildingai/service/consoleapi/payconfig";
 import {
-    PayConfigPayTypeLabels,
+    Merchant,
+    PayConfigPayType,
     type PayConfigType,
-} from "@buildingai/service/consoleapi/payconfig";
+    PayVersion,
+    type WeChatPayConfig,
+    type WeChatPayConfigInfo,
+} from "@buildingai/constants/shared";
+import { PayConfigPayTypeLabels } from "@buildingai/service/consoleapi/payconfig";
 import { apiGetPayconfigById, apiUpdatePayconfig } from "@buildingai/service/consoleapi/payconfig";
 import { number, object, string } from "yup";
 
@@ -12,51 +16,61 @@ const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 
-const formData = shallowReactive<PayconfigInfo>({
+type WeChatPayFormType = WeChatPayConfigInfo & { config: WeChatPayConfig };
+const formData = shallowReactive<WeChatPayFormType>({
     id: "",
     name: "",
     logo: "",
     isEnable: 0,
     isDefault: 0,
-    payType: 1,
     sort: 0,
-    payVersion: "",
-    merchantType: "",
-    mchId: "",
-    apiKey: "",
-    paySignKey: "",
-    cert: "",
-    payAuthDir: "",
-    appId: "",
+    payType: PayConfigPayType.WECHAT,
+    config: {
+        appId: "",
+        mchId: "",
+        apiKey: "",
+        paySignKey: "",
+        cert: "",
+        payAuthDir: "",
+        merchantType: Merchant.ORDINARY,
+        payVersion: PayVersion.V3,
+    },
 });
 const payType = computed(() => {
     const payTypeValue = formData.payType;
     return PayConfigPayTypeLabels[payTypeValue as PayConfigType] ?? "未知支付方式";
 });
-const payconfigId = computed(() => route.query.id as string);
-/** 获取支付配置详情 */
-const { lockFn: getPayconfigDetail, isLock } = useLockFn(async () => {
-    if (!payconfigId.value) {
+
+const payConfigId = computed(() => route.query.id as string);
+
+const { lockFn: getPayConfigDetail, isLock } = useLockFn(async () => {
+    if (!payConfigId.value) {
         message.error(t("payment-config.form.getPayconfigDetailFailedHelp"));
         router.back();
         return;
     }
     try {
-        const data = await apiGetPayconfigById(payconfigId.value);
-
-        useFormData(formData, data);
+        const data = await apiGetPayconfigById(payConfigId.value, PayConfigPayType.WECHAT);
+        formData.id = data.id;
+        formData.name = data.name;
+        formData.logo = data.logo;
+        formData.isEnable = data.isEnable;
+        formData.isDefault = data.isDefault;
+        formData.sort = data.sort;
+        if (data.config) {
+            formData.config = data.config;
+        }
     } catch (_error) {
         message.error(t("payment-config.form.getPayconfigDetailFailed"));
         router.back();
     }
 });
 onMounted(() => {
-    getPayconfigDetail();
+    getPayConfigDetail();
 });
 const { lockFn: submitForm, isLock: isSubmitting } = useLockFn(async () => {
     try {
-        const { payType: _payType, ...rest } = formData;
-        await apiUpdatePayconfig(rest);
+        await apiUpdatePayconfig(formData);
         message.success(t("payment-config.form.updateSuccess"));
         router.back();
     } catch (error) {
@@ -66,14 +80,16 @@ const { lockFn: submitForm, isLock: isSubmitting } = useLockFn(async () => {
 });
 const schema = object({
     name: string().required(t("payment-config.validation.nameRequired")),
-    payVersion: string().required(t("payment-config.validation.payVersionRequired")),
-    merchantType: string().required(t("payment-config.validation.merchantTypeRequired")),
-    mchId: string().required(t("payment-config.validation.mchIdRequired")),
-    apiKey: string().required(t("payment-config.validation.apiKeyRequired")),
-    paySignKey: string().required(t("payment-config.validation.paySignKeyRequired")),
-    cert: string().required(t("payment-config.validation.certRequired")),
     sort: number().required(t("payment-config.validation.sortRequired")),
-    appId: string().required(t("payment-config.validation.appIdRequired")),
+    config: object({
+        payVersion: string().required(t("payment-config.validation.payVersionRequired")),
+        merchantType: string().required(t("payment-config.validation.merchantTypeRequired")),
+        mchId: string().required(t("payment-config.validation.mchIdRequired")),
+        apiKey: string().required(t("payment-config.validation.apiKeyRequired")),
+        paySignKey: string().required(t("payment-config.validation.paySignKeyRequired")),
+        cert: string().required(t("payment-config.validation.certRequired")),
+        appId: string().required(t("payment-config.validation.appIdRequired")),
+    }).required(),
 });
 </script>
 <template>
@@ -174,20 +190,20 @@ const schema = object({
                     <UFormField
                         :label="t('payment-config.form.payVersion')"
                         :description="t('payment-config.form.payVersionHelp')"
-                        name="payVersion"
+                        name="config.payVersion"
                         required
                     >
-                        <URadioGroup v-model="formData.payVersion" :items="['V3']" />
+                        <URadioGroup v-model="formData.config.payVersion" :items="['V3']" />
                     </UFormField>
                     <!-- 商户类型 -->
                     <UFormField
                         :label="t('payment-config.form.merchantType')"
                         :description="t('payment-config.form.merchantTypeHelp')"
-                        name="merchantType"
+                        name="config.merchantType"
                         required
                     >
                         <URadioGroup
-                            v-model="formData.merchantType"
+                            v-model="formData.config.merchantType"
                             :items="[
                                 {
                                     label: t('payment-config.form.merchantTypeOptions.ordinary'),
@@ -199,12 +215,12 @@ const schema = object({
                     <!-- 商户号 -->
                     <UFormField
                         :label="t('payment-config.form.mchId')"
-                        name="mchId"
+                        name="config.mchId"
                         required
                         :description="t('payment-config.form.mchIdHelp')"
                     >
                         <UInput
-                            v-model="formData.mchId"
+                            v-model="formData.config.mchId"
                             :placeholder="t('payment-config.form.mchIdInput')"
                             class="w-full"
                         />
@@ -212,12 +228,12 @@ const schema = object({
                     <!-- 商户api密钥 -->
                     <UFormField
                         :label="t('payment-config.form.apiKey')"
-                        name="apiKey"
+                        name="config.apiKey"
                         required
                         :description="t('payment-config.form.apiKeyHelp')"
                     >
                         <UInput
-                            v-model="formData.apiKey"
+                            v-model="formData.config.apiKey"
                             :placeholder="t('payment-config.form.apiKeyInput')"
                             class="w-full"
                         />
@@ -225,12 +241,12 @@ const schema = object({
                     <!-- 微信支付证书 -->
                     <UFormField
                         :label="t('payment-config.form.cert')"
-                        name="cert"
+                        name="config.cert"
                         required
                         :description="t('payment-config.form.certHelp')"
                     >
                         <UTextarea
-                            v-model="formData.cert"
+                            v-model="formData.config.cert"
                             :placeholder="t('payment-config.form.certInput')"
                             class="w-full"
                             autoresize
@@ -240,12 +256,12 @@ const schema = object({
                     <!-- 微信支付密钥 -->
                     <UFormField
                         :label="t('payment-config.form.paySignKey')"
-                        name="paySignKey"
+                        name="config.paySignKey"
                         required
                         :description="t('payment-config.form.paySignKeyHelp')"
                     >
                         <UTextarea
-                            v-model="formData.paySignKey"
+                            v-model="formData.config.paySignKey"
                             :placeholder="t('payment-config.form.paySignKeyInput')"
                             class="w-full"
                             autoresize
@@ -277,12 +293,12 @@ const schema = object({
                     <!-- appId -->
                     <UFormField
                         :label="t('payment-config.form.appId')"
-                        name="appId"
+                        name="config.appId"
                         required
                         :description="t('payment-config.form.appIdHelp')"
                     >
                         <UInput
-                            v-model="formData.appId"
+                            v-model="formData.config!.appId"
                             :placeholder="t('payment-config.form.appIdInput')"
                             class="w-full"
                         />

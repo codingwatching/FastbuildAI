@@ -60,7 +60,7 @@
         "updateSuccess": "Payment config updated",
         "updateFailed": "Update failed",
         "appId": "APPID",
-        "appIdHelp": "App ID from WeChat Developer Platform",
+        "appIdHelp": "Development platform application ID information",
         "appIdInput": "Enter APPID"
     },
     "validation": {

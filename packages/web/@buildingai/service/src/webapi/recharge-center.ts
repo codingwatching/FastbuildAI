@@ -6,6 +6,8 @@
  * @author BuildingAI Teams
  */
 
+import { type PayConfigType } from "@buildingai/constants/shared";
+
 import type { BaseEntity } from "../models/globals";
 
 // ==================== Type Definitions ====================
@@ -111,7 +113,7 @@ export interface PrepaidParams {
  */
 export interface PrepaidInfo {
     /** Payment method */
-    payType: number;
+    payType: PayConfigType;
     /** Payment QR code (base64 format), WeChat payment returns the QR-Code */
     qrCode?: QrCode;
     /** Alipay payment returns the HTML(form) code */
