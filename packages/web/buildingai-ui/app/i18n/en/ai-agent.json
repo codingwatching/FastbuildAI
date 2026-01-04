@@ -6,7 +6,9 @@
         "search": {
             "placeholder": "Search agent name, description, or ID",
             "allStatus": "All Status",
-            "filterByStatus": "Filter by Status"
+            "filterByStatus": "Filter by Status",
+            "allMode": "All",
+            "filterByMode": "Filter by Creation Mode"
         },
         "create": {
             "title": "Create Agent",

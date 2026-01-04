@@ -262,7 +262,8 @@ onMounted(() => getLists());
             class="bg-background sticky bottom-0 z-10 flex items-center justify-between gap-3 py-4"
         >
             <div class="text-muted text-sm">
-                {{ selectedUsers.size }} {{ $t("console-common.selected") }}
+                <!-- {{ selectedUsers.size }} {{ $t("console-common.selected") }} /  -->
+                {{ $t("console-common.total") }} {{ paging.total }} {{ $t("console-common.items") }}
             </div>
 
             <div class="flex items-center gap-1.5">

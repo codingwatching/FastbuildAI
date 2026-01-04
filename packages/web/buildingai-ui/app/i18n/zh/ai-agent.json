@@ -6,7 +6,9 @@
         "search": {
             "placeholder": "搜索智能体名称、描述或标识符",
             "allStatus": "全部状态",
-            "filterByStatus": "按状态筛选"
+            "filterByStatus": "按状态筛选",
+            "allMode": "全部",
+            "filterByMode": "按创建模式筛选"
         },
         "create": {
             "title": "创建智能体",

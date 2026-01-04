@@ -356,6 +356,19 @@ export class AiAgentService extends BaseService<Agent> {
             }
         }
 
+        // 创建模式筛选
+        if (dto.createMode) {
+            if (dto.keyword) {
+                queryBuilder.andWhere("agent.createMode = :createMode", {
+                    createMode: dto.createMode,
+                });
+            } else {
+                queryBuilder.where("agent.createMode = :createMode", {
+                    createMode: dto.createMode,
+                });
+            }
+        }
+
         // 标签筛选：必须同时拥有所有指定的标签（AND 逻辑）
         if (dto.tagIds?.length) {
             const whereCondition = dto.keyword || dto.isPublic !== undefined ? "andWhere" : "where";

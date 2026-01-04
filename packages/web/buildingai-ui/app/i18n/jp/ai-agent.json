@@ -6,7 +6,9 @@
         "search": {
             "placeholder": "エージェント名・説明・IDで検索",
             "allStatus": "全ステータス",
-            "filterByStatus": "ステータスで絞り込み"
+            "filterByStatus": "ステータスで絞り込み",
+            "allMode": "すべて",
+            "filterByMode": "作成モードで絞り込み"
         },
         "create": {
             "title": "エージェント作成",
