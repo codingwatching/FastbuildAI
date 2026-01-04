@@ -1,11 +1,24 @@
 import {
     Merchant,
     type MerchantType,
+    PayConfigInfo,
+    PayConfigPayType,
+    type PayConfigType,
     PayVersion,
     type PayVersionType,
 } from "@buildingai/constants/shared/payconfig.constant";
-import { Type } from "class-transformer";
-import { IsInt, IsNotEmpty, IsObject, IsString, ValidateNested } from "class-validator";
+import { plainToInstance } from "class-transformer";
+import {
+    IsEnum,
+    IsInt,
+    IsNotEmpty,
+    IsString,
+    Validate,
+    validateSync,
+    ValidationArguments,
+    ValidatorConstraint,
+    ValidatorConstraintInterface,
+} from "class-validator";
 import { IsIn } from "class-validator";
 
 export class WeChatPayConfigDto {
@@ -86,22 +99,85 @@ export class AlipayConfigDto {
 
     @IsNotEmpty()
     @IsString()
-    appCertContent: string;
+    appCert: string;
 
     @IsNotEmpty()
     @IsString()
-    alipayPublicCertContent: string;
+    alipayPublicCert: string;
 
     @IsNotEmpty()
     @IsString()
-    alipayRootCertContent: string;
+    alipayRootCert: string;
+}
+
+@ValidatorConstraint({ name: "IsValidPayConfig", async: false })
+class IsValidPayConfigConstraint implements ValidatorConstraintInterface {
+    validate(config: any, args: ValidationArguments) {
+        // In other cases, config is required
+        if (!config) {
+            return false;
+        }
+
+        const object = args.object as PayConfigInfo;
+        let DtoClass: any;
+        switch (object.payType) {
+            case PayConfigPayType.WECHAT:
+                DtoClass = WeChatPayConfigDto;
+                break;
+            case PayConfigPayType.ALIPAY:
+                DtoClass = AlipayConfigDto;
+                break;
+            default:
+                return false;
+        }
+
+        // validate
+        const configInstance = plainToInstance(DtoClass, config);
+        const errors = validateSync(configInstance);
+
+        return errors.length === 0;
+    }
+
+    defaultMessage(args: ValidationArguments) {
+        const object = args.object as PayConfigInfo;
+        const config = args.value;
+
+        if (!config) {
+            return "Payment configuration cannot be empty";
+        }
+
+        // Detail error
+        let DtoClass: any;
+        switch (object.payType) {
+            case PayConfigPayType.WECHAT:
+                DtoClass = WeChatPayConfigDto;
+                break;
+            case PayConfigPayType.ALIPAY:
+                DtoClass = AlipayConfigDto;
+                break;
+            default:
+                return "Invalid pay type";
+        }
+
+        const configInstance = plainToInstance(DtoClass, config);
+        const errors = validateSync(configInstance);
+
+        if (errors.length > 0) {
+            const errorMessages = errors
+                .map((error) => Object.values(error.constraints || {}).join(", "))
+                .join("; ");
+            return `Config validation failed: ${errorMessages}`;
+        }
+
+        return "Invalid pay config";
+    }
 }
 
 /**
  * 更新支付配置数据传输对象
  * 用于验证和传输更新支付配置时的数据
  */
-export class UpdatePayconfigDto {
+export class UpdatePayConfigDto {
     /**
      * 支付配置ID
      * 必填字段，用于标识要更新的支付配置
@@ -153,10 +229,19 @@ export class UpdatePayconfigDto {
     @IsInt({ message: "排序必须是整数" })
     sort: number;
 
-    @IsNotEmpty({ message: "配置详情不能为空" })
-    @IsObject({ message: "配置详情必须是对象" })
-    @ValidateNested({ message: "配置详情验证失败" })
-    @Type(() => Object)
+    /**
+     * 支付方式
+     * 必填字段，用于指示更新的具体支付类型
+     */
+    @IsNotEmpty()
+    @IsEnum(PayConfigPayType)
+    payType: PayConfigType;
+
+    /**
+     * 具体支付方式的配置
+     * 必填字段，根据 payType 动态决定具体的 ValidateDto
+     */
+    @Validate(IsValidPayConfigConstraint)
     config: WeChatPayConfigDto | AlipayConfigDto;
 }
 

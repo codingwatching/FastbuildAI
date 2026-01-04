@@ -18,7 +18,7 @@ import { PAY_EVENTS } from "@common/modules/pay/constants/pay-events.contant";
 import { Injectable } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
-import { UpdatePayconfigDto, UpdatePayConfigStatusDto } from "../dto/update-payconfig";
+import { UpdatePayConfigDto, UpdatePayConfigStatusDto } from "../dto/update-payconfig";
 
 @Injectable()
 export class PayconfigService extends BaseService<Payconfig> {
@@ -50,15 +50,27 @@ export class PayconfigService extends BaseService<Payconfig> {
     }
 
     async getDetail(id: string): Promise<Payconfig> {
-        const payconfig = await this.repository.findOne({
-            where: { id },
-        });
+        const queryBuilder = this.repository.createQueryBuilder("payConfig");
+        queryBuilder
+            .select([
+                "payConfig.id",
+                "payConfig.name",
+                "payConfig.payType",
+                "payConfig.isEnable",
+                "payConfig.logo",
+                "payConfig.sort",
+                "payConfig.isDefault",
+                "payConfig.config",
+            ])
+            .where("payConfig.id = :id", { id })
+            .orderBy("sort", "DESC");
 
-        if (!payconfig) {
+        const payConfig = await queryBuilder.getOne();
+        if (!payConfig) {
             throw HttpErrorFactory.notFound("支付配置不存在");
         }
 
-        return payconfig;
+        return payConfig;
     }
 
     /**
@@ -92,7 +104,7 @@ export class PayconfigService extends BaseService<Payconfig> {
      * @param dto 更新后的支付配置
      * @returns 更新后的支付配置
      */
-    async updatePayconfig(id: string, dto: UpdatePayconfigDto): Promise<Partial<Payconfig>> {
+    async updatePayconfig(id: string, dto: UpdatePayConfigDto): Promise<Partial<Payconfig>> {
         const payconfig = await this.repository.findOne({ where: { id } });
         if (!payconfig) {
             throw HttpErrorFactory.notFound("支付配置不存在");

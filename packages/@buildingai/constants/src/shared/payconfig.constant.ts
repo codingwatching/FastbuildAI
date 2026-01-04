@@ -46,7 +46,6 @@ export interface AlipayConfig {
     appCert: string;
     alipayPublicCert: string;
     alipayRootCert: string;
-    signType: AlipaySignTypeType;
     // merchantType: AlipayMerchantType;
     // pid?: string;
 }

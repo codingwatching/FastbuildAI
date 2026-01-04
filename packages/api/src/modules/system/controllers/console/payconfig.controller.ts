@@ -6,7 +6,7 @@ import { ConsoleController } from "@common/decorators/controller.decorator";
 import { Permissions } from "@common/decorators/permissions.decorator";
 import { Body, Get, Param, Patch, Post } from "@nestjs/common";
 
-import { UpdatePayconfigDto, UpdatePayConfigStatusDto } from "../../dto/update-payconfig";
+import { UpdatePayConfigDto, UpdatePayConfigStatusDto } from "../../dto/update-payconfig";
 import { PayconfigService } from "../../services/payconfig.service";
 
 @ConsoleController("system-payconfig", "支付配置")
@@ -63,7 +63,7 @@ export class PayconfigConsoleController extends BaseController {
     })
     @BuildFileUrl(["**.logo"])
     async getPayconfig(@Param("id", UUIDValidationPipe) id: string) {
-        const result = await this.payconfigService.findOneById(id);
+        const result = await this.payconfigService.getDetail(id);
         if (!result) {
             throw HttpErrorFactory.notFound("支付配置不存在");
         }
@@ -82,7 +82,7 @@ export class PayconfigConsoleController extends BaseController {
         description: "根据id更改支付配置",
     })
     @BuildFileUrl(["**.logo"])
-    async updatePayconfig(@Body() dto: UpdatePayconfigDto) {
+    async updatePayConfig(@Body() dto: UpdatePayConfigDto) {
         return await this.payconfigService.updatePayconfig(dto.id, dto);
     }
 }
