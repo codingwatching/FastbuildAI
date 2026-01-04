@@ -1067,6 +1067,25 @@ export function apiImportAgentDsl(data: {
     return useConsolePost("/ai-agent-template/import-dsl", data);
 }
 
+/**
+ * Batch import agent DSL configurations
+ * @description Batch import agent configurations from multiple DSL (YAML or JSON) files
+ * @param data Batch import DSL data
+ * @returns Promise with batch import results
+ */
+export function apiBatchImportAgentDsl(data: {
+    contents: string[];
+    format?: "yaml" | "json";
+}): Promise<{
+    total: number;
+    success: number;
+    failed: number;
+    agents: Agent[];
+    errors: Array<{ file: string; error: string }>;
+}> {
+    return useConsolePost("/ai-agent-template/batch-import-dsl", data);
+}
+
 // ==================== Agent Decorate Config APIs ====================
 
 /**

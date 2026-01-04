@@ -324,6 +324,9 @@
                 "urlRequired": "URLを入力してください"
             },
             "success": "DSL ファイルのインポートが成功しました！",
+            "batchSuccess": "{count} 個のファイルを正常にインポートしました",
+            "partialSuccess": "{total} 個中 {success} 個のファイルを正常にインポートしました",
+            "batchFailed": "すべてのファイルのインポートに失敗しました。ファイル形式を確認してください",
             "form": {
                 "urlLabel": "URL",
                 "urlPlaceholder": "DSLファイルのURLを入力"

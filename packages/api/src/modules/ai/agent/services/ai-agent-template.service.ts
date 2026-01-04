@@ -1,3 +1,4 @@
+import type { UserPlayground } from "@buildingai/db";
 import { FileUrlService } from "@buildingai/db";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { HttpService } from "@nestjs/axios";
@@ -10,6 +11,7 @@ import { firstValueFrom } from "rxjs";
 // 不再需要 ImportAgentDto，使用通用的对象类型
 import {
     AgentTemplateDto,
+    BatchImportAgentDslDto,
     CreateAgentFromTemplateDto,
     ImportAgentDslDto,
     QueryTemplateDto,
@@ -297,6 +299,65 @@ export class AiAgentTemplateService {
             this.logger.error(`导入 DSL 失败: ${error.message}`, error.stack);
             throw HttpErrorFactory.business("导入 DSL 配置失败: " + error.message);
         }
+    }
+
+    /**
+     * 批量导入智能体 DSL 配置
+     * 从多个 DSL 格式文件批量导入智能体配置
+     *
+     * @param dto 批量导入 DSL 配置DTO
+     * @param user 当前用户信息
+     * @returns 批量导入结果
+     */
+    async batchImportAgentDsl(dto: BatchImportAgentDslDto, user: UserPlayground) {
+        const results = {
+            total: dto.contents.length,
+            success: 0,
+            failed: 0,
+            agents: [] as any[],
+            errors: [] as Array<{ file: string; error: string }>,
+        };
+
+        for (const content of dto.contents) {
+            try {
+                const importDto: ImportAgentDslDto = {
+                    content,
+                    format: dto.format,
+                    createBy: dto.createBy || user.id,
+                };
+
+                const importData = await this.importAgentDsl(importDto);
+
+                // 创建智能体
+                const agent = await this.aiAgentService.createAgentFromTemplate(importData, user);
+
+                // 自动发布智能体
+                await this.aiAgentService.publishAgent(agent.id, {
+                    publishConfig: {
+                        allowOrigins: [],
+                        rateLimitPerMinute: 60,
+                        showBranding: true,
+                        allowDownloadHistory: false,
+                    },
+                });
+
+                results.success++;
+                results.agents.push(agent);
+            } catch (error) {
+                results.failed++;
+                results.errors.push({
+                    file: content,
+                    error: error.message || "未知错误",
+                });
+                this.logger.error(`批量导入 DSL 失败 [${content}]: ${error.message}`, error.stack);
+            }
+        }
+
+        this.logger.log(
+            `批量导入 DSL 完成: 总计 ${results.total}，成功 ${results.success}，失败 ${results.failed}`,
+        );
+
+        return results;
     }
 
     /**

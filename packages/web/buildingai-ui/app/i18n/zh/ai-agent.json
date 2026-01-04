@@ -324,6 +324,9 @@
                 "urlRequired": "请先输入URL"
             },
             "success": "DSL 文件导入成功！",
+            "batchSuccess": "成功导入 {count} 个文件",
+            "partialSuccess": "成功导入 {success}/{total} 个文件",
+            "batchFailed": "所有文件导入失败，请检查文件格式",
             "form": {
                 "urlLabel": "URL",
                 "urlPlaceholder": "请输入DSL文件的URL"

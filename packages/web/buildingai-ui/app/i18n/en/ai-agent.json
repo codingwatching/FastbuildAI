@@ -324,6 +324,9 @@
                 "urlRequired": "Please enter a URL first"
             },
             "success": "DSL file imported successfully!",
+            "batchSuccess": "Successfully imported {count} file(s)",
+            "partialSuccess": "Successfully imported {success} of {total} file(s)",
+            "batchFailed": "All files failed to import, please check the file format",
             "form": {
                 "urlLabel": "URL",
                 "urlPlaceholder": "Enter the DSL file URL"
