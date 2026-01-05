@@ -134,11 +134,7 @@ const schema = object({
                             :model-value="!!formData.isEnable"
                             unchecked-icon="i-lucide-x"
                             checked-icon="i-lucide-check"
-                            @change="
-                                (value) => {
-                                    formData.isEnable = !formData.isEnable ? 1 : 0;
-                                }
-                            "
+                            @update:modelValue="(enable) => (formData.isEnable = Number(enable))"
                         />
                     </div>
                     <!-- 是否默认 -->
@@ -155,11 +151,7 @@ const schema = object({
                             :model-value="!!formData.isDefault"
                             unchecked-icon="i-lucide-x"
                             checked-icon="i-lucide-check"
-                            @change="
-                                (value) => {
-                                    formData.isDefault = !formData.isDefault ? 1 : 0;
-                                }
-                            "
+                            @update:modelValue="(enable) => (formData.isDefault = Number(enable))"
                         />
                     </div>
                 </div>
@@ -201,12 +193,10 @@ const schema = object({
                     </UFormField>
                     <!-- 网关地址 -->
                     <UFormField
-                        :label="t('payment-config.form.gateway') || '网关地址'"
+                        :label="t('payment-config.form.gateway')"
                         name="config.gateway"
                         required
-                        :description="
-                            t('payment-config.form.gatewayHelp') || '支付宝开放平台网关地址'
-                        "
+                        :description="t('payment-config.form.gatewayHelp')"
                     >
                         <UInput
                             v-model="formData.config.gateway"
@@ -219,16 +209,14 @@ const schema = object({
                     </UFormField>
                     <!-- 应用私钥 -->
                     <UFormField
-                        :label="t('payment-config.form.privateKey') || '应用私钥'"
+                        :label="t('payment-config.form.privateKey')"
                         name="config.privateKey"
                         required
-                        :description="t('payment-config.form.privateKeyHelp') || '应用私钥内容'"
+                        :description="t('payment-config.form.privateKeyHelp')"
                     >
                         <UTextarea
                             v-model="formData.config.privateKey"
-                            :placeholder="
-                                t('payment-config.form.privateKeyInput') || '请输入应用私钥'
-                            "
+                            :placeholder="t('payment-config.form.privateKeyInput')"
                             class="w-full"
                             autoresize
                             :maxrows="3"
@@ -236,19 +224,14 @@ const schema = object({
                     </UFormField>
                     <!-- 应用公钥证书 -->
                     <UFormField
-                        :label="t('payment-config.form.appCert') || '应用公钥证书'"
+                        :label="t('payment-config.form.appCert')"
                         name="config.appCert"
                         required
-                        :description="
-                            t('payment-config.form.appCertHelp') ||
-                            '应用公钥证书内容(appCertPublicKey)'
-                        "
+                        :description="t('payment-config.form.appCertHelp')"
                     >
                         <UTextarea
                             v-model="formData.config.appCert"
-                            :placeholder="
-                                t('payment-config.form.appCertInput') || '请输入应用公钥证书内容'
-                            "
+                            :placeholder="t('payment-config.form.appCertInput')"
                             class="w-full"
                             autoresize
                             :maxrows="3"
@@ -256,20 +239,14 @@ const schema = object({
                     </UFormField>
                     <!-- 支付宝公钥证书 -->
                     <UFormField
-                        :label="t('payment-config.form.alipayPublicCert') || '支付宝公钥证书'"
+                        :label="t('payment-config.form.alipayPublicCert')"
                         name="config.alipayPublicCert"
                         required
-                        :description="
-                            t('payment-config.form.alipayPublicCertHelp') ||
-                            '支付宝公钥证书内容(alipayCertPublicKey)'
-                        "
+                        :description="t('payment-config.form.alipayPublicCertHelp')"
                     >
                         <UTextarea
                             v-model="formData.config.alipayPublicCert"
-                            :placeholder="
-                                t('payment-config.form.alipayPublicCertInput') ||
-                                '请输入支付宝公钥证书内容'
-                            "
+                            :placeholder="t('payment-config.form.alipayPublicCertInput')"
                             class="w-full"
                             autoresize
                             :maxrows="3"
@@ -277,20 +254,14 @@ const schema = object({
                     </UFormField>
                     <!-- 支付宝根证书 -->
                     <UFormField
-                        :label="t('payment-config.form.alipayRootCert') || '支付宝根证书'"
+                        :label="t('payment-config.form.alipayRootCert')"
                         name="config.alipayRootCert"
                         required
-                        :description="
-                            t('payment-config.form.alipayRootCertHelp') ||
-                            '支付宝根证书内容(alipayRootCert)'
-                        "
+                        :description="t('payment-config.form.alipayRootCertHelp')"
                     >
                         <UTextarea
                             v-model="formData.config.alipayRootCert"
-                            :placeholder="
-                                t('payment-config.form.alipayRootCertInput') ||
-                                '请输入支付宝根证书内容'
-                            "
+                            :placeholder="t('payment-config.form.alipayRootCertInput')"
                             class="w-full"
                             autoresize
                             :maxrows="3"
