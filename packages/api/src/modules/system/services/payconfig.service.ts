@@ -94,6 +94,7 @@ export class PayconfigService extends BaseService<Payconfig> {
 
         return rest;
     }
+
     /**
      * 根据id更新支付配置
      *
@@ -102,16 +103,27 @@ export class PayconfigService extends BaseService<Payconfig> {
      * @returns 更新后的支付配置
      */
     async updatePayconfig(id: string, dto: UpdatePayConfigDto): Promise<Partial<Payconfig>> {
-        const payconfig = await this.repository.findOne({ where: { id } });
-        if (!payconfig) {
-            throw HttpErrorFactory.notFound("支付配置不存在");
-        }
-        Object.assign(payconfig, dto);
-        const result = await this.repository.save(payconfig);
+        return await this.dataSource.transaction(async (manager) => {
+            const activeConfig = await manager.findOne(Payconfig, {
+                where: { isDefault: BooleanNumber.YES },
+            });
 
-        this.eventEmitter.emit(PAY_EVENTS.REFRESH, payconfig.payType);
+            if (activeConfig && id !== activeConfig.id) {
+                await manager.update(Payconfig, activeConfig.id, { isDefault: BooleanNumber.NO });
+            }
 
-        return result;
+            const payConfig = await manager.findOne(Payconfig, { where: { id } });
+            if (!payConfig) {
+                throw HttpErrorFactory.notFound("支付配置不存在");
+            }
+
+            Object.assign(payConfig, dto);
+            const result = await manager.save(payConfig);
+
+            this.eventEmitter.emit(PAY_EVENTS.REFRESH, payConfig.payType);
+
+            return result;
+        });
     }
 
     async getPayconfig(payType: typeof PayConfigPayType.WECHAT): Promise<WeChatPayConfig>;

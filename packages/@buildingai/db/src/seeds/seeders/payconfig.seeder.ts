@@ -47,7 +47,7 @@ export class PayConfigSeeder extends BaseSeeder {
                     payType: PayConfigPayType.ALIPAY,
                     isEnable: BooleanNumber.YES,
                     isDefault: BooleanNumber.NO,
-                    logo: "/static/images/wxpay.png",
+                    logo: "/static/images/alipay.png",
                     sort: 1,
                     config: null,
                 },
