@@ -12,27 +12,25 @@ export class MovePayConfigFields1767451213607 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // 添加新的 config 列（如果不存在）
         await queryRunner.query(`
-            ALTER TABLE "payconfig" 
+            ALTER TABLE "payconfig"
             ADD COLUMN IF NOT EXISTS "config" jsonb NULL
         `);
 
-        await queryRunner.query(`
-            COMMENT ON COLUMN "payconfig"."config" IS '具体支付方式的配置'
-        `);
+        await queryRunner.query(`COMMENT ON COLUMN "payconfig"."config" IS '具体支付方式的配置'`);
 
         // 迁移数据
         const configs = await queryRunner.query(`
-            SELECT 
-                id, 
-                "pay_type", 
-                "app_id", 
-                "merchant_type", 
-                "pay_version",
-                "mch_id",
-                "api_key",
-                "pay_sign_key",
-                "cert",
-                "pay_auth_dir",
+            SELECT
+                id,
+                pay_type,
+                app_id,
+                merchant_type,
+                pay_version,
+                mch_id,
+                api_key,
+                pay_sign_key,
+                cert,
+                pay_auth_dir,
                 config
             FROM payconfig
         `);
@@ -50,11 +48,11 @@ export class MovePayConfigFields1767451213607 implements MigrationInterface {
                 }
             }
 
-            // 根据支付类型组装配置
-            if (row.pay_type === PayConfigPayType.WECHAT) {
-                // 微信支付配置
+            const payTypeNum =
+                typeof row.pay_type === "string" ? parseInt(row.pay_type) : row.pay_type;
+            if (payTypeNum === PayConfigPayType.WECHAT) {
                 const wechatConfig: any = {
-                    ...(config || {}), // 保留已有配置
+                    ...(config || {}),
                 };
 
                 if (row.app_id) wechatConfig.appId = row.app_id;
@@ -88,7 +86,6 @@ export class MovePayConfigFields1767451213607 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        // 重新添加旧字段
         await queryRunner.query(
             `ALTER TABLE "payconfig" ADD COLUMN IF NOT EXISTS "app_id" varchar NULL`,
         );
@@ -115,7 +112,7 @@ export class MovePayConfigFields1767451213607 implements MigrationInterface {
         );
 
         // 从 config 恢复数据
-        const configs = await queryRunner.query(`SELECT id, "pay_type", config FROM payconfig`);
+        const configs = await queryRunner.query(`SELECT id, pay_type, config FROM payconfig`);
 
         for (const row of configs) {
             if (!row.config) continue;
@@ -123,40 +120,46 @@ export class MovePayConfigFields1767451213607 implements MigrationInterface {
             let config: any = {};
             try {
                 config = typeof row.config === "string" ? JSON.parse(row.config) : row.config;
-            } catch (e) {
+            } catch {
                 console.warn(`配置 ${row.id} 解析失败，跳过恢复`);
                 continue;
             }
 
-            // 提取字段
-            const app_id = config.appId || null;
-            const merchant_type = config.merchantType || null;
-            const pay_version = config.payVersion || null;
-            const mch_id = config.mchId || null;
-            const api_key = config.apiKey || null;
-            const pay_sign_key = config.paySignKey || null;
-            const cert = config.cert || null;
-            const pay_auth_dir = config.payAuthDir || null;
+            const payTypeNum =
+                typeof row.pay_type === "string" ? parseInt(row.pay_type) : row.pay_type;
+            if (payTypeNum === PayConfigPayType.WECHAT) {
+                // 提取字段
+                const appId = config.appId || null;
+                const merchantType = config.merchantType || null;
+                const payVersion = config.payVersion || null;
+                const mchId = config.mchId || null;
+                const apiKey = config.apiKey || null;
+                const paySignKey = config.paySignKey || null;
+                const cert = config.cert || null;
+                const payAuthDir = config.payAuthDir || null;
 
-            // 更新基础字段
-            await queryRunner.query(
-                `UPDATE payconfig 
-                    SET "app_id" = $1, "merchant_type" = $2, "pay_version" = $3,
-                        "mch_id" = $4, "api_key" = $5, "pay_sign_key" = $6, 
-                        "cert" = $7, "pay_auth_dir" = $8
-                    WHERE id = $9`,
-                [
-                    app_id,
-                    merchant_type,
-                    pay_version,
-                    mch_id,
-                    api_key,
-                    pay_sign_key,
-                    cert,
-                    pay_auth_dir,
-                    row.id,
-                ],
-            );
+                // 更新基础字段
+                await queryRunner.query(
+                    `
+                    UPDATE payconfig
+                        SET app_id = $1, merchant_type = $2, pay_version = $3,
+                            mch_id = $4, api_key = $5, pay_sign_key = $6,
+                            cert = $7, pay_auth_dir = $8
+                        WHERE id = $9
+                    `,
+                    [
+                        appId,
+                        merchantType,
+                        payVersion,
+                        mchId,
+                        apiKey,
+                        paySignKey,
+                        cert,
+                        payAuthDir,
+                        row.id,
+                    ],
+                );
+            }
         }
 
         // 删除 config 列
