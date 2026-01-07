@@ -7,15 +7,11 @@ definePageMeta({
 const route = useRoute();
 
 const extensionId = computed(() => {
-    return route.fullPath.match(/\/buildingai\/extension\/([^/]+)\/console/)?.[1] || "";
+    return route.fullPath.match(/\/app\/([^/]+)\/console/)?.[1] || "";
 });
 
 const consolePath = computed(() => {
-    return (
-        route.fullPath
-            .match(/\/buildingai\/extension\/[^/]+\/console\/(.*)$/)?.[1]
-            ?.replace(/\/$/, "") || ""
-    );
+    return route.fullPath.match(/\/app\/[^/]+\/console\/(.*)$/)?.[1]?.replace(/\/$/, "") || "";
 });
 
 const iframeUrl = computed(() => {
@@ -29,9 +25,7 @@ const isUpdatingFromRoute = ref(false);
 const isUpdatingFromIframe = ref(false);
 
 const buildRoutePath = (path: string) => {
-    return path
-        ? `/buildingai/extension/${extensionId.value}/console/${path}`
-        : `/buildingai/extension/${extensionId.value}/console`;
+    return path ? `/app/${extensionId.value}/console/${path}` : `/app/${extensionId.value}/console`;
 };
 
 const updateUrl = (newRoutePath: string) => {

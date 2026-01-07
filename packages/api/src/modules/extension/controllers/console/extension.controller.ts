@@ -335,7 +335,7 @@ export class ExtensionConsoleController extends BaseController {
      * @returns Extension details
      */
     @Get("detail/:identifier")
-    @BuildFileUrl(["**.icon"])
+    @BuildFileUrl(["**.aliasIcon", "**.icon"])
     @Permissions({
         code: "detail-by-identifier-from-db",
         name: "查看入库应用详情",
