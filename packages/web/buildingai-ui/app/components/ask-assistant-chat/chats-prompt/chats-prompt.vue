@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { FileUploadConfig } from "@buildingai/service/consoleapi/ai-agent";
 import type { FilesList } from "@buildingai/service/models/message";
 import { apiOptimizeText } from "@buildingai/service/webapi/ai-conversation";
 import { useFocus } from "@vueuse/core";
@@ -39,6 +40,15 @@ const props = withDefaults(
          * 用于前台智能体场景，后端直接返回模型特性而不暴露模型配置
          */
         modelFeatures?: string[];
+        /**
+         * 智能体创建模式：'direct' | 'coze' | 'dify' 等
+         * 用于针对不同第三方平台设置不同的文件类型支持
+         */
+        agentCreateMode?: string;
+        /**
+         * 第三方平台的文件上传配置（如 Dify 的 allowed_file_extensions）
+         */
+        fileUploadConfig?: FileUploadConfig;
     }>(),
     {
         modelValue: "",
@@ -300,6 +310,8 @@ onMounted(() =>
                         :maxSize="attachmentSizeLimit"
                         :model-config="modelConfig"
                         :model-features="modelFeatures"
+                        :agent-create-mode="agentCreateMode"
+                        :file-upload-config="fileUploadConfig"
                         @file-select="handleFileSelect"
                         @url-submit="handleUrlSubmit"
                     />

@@ -262,6 +262,23 @@ export interface PublishConfig {
 }
 
 /**
+ * File upload configuration interface (for third-party platforms like Dify)
+ * @description Configuration for file upload restrictions from third-party platforms
+ */
+export interface FileUploadConfig {
+    /** Whether file upload is enabled */
+    enabled?: boolean;
+    /** Allowed file extensions (e.g., [".pdf", ".docx", ".jpg"]) */
+    allowedFileExtensions?: string[];
+    /** Allowed file types (e.g., ["image", "document"]) */
+    allowedFileTypes?: string[];
+    /** Maximum number of files allowed */
+    numberLimits?: number;
+    /** Maximum file size in MB */
+    fileSizeLimit?: number;
+}
+
+/**
  * AI Agent entity interface
  * @description Core interface for AI agent entities with all configuration options
  */
@@ -329,6 +346,12 @@ export interface Agent extends BaseEntity {
     thirdPartyIntegration?: ThirdPartyIntegrationConfig;
     /** Associated tags (only for type='app') */
     tags: TagFormData[];
+    /** Creation mode: 'direct', 'coze', 'dify', etc. */
+    createMode?: string;
+    /** Model features (e.g., ['vision', 'audio']) for public agents */
+    modelFeatures?: string[];
+    /** File upload configuration (from third-party platforms like Dify) */
+    fileUploadConfig?: FileUploadConfig;
     /** Additional dynamic properties */
     [index: string]: any;
 }
@@ -1112,4 +1135,18 @@ export function apiConsoleSetAgentDecorate(
  */
 export function apiGetAgentDecorate(): Promise<AgentDecorateConfig> {
     return useWebGet("/agent-decorate");
+}
+
+// ==================== Agent File Upload Config APIs ====================
+
+/**
+ * Get agent file upload config
+ * @description 获取智能体文件上传配置（用于 Dify 等第三方平台）
+ * @param id Agent ID
+ * @returns Promise with file upload configuration
+ */
+export function apiGetAgentFileUploadConfig(
+    id: string,
+): Promise<FileUploadConfig | null> {
+    return useConsoleGet(`/ai-agent/${id}/file-upload-config`);
 }

@@ -842,6 +842,8 @@ useHead({
                         :placeholder="t('ai-chat.frontend.and', { name: agent.name })"
                         :attachmentSizeLimit="chatConfig?.attachmentSizeLimit"
                         :model-features="agent.modelFeatures"
+                        :agent-create-mode="agent.createMode"
+                        :file-upload-config="agent.fileUploadConfig"
                         class="sticky bottom-0 z-10 [view-transition-name:chat-prompt]"
                         :rows="1"
                         @stop="stop"
