@@ -20,8 +20,8 @@ const props = defineProps<{
 const UPLOAD_CONFIG = Object.freeze({
     maxSize: 15,
     maxCount: 10,
-    supportedTypes: ["TXT", "MARKDOWN", "DOCX"],
-    accept: ".txt,.md,.docx",
+    supportedTypes: ["TXT", "MARKDOWN", "DOCX", "PDF", "XLSX", "XLS"],
+    accept: ".txt,.md,.docx,.pdf,.xlsx,.xls",
 });
 
 const { t } = useI18n();
@@ -44,11 +44,9 @@ const generateId = () => `file_${Date.now()}_${Math.random().toString(36).slice(
 
 const validateFile = (file: File) => {
     const ext = file.name.split(".").pop()?.toUpperCase() || "";
-    // if (!UPLOAD_CONFIG.supportedTypes.includes(ext)) {
-    //     return { valid: false, error: t("ai-datasets.backend.create.file.unsupportedFileType", { ext }) };
-    // }
-    // 只允许 txt 和 docx 文件
-    if (ext !== "TXT" && ext !== "DOCX" && ext !== "MD") {
+    // 支持的文件类型：TXT, MD, DOCX, PDF, XLSX, XLS
+    const allowedExtensions = ["TXT", "MD", "DOCX", "PDF", "XLSX", "XLS"];
+    if (!allowedExtensions.includes(ext)) {
         return {
             valid: false,
             error: t("ai-datasets.backend.create.file.unsupportedFileType", { ext }),
