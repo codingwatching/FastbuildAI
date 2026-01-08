@@ -1404,11 +1404,8 @@ export class ExtensionOperationService {
             // Execute extension seeds
             await this.executeExtensionSeeds(identifier, tempDataSource);
 
-            // Mark extension as installed
+            // Mark extension as installed and write version file (only for first installation)
             await this.markExtensionAsInstalled(identifier);
-
-            // Write version file to prevent re-running migrations on upgrade
-            await this.writeExtensionVersionFile(identifier);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(`Failed to synchronize extension tables and seeds: ${errorMessage}`);
@@ -1517,6 +1514,7 @@ export class ExtensionOperationService {
 
     /**
      * Mark extension as installed by creating .installed file
+     * Also writes version file on first installation to prevent re-running migrations on upgrade
      *
      * @param identifier Extension identifier
      * @private
@@ -1529,6 +1527,19 @@ export class ExtensionOperationService {
             await fs.ensureDir(dataDir);
 
             const installFilePath = path.join(dataDir, ".installed");
+
+            // Check if already installed (upgrade scenario)
+            const isAlreadyInstalled = await fs.pathExists(installFilePath);
+
+            if (isAlreadyInstalled) {
+                // Upgrade scenario: don't write version file here, let upgrade process handle it
+                this.logger.log(
+                    `Extension ${identifier} already installed, skipping version file write`,
+                );
+                return;
+            }
+
+            // First installation: write .installed file
             await fs.writeFile(
                 installFilePath,
                 JSON.stringify(
@@ -1540,8 +1551,10 @@ export class ExtensionOperationService {
                     2,
                 ),
             );
-
             this.logger.log(`Extension ${identifier} marked as installed`);
+
+            // First installation: also write version file
+            await this.writeExtensionVersionFile(identifier);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(
