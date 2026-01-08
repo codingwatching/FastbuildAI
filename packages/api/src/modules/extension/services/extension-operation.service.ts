@@ -1406,6 +1406,9 @@ export class ExtensionOperationService {
 
             // Mark extension as installed
             await this.markExtensionAsInstalled(identifier);
+
+            // Write version file to prevent re-running migrations on upgrade
+            await this.writeExtensionVersionFile(identifier);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(`Failed to synchronize extension tables and seeds: ${errorMessage}`);
@@ -1545,6 +1548,46 @@ export class ExtensionOperationService {
                 `Failed to mark extension ${identifier} as installed: ${errorMessage}`,
             );
             // Don't throw - this is not critical
+        }
+    }
+
+    /**
+     * Write version file to mark current version as installed
+     * This prevents upgrade process from re-running migrations for already installed version
+     *
+     * @param identifier Extension identifier
+     * @private
+     */
+    private async writeExtensionVersionFile(identifier: string): Promise<void> {
+        try {
+            const safeIdentifier = this.toSafeName(identifier);
+            const extensionPath = path.join(this.extensionsDir, safeIdentifier);
+            const packageJsonPath = path.join(extensionPath, "package.json");
+
+            if (!(await fs.pathExists(packageJsonPath))) {
+                this.logger.warn(`package.json not found for ${identifier}, skipping version file`);
+                return;
+            }
+
+            const packageJson = await fs.readJson(packageJsonPath);
+            const version = packageJson.version;
+
+            if (!version) {
+                this.logger.warn(`No version found in package.json for ${identifier}`);
+                return;
+            }
+
+            const versionsDir = path.join(extensionPath, "data", "versions");
+            await fs.ensureDir(versionsDir);
+
+            const versionFile = path.join(versionsDir, version);
+            await fs.writeFile(versionFile, new Date().toISOString());
+
+            this.logger.log(`Extension ${identifier} version file written: ${version}`);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to write version file for ${identifier}: ${errorMessage}`);
+            // Don't throw - this is not critical for installation
         }
     }
 
