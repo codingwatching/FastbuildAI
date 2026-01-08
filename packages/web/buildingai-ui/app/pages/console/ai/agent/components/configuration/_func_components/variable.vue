@@ -27,7 +27,7 @@ const defaultState: FormFieldConfig = {
     options: [],
 };
 
-const state = shallowRef<FormFieldConfig & { maxLength?: string }>({
+const state = ref<FormFieldConfig & { maxLength?: string }>({
     ...defaultState,
     maxLength: undefined,
 });
