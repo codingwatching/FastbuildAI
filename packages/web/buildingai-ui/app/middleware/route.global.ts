@@ -19,11 +19,35 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     const isConsoleMenuMatched = (path: string) =>
         router.resolve(path).matched.some((r) => r.path.startsWith(ROUTES.CONSOLE));
 
+    /**
+     * Check if the path is a login page (main app or extension)
+     * @param path - The path to check
+     * @returns true if the path is a login page
+     */
+    const isLoginPage = (path: string | undefined): boolean => {
+        if (!path) return false;
+        // Remove query string and hash for comparison
+        const cleanPath = path.split("?")[0]?.split("#")[0];
+        if (!cleanPath) return false;
+
+        // Main app login page: /login
+        if (cleanPath === ROUTES.LOGIN || cleanPath === `${ROUTES.LOGIN}/`) {
+            return true;
+        }
+        // Extension login page: /extension/{identifier}/login
+        if (cleanPath.startsWith(`${ROUTES.APP}/`)) {
+            const pathParts = cleanPath.replace(`${ROUTES.APP}/`, "").split("/").filter(Boolean);
+            // Check if the path ends with /login
+            return pathParts.length >= 2 && pathParts[pathParts.length - 1] === "login";
+        }
+        return false;
+    };
+
     // Handle extension routes
-    if (to.path.startsWith(`${ROUTES.EXTENSION}/`)) {
+    if (to.path.startsWith(`${ROUTES.APP}/`)) {
         // Extract extension identifier from path
         // Format: /extensions/{identifier} or /extensions/{identifier}/console/...
-        const pathParts = to.path.replace(`${ROUTES.EXTENSION}/`, "").split("/");
+        const pathParts = to.path.replace(`${ROUTES.APP}/`, "").split("/");
 
         // If accessing extension console routes (extensions/xxx/console/...)
         if (pathParts[1] === "console") {
@@ -45,6 +69,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
      * @returns string | undefined
      */
     const handleAuth = async () => {
+        // Check if accessing login page (main app or extension) - must be checked first
+        const isGuestPage = to.meta.guest === true || isLoginPage(to.path);
+        if (userStore.isLogin && isGuestPage) {
+            // If coming from a non-login page, redirect back to that page
+            // Otherwise redirect to home
+            const fromIsGuestPage = from.meta.guest === true || isLoginPage(from.path);
+            return !fromIsGuestPage && from.path !== to.path ? from.fullPath : ROUTES.HOME;
+        }
+
         // All console pages must use console layout and require authentication
         if (to.fullPath.startsWith(ROUTES.CONSOLE)) {
             setPageLayout(to.meta.layout || "console");
@@ -56,13 +89,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
             await userStore.getUser();
         }
         // Not logged in and target page requires auth → redirect to login
-        else if (!userStore.isLogin && to.meta.auth !== false && to.path !== ROUTES.LOGIN) {
+        else if (!userStore.isLogin && to.meta.auth !== false && !isGuestPage) {
             setPageLayout("full-screen");
             return `${ROUTES.LOGIN}?redirect=${to.fullPath}`;
-        }
-        // Logged in but accessing login page → redirect to source page or home
-        else if (userStore.isLogin && to.path === ROUTES.LOGIN) {
-            return from.path !== ROUTES.LOGIN ? from.fullPath : ROUTES.HOME;
         }
         // Logged in accessing other pages → refresh token
         else if (userStore.isLogin) {

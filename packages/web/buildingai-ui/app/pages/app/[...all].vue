@@ -169,4 +169,3 @@ onMounted(() => {
     </div>
     <NuxtPage v-else />
 </template>
-
