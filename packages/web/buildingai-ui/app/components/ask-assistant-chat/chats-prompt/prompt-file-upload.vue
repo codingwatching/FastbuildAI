@@ -294,7 +294,6 @@ function handleUrlSubmit() {
                     :ui="{ container: 'text-xs font-normal text-muted-foreground' }"
                     label="OR"
                 />
-                file：{{ supportedFileTypes }}
                 <div class="flex items-center gap-2">
                     <UButton
                         size="sm"
