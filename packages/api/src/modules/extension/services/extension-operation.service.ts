@@ -1404,7 +1404,7 @@ export class ExtensionOperationService {
             // Execute extension seeds
             await this.executeExtensionSeeds(identifier, tempDataSource);
 
-            // Mark extension as installed
+            // Mark extension as installed and write version file (only for first installation)
             await this.markExtensionAsInstalled(identifier);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -1514,6 +1514,7 @@ export class ExtensionOperationService {
 
     /**
      * Mark extension as installed by creating .installed file
+     * Also writes version file on first installation to prevent re-running migrations on upgrade
      *
      * @param identifier Extension identifier
      * @private
@@ -1526,6 +1527,19 @@ export class ExtensionOperationService {
             await fs.ensureDir(dataDir);
 
             const installFilePath = path.join(dataDir, ".installed");
+
+            // Check if already installed (upgrade scenario)
+            const isAlreadyInstalled = await fs.pathExists(installFilePath);
+
+            if (isAlreadyInstalled) {
+                // Upgrade scenario: don't write version file here, let upgrade process handle it
+                this.logger.log(
+                    `Extension ${identifier} already installed, skipping version file write`,
+                );
+                return;
+            }
+
+            // First installation: write .installed file
             await fs.writeFile(
                 installFilePath,
                 JSON.stringify(
@@ -1537,14 +1551,56 @@ export class ExtensionOperationService {
                     2,
                 ),
             );
-
             this.logger.log(`Extension ${identifier} marked as installed`);
+
+            // First installation: also write version file
+            await this.writeExtensionVersionFile(identifier);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(
                 `Failed to mark extension ${identifier} as installed: ${errorMessage}`,
             );
             // Don't throw - this is not critical
+        }
+    }
+
+    /**
+     * Write version file to mark current version as installed
+     * This prevents upgrade process from re-running migrations for already installed version
+     *
+     * @param identifier Extension identifier
+     * @private
+     */
+    private async writeExtensionVersionFile(identifier: string): Promise<void> {
+        try {
+            const safeIdentifier = this.toSafeName(identifier);
+            const extensionPath = path.join(this.extensionsDir, safeIdentifier);
+            const packageJsonPath = path.join(extensionPath, "package.json");
+
+            if (!(await fs.pathExists(packageJsonPath))) {
+                this.logger.warn(`package.json not found for ${identifier}, skipping version file`);
+                return;
+            }
+
+            const packageJson = await fs.readJson(packageJsonPath);
+            const version = packageJson.version;
+
+            if (!version) {
+                this.logger.warn(`No version found in package.json for ${identifier}`);
+                return;
+            }
+
+            const versionsDir = path.join(extensionPath, "data", "versions");
+            await fs.ensureDir(versionsDir);
+
+            const versionFile = path.join(versionsDir, version);
+            await fs.writeFile(versionFile, new Date().toISOString());
+
+            this.logger.log(`Extension ${identifier} version file written: ${version}`);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to write version file for ${identifier}: ${errorMessage}`);
+            // Don't throw - this is not critical for installation
         }
     }
 
