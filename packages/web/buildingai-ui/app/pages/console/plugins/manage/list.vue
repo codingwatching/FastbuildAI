@@ -25,6 +25,9 @@ const ExtensionDetailDrawer = defineAsyncComponent(() => import("../components/d
 const AddLocalExtension = defineAsyncComponent(() => import("../components/add-extension.vue"));
 const FeatureConfigModal = defineAsyncComponent(() => import("../components/feature-config.vue"));
 const UpgradePreviewModal = defineAsyncComponent(() => import("../components/upgrade-preview.vue"));
+const InstallActivationModal = defineAsyncComponent(
+    () => import("../components/install-activation-modal.vue"),
+);
 
 const { t } = useI18n();
 const overlay = useOverlay();
@@ -259,6 +262,16 @@ const handleChangelogExtension = (extension: ExtensionFormData) => {
     });
 };
 
+const handleInstallByActivationCode = async () => {
+    const modal = overlay.create(InstallActivationModal);
+    const instance = modal.open();
+    const success = await instance.result;
+    if (success) {
+        paging.page = 1;
+        await getLists();
+    }
+};
+
 onMounted(() => getLists());
 </script>
 
@@ -268,12 +281,13 @@ onMounted(() => getLists());
             <div class="space-y-4">
                 <div class="flex w-full flex-wrap justify-between gap-4">
                     <div class="flex items-end justify-end">
-                        <UTabs
+                        <h3 class="text-lg font-medium">我的应用 ({{ statistics.total }})</h3>
+                        <!-- <UTabs
                             :items="extensionTypeItems"
                             v-model="selectedTab"
                             @update:model-value="handleTabChange"
                             class="block w-auto"
-                        />
+                        /> -->
                     </div>
 
                     <div class="flex items-center gap-4">
@@ -321,13 +335,13 @@ onMounted(() => getLists());
                             :placeholder="t('extensions.manage.status.all')"
                             @update:model-value="handleSearch"
                         />
-                        <UButton
+                        <!-- <UButton
                             icon="i-lucide-plus"
                             color="primary"
                             @click="handleLocal({} as ExtensionFormData, false)"
                         >
                             {{ t("extensions.manage.add") }}
-                        </UButton>
+                        </UButton> -->
                     </div>
                 </div>
             </div>
@@ -345,17 +359,24 @@ onMounted(() => getLists());
                     </h3>
                     <div
                         class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
-                        @click="handleLocal({} as ExtensionFormData, false)"
+                        @click="handleInstallByActivationCode"
                     >
-                        <UIcon name="i-lucide-file-plus-2" class="mr-2 size-4" />
-                        <span>{{ t("extensions.manage.add") }}</span>
+                        <UIcon name="i-lucide-hard-drive-download" class="mr-2 size-4" />
+                        <span>安装应用</span>
                     </div>
                     <div
                         class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
                         @click="toStore"
                     >
-                        <UIcon name="i-lucide-external-link" class="mr-2 size-4" />
+                        <UIcon name="i-tabler-api-app" class="mr-2 size-4" />
                         <span>{{ t("extensions.manage.store") }}</span>
+                    </div>
+                    <div
+                        class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
+                        @click="handleLocal({} as ExtensionFormData, false)"
+                    >
+                        <UIcon name="i-lucide-square-terminal" class="mr-2 size-4" />
+                        <span>开发应用</span>
                     </div>
                 </div>
             </div>
@@ -387,18 +408,28 @@ onMounted(() => getLists());
                                     {{ t("extensions.manage.add") }}
                                 </h3>
                                 <div
-                                    class="text-primary hover:bg-primary-50 dark:hover:bg-primary/15 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
-                                    @click="handleLocal({} as ExtensionFormData, false)"
+                                    class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
+                                    @click="handleInstallByActivationCode"
                                 >
-                                    <UIcon name="i-lucide-file-plus-2" class="mr-2 size-4" />
-                                    <span>{{ t("extensions.manage.add") }}</span>
+                                    <UIcon
+                                        name="i-lucide-hard-drive-download"
+                                        class="mr-2 size-4"
+                                    />
+                                    <span>安装应用</span>
                                 </div>
                                 <div
                                     class="text-primary hover:bg-primary-50 dark:hover:bg-primary/15 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
                                     @click="toStore"
                                 >
-                                    <UIcon name="i-lucide-external-link" class="mr-2 size-4" />
+                                    <UIcon name="i-tabler-api-app" class="mr-2 size-4" />
                                     <span>{{ t("extensions.manage.store") }}</span>
+                                </div>
+                                <div
+                                    class="text-primary hover:bg-primary-50 dark:hover:bg-primary/15 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
+                                    @click="handleLocal({} as ExtensionFormData, false)"
+                                >
+                                    <UIcon name="i-lucide-square-terminal" class="mr-2 size-4" />
+                                    <span>开发应用</span>
                                 </div>
                             </div>
                         </div>

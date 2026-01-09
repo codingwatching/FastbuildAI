@@ -144,6 +144,19 @@ export class ExtensionConsoleController extends BaseController {
     }
 
     /**
+     * Get application by activation code
+     */
+    @Get("get-by-activation-code/:activationCode")
+    @Permissions({
+        code: "get-by-activation-code",
+        name: "通过激活码获取应用信息",
+    })
+    @BuildFileUrl(["**.icon"])
+    async getApplicationByActivationCode(@Param("activationCode") activationCode: string) {
+        return await this.extensionMarketService.getApplicationByActivationCode(activationCode);
+    }
+
+    /**
      * Upgrade extension
      */
     @Post("upgrade/:identifier")

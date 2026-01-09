@@ -20,15 +20,34 @@ import * as semver from "semver";
 export class ExtensionMarketService {
     private readonly logger = new Logger(ExtensionMarketService.name);
     private readonly httpClient: HttpClientInstance;
+    private readonly appsMarketHttpClient: HttpClientInstance;
     private platformSecret: string | null = null;
 
     constructor(
         private readonly dictService: DictService,
         private readonly extensionsService: ExtensionsService,
     ) {
+        const baseApiUrl = process.env.EXTENSION_API_URL || "https://cloud.buildingai.cc/api";
+
         this.httpClient = createHttpClient({
-            baseURL:
-                (process.env.EXTENSION_API_URL || "https://cloud.buildingai.cc/api") + "/market",
+            baseURL: baseApiUrl + "/market",
+            timeout: 20000,
+            retryConfig: {
+                retries: 3,
+                retryDelay: 1000,
+            },
+            logConfig: {
+                enableErrorLog: true,
+            },
+            headers: {
+                Domain: process.env.APP_DOMAIN,
+                "platform-version": AppConfig.version,
+            },
+        });
+
+        // 创建 apps-market 专用的 httpClient
+        this.appsMarketHttpClient = createHttpClient({
+            baseURL: baseApiUrl + "/apps-market",
             timeout: 20000,
             retryConfig: {
                 retries: 3,
@@ -44,22 +63,27 @@ export class ExtensionMarketService {
         });
 
         // 添加请求拦截器,动态获取平台密钥
-        this.httpClient.interceptors.request.use(async (config) => {
-            // 如果内存中没有，尝试从数据库加载一次
-            if (!this.platformSecret) {
-                this.platformSecret = await this.dictService.get<string | null>(
-                    DICT_KEYS.PLATFORM_SECRET,
-                    null,
-                    DICT_GROUP_KEYS.APPLICATION,
-                );
-            }
+        const addAuthInterceptor = (client: HttpClientInstance) => {
+            client.interceptors.request.use(async (config) => {
+                // 如果内存中没有，尝试从数据库加载一次
+                if (!this.platformSecret) {
+                    this.platformSecret = await this.dictService.get<string | null>(
+                        DICT_KEYS.PLATFORM_SECRET,
+                        null,
+                        DICT_GROUP_KEYS.APPLICATION,
+                    );
+                }
 
-            if (this.platformSecret) {
-                config.headers["X-API-Key"] = this.platformSecret;
-            }
+                if (this.platformSecret) {
+                    config.headers["X-API-Key"] = this.platformSecret;
+                }
 
-            return config;
-        });
+                return config;
+            });
+        };
+
+        addAuthInterceptor(this.httpClient);
+        addAuthInterceptor(this.appsMarketHttpClient);
     }
 
     isVersionInRange(version: string, range: string): boolean {
@@ -202,6 +226,23 @@ export class ExtensionMarketService {
             const errorMessage = createHttpErrorMessage(error);
             this.logger.error(
                 `Failed to uninstall application ${identifier}@${version}: ${errorMessage}`,
+                error,
+            );
+            throw HttpErrorFactory.badRequest(error.response?.data?.message);
+        }
+    }
+
+    /**
+     * Get application by activation code
+     */
+    async getApplicationByActivationCode(activationCode: string) {
+        try {
+            const response = await this.appsMarketHttpClient.get(`/getApps/${activationCode}`);
+            return response.data;
+        } catch (error) {
+            const errorMessage = createHttpErrorMessage(error);
+            this.logger.error(
+                `Failed to get application by activation code ${activationCode}: ${errorMessage}`,
                 error,
             );
             throw HttpErrorFactory.badRequest(error.response?.data?.message);

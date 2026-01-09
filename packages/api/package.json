@@ -26,8 +26,8 @@
         "test:e2e": "jest --config ./test/jest-e2e.json"
     },
     "dependencies": {
-        "@buildingai/alipay-sdk": "workspace:*",
         "@buildingai/ai-sdk": "workspace:*",
+        "@buildingai/alipay-sdk": "workspace:*",
         "@buildingai/base": "workspace:*",
         "@buildingai/cache": "workspace:*",
         "@buildingai/config": "workspace:*",
@@ -71,9 +71,9 @@
         "fs-extra": "^11.3.1",
         "js-yaml": "^4.1.0",
         "mammoth": "^1.10.0",
+        "node-machine-id": "^1.1.12",
         "node-segment": "^0.0.2",
         "pdf-parse": "^1.1.4",
-        "xlsx": "^0.18.5",
         "pg": "catalog:api",
         "pg-connection-string": "^2.9.1",
         "radash": "^12.1.1",
@@ -81,7 +81,8 @@
         "rimraf": "^6.0.1",
         "rxjs": "^7.8.2",
         "stack-trace": "1.0.0-pre2",
-        "typeorm-naming-strategies": "^4.1.0"
+        "typeorm-naming-strategies": "^4.1.0",
+        "xlsx": "^0.18.5"
     },
     "devDependencies": {
         "@buildingai/eslint-config": "workspace:*",
