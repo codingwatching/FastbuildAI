@@ -325,12 +325,16 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         if (streamController.value) {
             streamController.value.abort();
             streamController.value = null;
-            status.value = "completed";
+            status.value = "idle";
 
             const lastMessage = messages.value[messages.value.length - 1];
             if (lastMessage?.role === "assistant") {
                 lastMessage.status = "completed";
                 messages.value = [...messages.value];
+
+                // 调用 onFinish 回调，确保消息被保存到数据库
+                // 即使流被中止，也要保存已生成的内容
+                onFinish?.(lastMessage);
             }
         }
     };

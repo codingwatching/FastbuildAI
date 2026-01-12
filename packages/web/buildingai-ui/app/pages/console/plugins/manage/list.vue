@@ -39,20 +39,20 @@ const statistics = ref<{ total: number; installed: number; uninstalled: number }
     uninstalled: 0,
 });
 
-const extensionTypeItems = computed<TabsItem[]>(() => [
-    {
-        label: `${t("extensions.manage.tabs.all")} (${statistics.value.total})`,
-        value: "all",
-    },
-    {
-        label: `${t("extensions.manage.tabs.installed")} (${statistics.value.installed})`,
-        value: "installed",
-    },
-    {
-        label: `${t("extensions.manage.tabs.uninstalled")} (${statistics.value.uninstalled})`,
-        value: "uninstalled",
-    },
-]);
+// const extensionTypeItems = computed<TabsItem[]>(() => [
+//     {
+//         label: `${t("extensions.manage.tabs.all")} (${statistics.value.total})`,
+//         value: "all",
+//     },
+//     {
+//         label: `${t("extensions.manage.tabs.installed")} (${statistics.value.installed})`,
+//         value: "installed",
+//     },
+//     {
+//         label: `${t("extensions.manage.tabs.uninstalled")} (${statistics.value.uninstalled})`,
+//         value: "uninstalled",
+//     },
+// ]);
 
 const selectedTab = shallowRef("all");
 
@@ -102,17 +102,17 @@ const handleSearch = useDebounceFn(() => {
     getLists();
 }, 500);
 
-const handleTabChange = (value: string | number) => {
-    selectedTab.value = String(value);
-    const tabValue = selectedTab.value;
-    if (tabValue === "all") {
-        delete searchForm.isInstalled;
-    } else {
-        searchForm.isInstalled = tabValue === "installed";
-    }
-    paging.page = 1;
-    getLists();
-};
+// const handleTabChange = (value: string | number) => {
+//     selectedTab.value = String(value);
+//     const tabValue = selectedTab.value;
+//     if (tabValue === "all") {
+//         delete searchForm.isInstalled;
+//     } else {
+//         searchForm.isInstalled = tabValue === "installed";
+//     }
+//     paging.page = 1;
+//     getLists();
+// };
 
 const handleNavigate = (extension: ExtensionFormData) => {
     window.open(`${ROUTES.EXTENSION}/${extension.identifier}/buildingai-middleware`, "_blank");

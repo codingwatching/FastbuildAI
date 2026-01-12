@@ -39,9 +39,19 @@ export class McpToolError extends Error {
 
 /**
  * Custom error for user cancellation
+ * Carries partial response content when cancellation occurs during streaming
  */
 export class UserCancelledError extends Error {
-    constructor() {
+    constructor(
+        public readonly partialResponse?: {
+            fullResponse: string;
+            finalChatCompletion: any;
+            mcpToolCalls: any[];
+            reasoningContent: string;
+            reasoningStartTime: number | null;
+            reasoningEndTime: number | null;
+        },
+    ) {
         super("User cancelled the request");
         this.name = "UserCancelledError";
     }
@@ -217,6 +227,17 @@ export class ChatCompletionCommandHandler {
             // Check if user cancelled
             if (abortSignal?.aborted) {
                 this.logger.debug("🚫 User cancelled the request, ending silently");
+                // 如果有已生成的内容，携带在错误中以便保存
+                if (fullResponse) {
+                    throw new UserCancelledError({
+                        fullResponse,
+                        finalChatCompletion,
+                        mcpToolCalls,
+                        reasoningContent,
+                        reasoningStartTime,
+                        reasoningEndTime,
+                    });
+                }
                 throw new UserCancelledError();
             }
 
@@ -246,6 +267,17 @@ export class ChatCompletionCommandHandler {
                 if (abortSignal?.aborted) {
                     this.logger.debug("🚫 User cancelled the request, ending silently");
                     stream.cancel();
+                    // 如果有已生成的内容，携带在错误中以便保存
+                    if (fullResponse || roundResponse) {
+                        throw new UserCancelledError({
+                            fullResponse: fullResponse || roundResponse,
+                            finalChatCompletion,
+                            mcpToolCalls,
+                            reasoningContent,
+                            reasoningStartTime,
+                            reasoningEndTime,
+                        });
+                    }
                     throw new UserCancelledError();
                 }
                 // Send content chunks

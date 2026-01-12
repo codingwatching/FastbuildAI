@@ -1,5 +1,6 @@
 import { BaseController } from "@buildingai/base";
 import { type UserPlayground } from "@buildingai/db";
+import { AiModel } from "@buildingai/db/entities";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { validateArrayItems } from "@buildingai/utils";
@@ -215,6 +216,8 @@ export class AiChatMessageWebController extends BaseController {
         let conversationId = dto.conversationId;
         let mcpServers: any[] = [];
         const mcpToolCalls: any[] = [];
+        let model: AiModel | null = null;
+        let userInfo: any = null;
 
         // Create AbortController for cancellation
         const abortController = new AbortController();
@@ -231,12 +234,12 @@ export class AiChatMessageWebController extends BaseController {
 
         try {
             // 1. 获取并验证用户积分（提前验证）
-            const model = await this.modelValidationHandler.getAndValidateModel(dto.modelId);
+            model = await this.modelValidationHandler.getAndValidateModel(dto.modelId);
 
             // 1.1 验证用户会员等级权限
             await this.membershipValidationHandler.validateModelAccessOrThrow(user.id, model);
 
-            const userInfo = await this.userPowerValidationHandler.getAndValidateUserPower(
+            userInfo = await this.userPowerValidationHandler.getAndValidateUserPower(
                 user.id,
                 model,
             );
@@ -385,9 +388,90 @@ export class AiChatMessageWebController extends BaseController {
             // Clean up MCP connections
             await this.mcpServerHandler.cleanupMcpServers(mcpServers);
 
-            // Handle user cancellation - just end silently
+            // Handle user cancellation - save partial content if available
             if (error instanceof UserCancelledError || isClientDisconnected) {
                 this.logger.debug("🚫 User cancelled the request, ending silently");
+
+                // 如果有部分内容，保存到数据库
+                if (error instanceof UserCancelledError && error.partialResponse?.fullResponse) {
+                    const partialData = error.partialResponse;
+                    this.logger.debug(
+                        `💾 保存用户取消时的部分内容: ${partialData.fullResponse.substring(0, 50)}...`,
+                    );
+
+                    // 确保 model 和 userInfo 已初始化（如果 abort 发生在初始化之前，则重新获取）
+                    if (!model) {
+                        model = await this.modelValidationHandler.getAndValidateModel(dto.modelId);
+                    }
+                    if (!userInfo && model) {
+                        userInfo = await this.userPowerValidationHandler.getAndValidateUserPower(
+                            user.id,
+                            model,
+                        );
+                    }
+
+                    // 计算消耗的积分（如果有token使用信息）
+                    const userConsumedPower =
+                        model && partialData.finalChatCompletion?.usage?.total_tokens
+                            ? this.powerDeductionHandler.calculateConsumedPower(
+                                  partialData.finalChatCompletion.usage.total_tokens,
+                                  model.billingRule,
+                              )
+                            : 0;
+
+                    // 准备 metadata
+                    const metadata: Record<string, any> = {};
+                    if (
+                        partialData.reasoningContent &&
+                        partialData.reasoningStartTime &&
+                        partialData.reasoningEndTime
+                    ) {
+                        metadata.reasoning = {
+                            content: partialData.reasoningContent,
+                            startTime: partialData.reasoningStartTime,
+                            endTime: partialData.reasoningEndTime,
+                            duration: partialData.reasoningEndTime - partialData.reasoningStartTime,
+                        };
+                    }
+
+                    // 保存部分内容
+                    if (dto.saveConversation !== false && conversationId) {
+                        await this.conversationHandler.saveAssistantMessage({
+                            conversationId,
+                            modelId: dto.modelId,
+                            content: partialData.fullResponse,
+                            userConsumedPower,
+                            tokens: {
+                                prompt_tokens:
+                                    partialData.finalChatCompletion?.usage?.prompt_tokens || 0,
+                                completion_tokens:
+                                    partialData.finalChatCompletion?.usage?.completion_tokens || 0,
+                                total_tokens:
+                                    partialData.finalChatCompletion?.usage?.total_tokens || 0,
+                            },
+                            rawResponse: partialData.finalChatCompletion,
+                            mcpToolCalls: partialData.mcpToolCalls,
+                            metadata,
+                        });
+
+                        // 扣除用户积分（如果有token使用）
+                        if (
+                            model &&
+                            userInfo &&
+                            partialData.finalChatCompletion?.usage?.total_tokens &&
+                            model.billingRule
+                        ) {
+                            await this.powerDeductionHandler.deductUserPower(
+                                user.id,
+                                userInfo,
+                                model,
+                                userConsumedPower,
+                                partialData.finalChatCompletion.usage.total_tokens,
+                            );
+                        }
+                    }
+                }
+
                 if (!res.writableEnded) {
                     try {
                         res.end();
