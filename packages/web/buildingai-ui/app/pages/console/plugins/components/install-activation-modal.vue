@@ -2,7 +2,7 @@
 import type { AppInfo } from "@buildingai/service/consoleapi/extensions";
 import {
     apiGetApplicationByActivationCode,
-    apiInstallExtension,
+    apiInstallByActivationCode,
 } from "@buildingai/service/consoleapi/extensions";
 import { object, string } from "yup";
 
@@ -57,9 +57,9 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
 
     try {
         isInstalling.value = true;
-        // await apiInstallExtension(appInfo.value.key);
+        await apiInstallByActivationCode(formData.activationCode, appInfo.value.key);
         toast.success("安装成功");
-        // emits("close", true);
+        emits("close", true);
     } catch (error: unknown) {
         console.error("安装应用失败:", error);
     } finally {

@@ -203,6 +203,8 @@ export interface ExtensionVersion {
  * @description Interface for extension install request
  */
 export interface ExtensionInstallRequest {
+    /** Extension identifier */
+    identifier?: string;
     /** Extension version to install */
     version?: string;
 }
@@ -381,6 +383,23 @@ export function apiInstallExtension(
 ): Promise<ExtensionFormData> {
     const data: ExtensionInstallRequest = version ? { version } : {};
     return useConsolePost(`/extensions/install/${identifier}`, data, {
+        timeout: 1800000,
+    });
+}
+
+/**
+ * Install extension by activation code
+ * @description Installs an extension by activation code
+ * @param activationCode Activation code
+ * @returns Promise with installed extension data
+ */
+export function apiInstallByActivationCode(
+    activationCode: string,
+    identifier: string,
+    version?: string,
+): Promise<ExtensionFormData> {
+    const data: ExtensionInstallRequest = version ? { version, identifier } : { identifier };
+    return useConsolePost(`/extensions/install-by-activation-code/${activationCode}`, data, {
         timeout: 1800000,
     });
 }

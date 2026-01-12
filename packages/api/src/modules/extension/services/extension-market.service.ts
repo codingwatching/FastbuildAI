@@ -10,7 +10,9 @@ import { ExtensionDetailType, ExtensionsService, PlatformInfo } from "@buildinga
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { createHttpClient, createHttpErrorMessage, HttpClientInstance } from "@buildingai/utils";
+import { SYSTEM_CONFIG } from "@common/constants";
 import { Injectable, Logger } from "@nestjs/common";
+import { machineId } from "node-machine-id";
 import * as semver from "semver";
 
 /**
@@ -243,6 +245,70 @@ export class ExtensionMarketService {
             const errorMessage = createHttpErrorMessage(error);
             this.logger.error(
                 `Failed to get application by activation code ${activationCode}: ${errorMessage}`,
+                error,
+            );
+            throw HttpErrorFactory.badRequest(error.response?.data?.message);
+        }
+    }
+
+    /**
+     * Get system key from dictionary or environment
+     * @returns System key or null
+     */
+    private async getSystemKey(): Promise<string | null> {
+        // Try to get from dictionary first (similar to platform secret)
+        const systemKey = await this.dictService.get<string | null>(
+            "machine_id",
+            undefined,
+            SYSTEM_CONFIG,
+        );
+
+        // Fallback to environment variable
+        return systemKey ?? undefined;
+    }
+
+    /**
+     * Install application by activation code
+     * @param activationCode Activation code
+     * @returns Installation response with extension info and download URL
+     */
+    async installApplicationByActivationCode(activationCode: string) {
+        try {
+            let systemKey = await this.getSystemKey();
+            if (!systemKey) {
+                // 生成新的机器 ID（使用默认的哈希值，确保唯一性）
+                this.logger.log("🔄 正在生成系统机器 ID...");
+                const generatedMachineId = await machineId();
+
+                if (!generatedMachineId || generatedMachineId.trim() === "") {
+                    throw HttpErrorFactory.badRequest("生成的机器 ID 为空");
+                }
+
+                // 存储机器 ID 到 config 表
+                await this.dictService.set("machine_id", generatedMachineId, {
+                    group: SYSTEM_CONFIG,
+                    description: "系统机器唯一标识符（不可改变）",
+                    isEnabled: true,
+                });
+
+                systemKey = generatedMachineId;
+            }
+
+            const response = await this.appsMarketHttpClient.post(
+                `/install/${activationCode}`,
+                {},
+                {
+                    headers: {
+                        "system-key": systemKey,
+                    },
+                },
+            );
+
+            return response.data;
+        } catch (error) {
+            const errorMessage = createHttpErrorMessage(error);
+            this.logger.error(
+                `Failed to install application by activation code ${activationCode}: ${errorMessage}`,
                 error,
             );
             throw HttpErrorFactory.badRequest(error.response?.data?.message);

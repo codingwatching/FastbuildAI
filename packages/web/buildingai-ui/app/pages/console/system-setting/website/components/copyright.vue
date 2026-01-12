@@ -23,12 +23,6 @@ const state = shallowReactive<WebsiteCopyright>({
 
 const websiteConfig = shallowRef<WebsiteConfig | null>(null);
 
-const schema = object({
-    displayName: string().required(t("system.website.copyright.displayName.required")),
-    iconUrl: string().required(t("system.website.copyright.icon.required")),
-    url: string().required(t("system.website.copyright.url.required")),
-});
-
 const { lockFn: getWebsiteConfig, isLock: isLoadingConfig } = useLockFn(async () => {
     try {
         const config = await apiGetWebsiteConfig();
@@ -90,15 +84,11 @@ onMounted(() => getWebsiteConfig());
 <template>
     <div class="copyright-container mt-8">
         <!-- 表单 -->
-        <UForm :schema="schema" :state="state" class="space-y-6" @submit="onSubmit">
+        <UForm :state="state" class="space-y-6" @submit="onSubmit">
             <h4 class="mb-2 text-lg font-bold">
                 {{ t("system.website.copyright.sections.filing") }}
             </h4>
-            <UFormField
-                name="displayName"
-                :label="t('system.website.copyright.displayName.label')"
-                required
-            >
+            <UFormField name="displayName" :label="t('system.website.copyright.displayName.label')">
                 <UInput
                     v-model="state.displayName"
                     size="lg"
@@ -107,7 +97,7 @@ onMounted(() => getWebsiteConfig());
                 />
             </UFormField>
 
-            <UFormField name="iconUrl" :label="t('system.website.copyright.icon.label')" required>
+            <UFormField name="iconUrl" :label="t('system.website.copyright.icon.label')">
                 <div class="flex items-start gap-4">
                     <BdUploader
                         v-model="state.iconUrl"
@@ -121,7 +111,7 @@ onMounted(() => getWebsiteConfig());
                 </div>
             </UFormField>
 
-            <UFormField name="url" :label="t('system.website.copyright.url.label')" required>
+            <UFormField name="url" :label="t('system.website.copyright.url.label')">
                 <UInput
                     v-model="state.url"
                     size="lg"

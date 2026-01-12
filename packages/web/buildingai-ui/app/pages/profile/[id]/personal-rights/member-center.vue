@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PayConfigPayType, type PayConfigType } from "@buildingai/constants";
+import { PayConfigPayType, type PayConfigType } from "@buildingai/constants/shared";
 import type {
     MemberCenterInfo,
     MembershipOrderInfo,

@@ -699,6 +699,84 @@ export class ExtensionOperationService {
     }
 
     /**
+     * Install application by activation code
+     * @param activationCode Activation code
+     * @param requestedVersion Optional version (may not be used if API returns specific version)
+     * @param extensionMarketService Extension market service instance
+     * @returns Installed extension entity
+     */
+    async installByActivationCode(
+        activationCode: string,
+        identifier: string,
+        requestedVersion: string | undefined,
+        extensionMarketService: ExtensionMarketService,
+    ) {
+        this.logger.log(`Starting install application by activation code: ${activationCode}`);
+
+        // Get extension info first to get the name for lock
+        const appInfo = await extensionMarketService.getApplicationDetail(identifier);
+
+        // Acquire lock with extension name
+        await this.acquireLock(identifier, ExtensionOperationService.OP_INSTALL, appInfo.name);
+
+        try {
+            const targetVersion =
+                requestedVersion ??
+                (await this.resolveLatestVersion(identifier, extensionMarketService));
+
+            if (!targetVersion) {
+                throw HttpErrorFactory.badRequest(
+                    `No available version found for extension: ${identifier}`,
+                );
+            }
+
+            const { url } =
+                await extensionMarketService.installApplicationByActivationCode(activationCode);
+
+            await this.download(url, identifier, ExtensionDownload.INSTALL, targetVersion);
+
+            const extension = await this.extensionsService.create({
+                name: appInfo.name,
+                identifier: appInfo.identifier,
+                version: targetVersion,
+                description: appInfo.description,
+                icon: appInfo.icon,
+                type: appInfo.type as ExtensionTypeType,
+                supportTerminal: appInfo.supportTerminal as ExtensionSupportTerminalType[],
+                author: appInfo.author,
+                documentation: appInfo.content,
+                status: ExtensionStatus.ENABLED,
+                isLocal: false,
+            });
+
+            // Update extensions.json to enable the new extension
+            await this.updateExtensionsConfigWrapper(appInfo, targetVersion);
+
+            // Install dependencies before restarting
+            await this.installDependencies();
+
+            // Synchronize extension tables and execute seeds BEFORE restart
+            await this.synchronizeExtensionTablesAndSeeds(identifier);
+
+            // Scan and sync member-only features
+            await this.scanExtensionMemberFeatures(identifier, extension.id);
+
+            // Schedule PM2 restart after response is sent
+            this.scheduleRestart();
+
+            this.logger.log(`Extension installed successfully: ${identifier}@${targetVersion}`);
+            return extension;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to install application by activation code: ${errorMessage}`);
+            throw error;
+        } finally {
+            // Release lock (heavy operation)
+            await this.releaseLock(identifier, true);
+        }
+    }
+
+    /**
      * Upgrade extension content to latest version
      */
     async upgradeContent(identifier: string, extensionMarketService: ExtensionMarketService) {

@@ -129,6 +129,26 @@ export class ExtensionConsoleController extends BaseController {
     }
 
     /**
+     * Install application by activation code
+     */
+    @Post("install-by-activation-code/:activationCode")
+    @Permissions({
+        code: "install-by-activation-code",
+        name: "通过激活码安装应用",
+    })
+    async installByActivationCode(
+        @Param("activationCode") activationCode: string,
+        @Body() dto: DownloadExtensionDto,
+    ) {
+        return await this.extensionOperationService.installByActivationCode(
+            activationCode,
+            dto.identifier,
+            dto.version,
+            this.extensionMarketService,
+        );
+    }
+
+    /**
      * upgrade content
      */
     @Get("upgrade-content/:identifier")
