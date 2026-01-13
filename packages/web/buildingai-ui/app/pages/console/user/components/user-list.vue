@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import type { UserInfo } from "@buildingai/service/webapi/user";
 import type { TableColumn } from "@nuxt/ui";
-import { h, ref, resolveComponent } from "vue";
+import { h, nextTick, ref, resolveComponent, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 interface UserListProps {
     usersList: UserInfo[];
+    selectedUsers: Set<string>;
 }
 
 const { t } = useI18n();
@@ -14,13 +15,21 @@ const router = useRouter();
 
 const props = withDefaults(defineProps<UserListProps>(), {
     usersList: () => [],
+    selectedUsers: () => new Set(),
 });
+
+const emit = defineEmits<{
+    "update:selectedUsers": [selectedUsers: Set<string>];
+}>();
 
 const UAvatar = resolveComponent("UAvatar");
 const TimeDisplay = resolveComponent("TimeDisplay");
 const UDropdownMenu = resolveComponent("UDropdownMenu");
 const UButton = resolveComponent("UButton");
 const UBadge = resolveComponent("UBadge");
+const UCheckbox = resolveComponent("UCheckbox");
+
+const table = useTemplateRef("table");
 
 const columnLabels = computed<Record<string, string>>(() => {
     return {
@@ -97,7 +106,90 @@ function getUserStatusInfo(status: number | undefined) {
     }
 }
 
+const handleSelectAll = (value: boolean | "indeterminate") => {
+    const isSelected = value === true;
+    const next = new Set(props.selectedUsers);
+    if (isSelected) {
+        // 只选中非超级管理员用户
+        props.usersList.forEach((user: UserInfo) => {
+            if (user.isRoot !== 1) {
+                next.add(user.id);
+            }
+        });
+    } else {
+        props.usersList.forEach((user: UserInfo) => {
+            next.delete(user.id);
+        });
+    }
+    emit("update:selectedUsers", next);
+    // 手动更新表格的行选中状态，只更新可选择的行
+    nextTick(() => {
+        if (table.value?.tableApi) {
+            const rowModel = table.value.tableApi.getRowModel();
+            if (rowModel) {
+                rowModel.rows.forEach((row) => {
+                    const user = row.original;
+                    if (user.isRoot !== 1) {
+                        row.toggleSelected(isSelected);
+                    }
+                });
+            }
+        }
+    });
+};
+
+const handleConversationSelect = (user: UserInfo, selected: boolean | "indeterminate") => {
+    // 超级管理员不允许选择
+    if (user.isRoot === 1) return;
+
+    if (typeof selected === "boolean") {
+        const userId = user.id;
+        const next = new Set(props.selectedUsers);
+        if (selected) {
+            next.add(userId);
+        } else {
+            next.delete(userId);
+        }
+        emit("update:selectedUsers", next);
+    }
+};
+
 const columns = ref<TableColumn<UserInfo>[]>([
+    {
+        id: "select",
+        header: () => {
+            // 计算可选择的用户（非超级管理员）
+            const selectableUsers = props.usersList.filter((user) => user.isRoot !== 1);
+            const selectedCount = selectableUsers.filter((user) =>
+                props.selectedUsers.has(user.id),
+            ).length;
+            const isAllSelected =
+                selectableUsers.length > 0 && selectedCount === selectableUsers.length;
+            const isIndeterminate = selectedCount > 0 && selectedCount < selectableUsers.length;
+
+            return h(UCheckbox, {
+                modelValue: isIndeterminate ? "indeterminate" : isAllSelected,
+                "onUpdate:modelValue": (value: boolean | "indeterminate") => {
+                    // 直接调用 handleSelectAll，它会处理表格状态和 selectedUsers 的更新
+                    handleSelectAll(value);
+                },
+                "aria-label": "Select all",
+            });
+        },
+        cell: ({ row }) => {
+            const isRoot = row.original.isRoot === 1;
+            return h(UCheckbox, {
+                modelValue: row.getIsSelected(),
+                disabled: isRoot,
+                "onUpdate:modelValue": (value: boolean | "indeterminate") => {
+                    if (isRoot) return; // 超级管理员不允许选择
+                    row.toggleSelected(!!value);
+                    handleConversationSelect(row.original, value);
+                },
+                "aria-label": "Select row",
+            });
+        },
+    },
     {
         accessorKey: "userNo",
         header: columnLabels.value.userNo,
@@ -228,9 +320,41 @@ const columnPinning = ref({
     left: [""],
     right: ["actions"],
 });
+
+// 同步 selectedUsers 到表格的行选中状态
+// 使用 computed 来监听 Set 的变化
+const selectedUsersArray = computed(() => Array.from(props.selectedUsers));
+
+watch(
+    selectedUsersArray,
+    (newSelectedUsersArray) => {
+        if (!table.value?.tableApi) return;
+
+        const newSelectedUsers = new Set(newSelectedUsersArray);
+        nextTick(() => {
+            // 获取所有行
+            const rowModel = table.value?.tableApi.getRowModel();
+            if (!rowModel) return;
+
+            // 遍历所有行，根据 selectedUsers 更新选中状态
+            rowModel.rows.forEach((row) => {
+                const userId = row.original.id;
+                const shouldBeSelected = newSelectedUsers.has(userId);
+                const isCurrentlySelected = row.getIsSelected();
+
+                // 只更新状态不一致的行，避免循环触发
+                if (shouldBeSelected !== isCurrentlySelected) {
+                    row.toggleSelected(shouldBeSelected);
+                }
+            });
+        });
+    },
+    { immediate: true },
+);
 </script>
 <template>
     <UTable
+        ref="table"
         :data="props.usersList"
         :columns="columns"
         :column-pinning="columnPinning"

@@ -70,6 +70,10 @@ const handleSelectAll = (value: boolean | "indeterminate") => {
     selectedUsers.value = next;
 };
 
+const handleSelectedUsersUpdate = (newSelectedUsers: Set<string>) => {
+    selectedUsers.value = newSelectedUsers;
+};
+
 const handleDelete = async (id: number | string | number[] | string[]) => {
     try {
         await useModal({
@@ -232,7 +236,12 @@ onMounted(() => getLists());
                     />
                 </div>
                 <!-- 表格 -->
-                <UserList v-show="viewTab === 2" :usersList="paging.items" />
+                <UserList
+                    v-show="viewTab === 2"
+                    :usersList="paging.items"
+                    :selected-users="selectedUsers"
+                    @update:selected-users="handleSelectedUsersUpdate"
+                />
             </BdScrollArea>
         </template>
 
