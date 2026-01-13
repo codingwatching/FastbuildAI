@@ -838,6 +838,7 @@ useHead({
                     <ChatsPrompt
                         v-model="input"
                         v-model:file-list="files"
+                        :needAuth="true"
                         :is-loading="isLoading"
                         :placeholder="t('ai-chat.frontend.and', { name: agent.name })"
                         :attachmentSizeLimit="chatConfig?.attachmentSizeLimit"
