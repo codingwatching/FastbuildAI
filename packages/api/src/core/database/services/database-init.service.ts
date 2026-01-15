@@ -105,13 +105,10 @@ export class DatabaseInitService implements OnModuleInit {
 
         await this.initializeSpaLoadingIcon();
 
-        // 3. Initialize system machine ID
-        await this.initializeMachineId();
-
-        // 4. Mark system as installed
+        // 3. Mark system as installed
         await this.markSystemAsInstalled();
 
-        // 5. Write initial version file
+        // 4. Write initial version file
         const currentVersion = await this.versionManagerService.getCurrentVersion();
         await this.writeVersionFile(currentVersion);
 
@@ -171,49 +168,6 @@ export class DatabaseInitService implements OnModuleInit {
             }
         } catch (e) {
             this.logger.error(`❌ Failed to initialize SPA loading icon: ${e.message}`);
-        }
-    }
-
-    /**
-     * 初始化系统机器 ID
-     *
-     * 使用 node-machine-id 生成唯一且不可改变的机器 ID
-     * 如果机器 ID 已存在，则不覆盖（确保唯一性和不可变性）
-     */
-    private async initializeMachineId(): Promise<void> {
-        try {
-            // 检查机器 ID 是否已存在
-            const existingMachineId = await this.dictService.get<string>(
-                "machine_id",
-                undefined,
-                SYSTEM_CONFIG,
-            );
-
-            if (existingMachineId) {
-                this.logger.log(`✅ 系统机器 ID 已存在: ${existingMachineId}`);
-                return;
-            }
-
-            // 生成新的机器 ID（使用默认的哈希值，确保唯一性）
-            this.logger.log("🔄 正在生成系统机器 ID...");
-            const generatedMachineId = await machineId();
-
-            if (!generatedMachineId || generatedMachineId.trim() === "") {
-                throw new Error("生成的机器 ID 为空");
-            }
-
-            // 存储机器 ID 到 config 表
-            await this.dictService.set("machine_id", generatedMachineId, {
-                group: SYSTEM_CONFIG,
-                description: "系统机器唯一标识符（不可改变）",
-                isEnabled: true,
-            });
-
-            console.log(`✅ 系统机器 ID 已生成并存储: ${generatedMachineId}`);
-        } catch (e) {
-            this.logger.error(`❌ 初始化系统机器 ID 失败: ${e.message}`, e.stack);
-            // 不抛出异常，以免影响系统初始化流程
-            // 机器 ID 的缺失不应阻止系统初始化
         }
     }
 

@@ -186,14 +186,21 @@ export class ExtensionMarketService {
         url: string;
     }> {
         try {
-            const response = await this.httpClient.post(
-                `/download/${identifier}/${version}/${type}`,
+            const systemKey = await this.getSystemKey();
+            const response = await this.appsMarketHttpClient.post(
+                `/upgrade/${identifier}`,
+                {},
+                {
+                    headers: {
+                        "system-key": systemKey,
+                    },
+                },
             );
             return response.data;
         } catch (error) {
             const errorMessage = createHttpErrorMessage(error);
             this.logger.error(
-                `Failed to download application ${identifier}@${version}: ${errorMessage}`,
+                `Failed to download application ${identifier}@${version}-${type}: ${errorMessage}`,
                 error,
             );
             throw HttpErrorFactory.badRequest(error.response?.data?.message);
@@ -256,15 +263,13 @@ export class ExtensionMarketService {
      * @returns System key or null
      */
     private async getSystemKey(): Promise<string | null> {
-        // Try to get from dictionary first (similar to platform secret)
-        const systemKey = await this.dictService.get<string | null>(
-            "machine_id",
-            undefined,
-            SYSTEM_CONFIG,
-        );
+        const generatedMachineId = await machineId();
 
-        // Fallback to environment variable
-        return systemKey ?? undefined;
+        if (!generatedMachineId || generatedMachineId.trim() === "") {
+            throw HttpErrorFactory.badRequest("Generated machine ID is empty");
+        }
+
+        return generatedMachineId;
     }
 
     /**
@@ -274,25 +279,7 @@ export class ExtensionMarketService {
      */
     async installApplicationByActivationCode(activationCode: string) {
         try {
-            let systemKey = await this.getSystemKey();
-            if (!systemKey) {
-                // 生成新的机器 ID（使用默认的哈希值，确保唯一性）
-                this.logger.log("🔄 正在生成系统机器 ID...");
-                const generatedMachineId = await machineId();
-
-                if (!generatedMachineId || generatedMachineId.trim() === "") {
-                    throw HttpErrorFactory.badRequest("生成的机器 ID 为空");
-                }
-
-                // 存储机器 ID 到 config 表
-                await this.dictService.set("machine_id", generatedMachineId, {
-                    group: SYSTEM_CONFIG,
-                    description: "系统机器唯一标识符（不可改变）",
-                    isEnabled: true,
-                });
-
-                systemKey = generatedMachineId;
-            }
+            const systemKey = await this.getSystemKey();
 
             const response = await this.appsMarketHttpClient.post(
                 `/install/${activationCode}`,
@@ -316,62 +303,32 @@ export class ExtensionMarketService {
     }
 
     /**
-     * Get extension list with market data if platform secret is configured
-     * Handles both scenarios: with/without platform secret
+     * Get installed extension list with update check
+     * Only returns installed extensions, checks for updates if platform secret is configured
      */
     async getMixedApplicationList() {
-        const platformSecret = await this.dictService.get<string | null>(
-            DICT_KEYS.PLATFORM_SECRET,
-            null,
-            DICT_GROUP_KEYS.APPLICATION,
-        );
-
+        const systemKey = await this.getSystemKey();
         const installedExtensions = await this.extensionsService.findAll();
 
-        // Fetch market list only if platform secret is configured
-        let extensionList: ApplicationListItem[] = [];
-        if (platformSecret) {
+        // Fetch market list only for update checking (if platform secret is configured)
+        const marketVersionMap = new Map<string, string>();
+        if (systemKey) {
             try {
-                extensionList = await this.getApplicationList();
+                const response = await this.appsMarketHttpClient.get("/appsLists", {
+                    headers: {
+                        "system-key": systemKey,
+                    },
+                });
+                const extensionList = Array.isArray(response.data) ? response.data : [];
+
+                // Create a map for quick lookup of market versions
+                extensionList.forEach((item: ApplicationListItem) => {
+                    marketVersionMap.set(item.key, item.newVersion);
+                });
             } catch (error) {
-                this.logger.error(`Failed to get application list: ${error}`);
-                extensionList = [];
+                this.logger.error(`Failed to get application list for update check: ${error}`);
             }
         }
-
-        const installedIdentifiers = new Set(installedExtensions.map((ext) => ext.identifier));
-
-        // Create a map for quick lookup of market versions
-        const marketVersionMap = new Map(
-            extensionList.map((item) => [item.identifier, item.version]),
-        );
-
-        // Map uninstalled market extensions
-        const marketExtensions = extensionList
-            .filter((item) => !installedIdentifiers.has(item.identifier))
-            .map((item) => ({
-                id: item.id || null,
-                name: item.name,
-                identifier: item.identifier,
-                version: item.version,
-                description: item.description,
-                isCompatible: item.isCompatible || null,
-                icon: item.icon,
-                type: item.type,
-                supportTerminal: item.supportTerminal,
-                isLocal: false,
-                status: ExtensionStatus.DISABLED,
-                author: item.author,
-                homepage: "",
-                documentation: "",
-                config: null,
-                isInstalled: false,
-                createdAt: new Date(item.createdAt),
-                updatedAt: new Date(item.updatedAt),
-                purchasedAt: new Date(item.purchasedAt),
-                latestVersion: item.version,
-                hasUpdate: false,
-            }));
 
         // Map installed extensions with update check and compatibility check
         const installedExtensionsList = await Promise.all(
@@ -414,8 +371,6 @@ export class ExtensionMarketService {
             }),
         );
 
-        const mergedList = installedExtensionsList.concat(marketExtensions);
-
-        return mergedList;
+        return installedExtensionsList;
     }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ auth: true });
+definePageMeta({ auth: false });
 
 import {
     apiGetExtensionDetailByIdentifier,

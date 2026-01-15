@@ -842,6 +842,7 @@ export class ExtensionOperationService {
                 latestVersion,
                 ExtensionDownload.UPGRADE,
             );
+            console.log("upgrade url", url);
             await this.download(url, identifier, ExtensionDownload.UPGRADE, latestVersion);
 
             // 3. Update extension in database
