@@ -421,12 +421,24 @@
                 ]
             },
             {
+                "name": "console-menu.pluginManage",
+                "path": "manage",
+                "icon": "i-lucide-store",
+                "component": "/console/plugins/manage/list",
+                "permissionCode": "extensions:list",
+                "sort": 500,
+                "isHidden": 0,
+                "type": 2,
+                "sourceType": 1,
+                "code": "plugin-my-plugins"
+            },
+            {
                 "name": "console-menu.apiKeyManage.title",
                 "code": "api-key-manage",
                 "path": "api-key-manage",
                 "icon": "i-lucide-key-round",
                 "component": "",
-                "sort": 500,
+                "sort": 550,
                 "isHidden": 0,
                 "type": 1,
                 "sourceType": 1,
@@ -626,40 +638,6 @@
                                 "sourceType": 1
                             }
                         ]
-                    }
-                ]
-            },
-            {
-                "name": "console-menu.plugin",
-                "path": "plugins",
-                "icon": "i-lucide-store",
-                "component": "",
-                "sort": 550,
-                "isHidden": 0,
-                "type": 1,
-                "code": "plugin-manage",
-                "children": [
-                    {
-                        "name": "console-menu.pluginManage",
-                        "path": "manage",
-                        "icon": "",
-                        "component": "/console/plugins/manage/list",
-                        "permissionCode": "extensions:list",
-                        "sort": 0,
-                        "isHidden": 0,
-                        "type": 2,
-                        "code": "plugin-my-plugins"
-                    },
-                    {
-                        "name": "console-menu.pluginProfiles",
-                        "path": "secret",
-                        "icon": "",
-                        "component": "/console/plugins/profiles/index",
-                        "permissionCode": "extensions:get-platform-secret",
-                        "sort": 5,
-                        "isHidden": 0,
-                        "type": 2,
-                        "code": "plugin-profiles"
                     }
                 ]
             }
