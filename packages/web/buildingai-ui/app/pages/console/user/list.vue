@@ -7,6 +7,7 @@ import {
 import type { UserInfo, UserQueryRequest } from "@buildingai/service/webapi/user";
 
 const EditPower = defineAsyncComponent(() => import("./components/edit-power.vue"));
+const AdjustMembership = defineAsyncComponent(() => import("./components/adjust-membership.vue"));
 const UserCard = defineAsyncComponent(() => import("./components/user-card.vue"));
 const UserList = defineAsyncComponent(() => import("./components/user-list.vue"));
 
@@ -121,6 +122,22 @@ const handleEditPower = (user: UserInfo) => {
     mountEditPowerModal(user);
 };
 
+const mountAdjustMembershipModal = async (user: UserInfo) => {
+    const modal = overlay.create(AdjustMembership);
+
+    const instance = modal.open({
+        user,
+    });
+    const shouldRefresh = await instance.result;
+    if (shouldRefresh) {
+        getLists();
+    }
+};
+
+const handleAdjustMembership = (user: UserInfo) => {
+    mountAdjustMembershipModal(user);
+};
+
 const handleBatchDelete = () => {
     const selectedIds = Array.from(selectedUsers.value);
     if (selectedIds.length === 0) return;
@@ -231,6 +248,7 @@ onMounted(() => getLists());
                         :user="user"
                         :selected="selectedUsers.has(user.id as string)"
                         @edit-power="handleEditPower"
+                        @adjust-membership="handleAdjustMembership"
                         @select="handleUserSelect"
                         @delete="handleDeleteUser"
                     />
@@ -241,6 +259,9 @@ onMounted(() => getLists());
                     :usersList="paging.items"
                     :selected-users="selectedUsers"
                     @update:selected-users="handleSelectedUsersUpdate"
+                    @delete="handleDeleteUser"
+                    @edit-power="handleEditPower"
+                    @adjust-membership="handleAdjustMembership"
                 />
             </BdScrollArea>
         </template>

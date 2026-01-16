@@ -20,6 +20,9 @@ const props = withDefaults(defineProps<UserListProps>(), {
 
 const emit = defineEmits<{
     "update:selectedUsers": [selectedUsers: Set<string>];
+    delete: [user: UserInfo];
+    editPower: [user: UserInfo];
+    adjustMembership: [user: UserInfo];
 }>();
 
 const UAvatar = resolveComponent("UAvatar");
@@ -272,7 +275,7 @@ const columns = ref<TableColumn<UserInfo>[]>([
         accessorKey: "actions",
         header: columnLabels.value.actions,
         cell: ({ row }) => {
-            return h(UDropdownMenu, { items: getRowItems(row.original.id) }, () => {
+            return h(UDropdownMenu, { items: getRowItems(row.original) }, () => {
                 return h(
                     UButton,
                     {
@@ -288,18 +291,37 @@ const columns = ref<TableColumn<UserInfo>[]>([
     },
 ]);
 
-function getRowItems(id: string) {
+function getRowItems(user: UserInfo) {
     const items = [];
 
     if (hasAccessByCodes(["users:update"])) {
         items.push({
-            label: t("console-common.edit"),
+            label: t("user.backend.editProfile"),
             icon: "i-lucide-edit",
             onSelect: () =>
                 router.push({
                     path: useRoutePath("users:update"),
-                    query: { id },
+                    query: { id: user.id },
                 }),
+        });
+        items.push({
+            label: t("user.backend.adjustBalance"),
+            icon: "i-lucide-edit",
+            onSelect: () => emit("editPower", user),
+        });
+        items.push({
+            label: t("user.backend.membership.adjustMembership"),
+            icon: "i-lucide-edit",
+            onSelect: () => emit("adjustMembership", user),
+        });
+    }
+
+    if (hasAccessByCodes(["users:delete"]) && user.isRoot !== 1) {
+        items.push({
+            label: t("user.backend.deleteUser"),
+            icon: "i-lucide-trash-2",
+            color: "error" as const,
+            onSelect: () => emit("delete", user),
         });
     }
 

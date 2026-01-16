@@ -125,3 +125,19 @@ export const apiGetMembershipOrderDetail = (id: string): Promise<MembershipOrder
 export const apiMembershipOrderRefund = (id: string): Promise<{ message: string }> => {
     return useConsolePost("/membership-order/refund", { id });
 };
+
+/**
+ * Create system adjustment order
+ * @description Create a system adjustment order for membership level adjustment
+ * @param data System adjustment order data
+ * @returns Promise with created order information
+ */
+export const apiCreateSystemAdjustmentOrder = (data: {
+    userId: string;
+    levelId: string | null;
+    durationType: "1" | "3" | "12" | "forever" | "custom";
+    customValue?: number;
+    customUnit?: "day" | "month" | "year";
+}): Promise<{ orderId: string; orderNo: string; message: string }> => {
+    return useConsolePost("/membership-order/system-adjustment", data);
+};

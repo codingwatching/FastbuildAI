@@ -143,6 +143,8 @@ const initialMessages = computed(() => {
         id: item.id || uuid(),
         avatar: agent.value?.chatAvatar || agent.value?.avatar,
         status: "completed" as const,
+        // 只保留助手消息的创建时间，用户消息不需要
+        ...(item.role === "assistant" && { createdAt: item.createdAt }),
     }));
 });
 
@@ -278,6 +280,8 @@ const loadMoreMessages = async () => {
                 content: item.content,
                 status: "completed" as const,
                 mcpToolCalls: item.mcpToolCalls,
+                // 只保留助手消息的创建时间，用户消息不需要
+                ...(item.role === "assistant" && { createdAt: item.createdAt }),
             })) || [];
 
         messages.value.unshift(...newMessages);

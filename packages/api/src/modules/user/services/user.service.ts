@@ -221,10 +221,14 @@ export class UserService extends BaseService<User> {
             }
 
             // 找出该用户订阅中最高等级的
+            // 如果有多个相同等级的会员，选择结束日期最晚的
             let highestInfo: UserMembershipInfo | null = null;
             subs.forEach((sub) => {
                 const level = levelMap.get(sub.levelId);
-                if (level && (!highestInfo || level.level > highestInfo.level)) {
+                if (!level) return;
+
+                if (!highestInfo) {
+                    // 第一个订阅，直接设置
                     highestInfo = {
                         id: level.id,
                         name: level.name,
@@ -233,7 +237,32 @@ export class UserService extends BaseService<User> {
                         startTime: sub.startTime,
                         endTime: sub.endTime,
                     };
+                } else if (level.level > highestInfo.level) {
+                    // 等级更高，直接更新
+                    highestInfo = {
+                        id: level.id,
+                        name: level.name,
+                        icon: level.icon,
+                        level: level.level,
+                        startTime: sub.startTime,
+                        endTime: sub.endTime,
+                    };
+                } else if (level.level === highestInfo.level) {
+                    // 等级相同，选择结束日期最晚的
+                    const currentEndTime = new Date(sub.endTime).getTime();
+                    const highestEndTime = new Date(highestInfo.endTime).getTime();
+                    if (currentEndTime > highestEndTime) {
+                        highestInfo = {
+                            id: level.id,
+                            name: level.name,
+                            icon: level.icon,
+                            level: level.level,
+                            startTime: sub.startTime,
+                            endTime: sub.endTime,
+                        };
+                    }
                 }
+                // 如果 level.level < highestInfo.level，则跳过
             });
 
             resultMap.set(userId, highestInfo);
@@ -577,10 +606,9 @@ export class UserService extends BaseService<User> {
                     await this.userSubscriptionRepository.save(subscription);
                 }
             } else if (levelId === null || levelId === undefined) {
-                // 如果清空了会员等级，删除系统来源的订阅记录
+                // 如果设置为普通用户，删除该用户的所有订阅记录（包括系统赠送和自己购买的）
                 await this.userSubscriptionRepository.delete({
                     userId: id,
-                    source: 0, // 0-系统
                 });
             }
         }

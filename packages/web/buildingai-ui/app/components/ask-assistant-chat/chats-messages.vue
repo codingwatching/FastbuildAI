@@ -335,7 +335,6 @@ const getErrorMessage = (error: Error | undefined, message: AiMessage): string =
                                 {{ t("ai-chat.frontend.messages.aiDisclaimer") }}
                             </span>
                         </div>
-
                         <TimeDisplay
                             v-if="message.createdAt"
                             :datetime="message.createdAt"

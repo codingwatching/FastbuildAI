@@ -16,8 +16,11 @@ const formData = reactive({
     activationCode: "",
 });
 
+const { t } = useI18n();
 const schema = object({
-    activationCode: string().required("请输入激活码"),
+    activationCode: string().required(
+        t("extensions.manage.installActivation.activationCodeRequired"),
+    ),
 });
 
 // 状态管理：'input' 输入激活码，'preview' 预览应用
@@ -31,7 +34,7 @@ const { isLock, lockFn: handleQuery } = useLockFn(async () => {
         const result: AppInfo = await apiGetApplicationByActivationCode(formData.activationCode);
 
         if (!result) {
-            toast.error("激活码无效，未找到对应的应用，请检查激活码是否正确");
+            toast.error(t("extensions.manage.installActivation.activationCodeInvalid"));
             return;
         }
 
@@ -39,7 +42,7 @@ const { isLock, lockFn: handleQuery } = useLockFn(async () => {
         appInfo.value = result;
         currentStep.value = "preview";
     } catch (error: unknown) {
-        console.error("查询应用失败:", error);
+        console.error(t("extensions.manage.installActivation.queryFailed"), error);
     }
 });
 
@@ -58,10 +61,10 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
     try {
         isInstalling.value = true;
         await apiInstallByActivationCode(formData.activationCode, appInfo.value.key);
-        toast.success("安装成功");
+        toast.success(t("extensions.manage.installActivation.installSuccess"));
         emits("close", true);
     } catch (error: unknown) {
-        console.error("安装应用失败:", error);
+        console.error(t("extensions.manage.installActivation.installFailed"), error);
     } finally {
         isInstalling.value = false;
     }
@@ -70,8 +73,8 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
 
 <template>
     <BdModal
-        title="安装应用"
-        :ui="{ content: currentStep === 'preview' ? 'max-w-2xl' : 'max-w-md' }"
+        :title="t('extensions.manage.installActivation.title')"
+        :ui="{ content: currentStep === 'preview' ? 'max-w-xl' : 'max-w-md' }"
         @close="handleCancel"
     >
         <template #title>
@@ -84,7 +87,7 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
                     size="sm"
                     @click="handleBack"
                 />
-                <span>安装应用</span>
+                <span>{{ t("extensions.manage.installActivation.title") }}</span>
             </div>
         </template>
 
@@ -96,10 +99,38 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
                 class="w-full space-y-4"
                 @submit="handleQuery"
             >
-                <UFormField label="激活码" name="activationCode" required>
+                <UFormField
+                    :label="t('extensions.manage.installActivation.activationCodeLabel')"
+                    name="activationCode"
+                    required
+                >
+                    <template #description>
+                        <p class="text-muted-foreground mb-2 text-sm">
+                            {{ t("extensions.manage.installActivation.activationCodeDescription") }}
+                            <a
+                                href="https://buildingai.cc/user/application"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-primary hover:underline"
+                            >
+                                {{
+                                    t(
+                                        "extensions.manage.installActivation.activationCodeDescriptionLink",
+                                    )
+                                }}
+                            </a>
+                            {{
+                                t(
+                                    "extensions.manage.installActivation.activationCodeDescriptionSuffix",
+                                )
+                            }}
+                        </p>
+                    </template>
                     <UInput
                         v-model="formData.activationCode"
-                        placeholder="请输入"
+                        :placeholder="
+                            t('extensions.manage.installActivation.activationCodePlaceholder')
+                        "
                         size="lg"
                         :ui="{ root: 'w-full' }"
                     />
@@ -107,10 +138,10 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
 
                 <div class="flex justify-end gap-2 pt-4">
                     <UButton color="neutral" variant="outline" size="lg" @click="handleCancel">
-                        取消
+                        {{ t("extensions.manage.installActivation.cancel") }}
                     </UButton>
                     <UButton color="primary" size="lg" :loading="isLock" type="submit">
-                        查询
+                        {{ t("extensions.manage.installActivation.query") }}
                     </UButton>
                 </div>
             </UForm>
@@ -119,15 +150,16 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
         <!-- 预览应用步骤 -->
         <div v-else-if="currentStep === 'preview' && appInfo" class="space-y-4">
             <!-- 1. 封面横幅 -->
-            <div v-if="appInfo.cover" class="relative overflow-hidden rounded-lg">
-                <div v-if="appInfo.cover" class="relative z-10 mb-4">
-                    <NuxtImg
-                        :src="appInfo.cover"
-                        :alt="appInfo.name"
-                        class="w-full rounded-lg object-cover"
-                        style="max-height: 200px"
-                    />
-                </div>
+            <div
+                v-if="appInfo.cover"
+                class="border-default bg-muted relative mb-4 flex w-full items-center justify-center overflow-hidden rounded-lg border"
+                style="aspect-ratio: 800 / 450"
+            >
+                <NuxtImg
+                    :src="appInfo.cover"
+                    :alt="appInfo.name"
+                    class="h-full w-full rounded-lg object-contain"
+                />
             </div>
 
             <!-- 2. 图标及名字 -->
@@ -166,7 +198,7 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
         <template v-if="currentStep === 'preview'" #footer>
             <div class="flex justify-end gap-2">
                 <UButton color="neutral" variant="outline" size="lg" @click="handleCancel">
-                    取消
+                    {{ t("extensions.manage.installActivation.cancel") }}
                 </UButton>
                 <UButton
                     color="primary"
@@ -174,7 +206,7 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
                     :loading="isInstalling"
                     @click="handleConfirmInstall"
                 >
-                    确认安装
+                    {{ t("extensions.manage.installActivation.confirmInstall") }}
                 </UButton>
             </div>
         </template>

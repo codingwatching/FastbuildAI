@@ -10,7 +10,6 @@ import { ExtensionDetailType, ExtensionsService, PlatformInfo } from "@buildinga
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { createHttpClient, createHttpErrorMessage, HttpClientInstance } from "@buildingai/utils";
-import { SYSTEM_CONFIG } from "@common/constants";
 import { Injectable, Logger } from "@nestjs/common";
 import { machineId } from "node-machine-id";
 import * as semver from "semver";
@@ -247,8 +246,27 @@ export class ExtensionMarketService {
     async getApplicationByActivationCode(activationCode: string) {
         try {
             const response = await this.appsMarketHttpClient.get(`/getApps/${activationCode}`);
-            return response.data;
+            const appData = response.data;
+
+            // 检查返回的数据中的 key 是否在 extension 表的 identifier 字段中存在
+            if (appData?.key) {
+                const existingExtension = await this.extensionsService.findByIdentifier(
+                    appData.key,
+                );
+                if (existingExtension) {
+                    throw HttpErrorFactory.badRequest(`应用 ${appData.name} 已存在，无法重复安装`);
+                }
+            }
+
+            return appData;
         } catch (error) {
+            // 如果是因为已存在而抛出的错误，直接抛出
+            if (
+                error instanceof Error &&
+                (error.message.includes("already exists") || error.message.includes("已存在"))
+            ) {
+                throw error;
+            }
             const errorMessage = createHttpErrorMessage(error);
             this.logger.error(
                 `Failed to get application by activation code ${activationCode}: ${errorMessage}`,

@@ -117,7 +117,6 @@ export class AiChatRecordService extends BaseService<AiChatRecord> {
     ): Promise<Partial<AiChatRecord> | null> {
         try {
             const where = buildWhere<AiChatRecord>({
-                isDeleted: false,
                 userId,
             });
             const result = await this.findOneById(conversationId, {

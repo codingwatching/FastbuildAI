@@ -107,25 +107,12 @@ export class RechargeService extends BaseService<Dict> {
             where: { isEnable: BooleanNumber.YES },
         });
 
-        const availablePaymentMethods = payWayList
-            .filter((pay) => {
-                const instance = plainToInstance(UpdatePayConfigDto, pay);
-                const errors = validateSync(instance);
-                return errors.length === 0;
-            })
-            .map((pay) => ({
-                name: pay.name,
-                payType: pay.payType,
-                logo: pay.logo,
-                isDefault: pay.isDefault,
-            }));
-
         return {
             user,
             rechargeStatus,
             rechargeExplain,
             rechargeRule,
-            payWayList: availablePaymentMethods,
+            payWayList,
         };
     }
 

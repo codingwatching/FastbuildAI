@@ -12,6 +12,7 @@ class Upgrade extends BaseUpgradeScript {
             await context.dataSource.transaction(async (manager) => {
                 await this.createAlipay(manager);
                 await this.optimizePluginMenu(manager);
+                await this.updateStorageConfigMenuSort(manager);
             });
         } catch (error) {
             this.error("Upgrade to version 25.3.0 failed.", error);
@@ -106,6 +107,34 @@ class Upgrade extends BaseUpgradeScript {
         // Delete the parent menu "plugin-manage"
         await menuRepo.remove(pluginManageMenu);
         this.log("Deleted parent menu plugin-manage, optimization completed.");
+    }
+
+    /**
+     * Update storage config menu sort from 0 to 100
+     */
+    private async updateStorageConfigMenuSort(manager: EntityManager) {
+        const menuRepo = manager.getRepository(Menu);
+
+        const storageConfigMenu = await menuRepo.findOne({
+            where: { code: "system-storage-config" },
+        });
+
+        if (!storageConfigMenu) {
+            this.log("Storage config menu not found, skipping sort update.");
+            return;
+        }
+
+        // Only update if current sort is 0
+        if (storageConfigMenu.sort === 0) {
+            await menuRepo.update(storageConfigMenu.id, {
+                sort: 100,
+            });
+            this.log("Updated storage config menu sort from 0 to 100.");
+        } else {
+            this.log(
+                `Storage config menu sort is already ${storageConfigMenu.sort}, skipping update.`,
+            );
+        }
     }
 }
 

@@ -716,6 +716,10 @@ export class ExtensionOperationService {
         // Get extension info first to get the name for lock
         const appInfo = await extensionMarketService.getApplicationDetail(identifier);
 
+        if (!appInfo.isCompatible) {
+            throw HttpErrorFactory.badRequest(`应用 ${appInfo.name} 不兼容当前平台，无法安装`);
+        }
+
         // Acquire lock with extension name
         await this.acquireLock(identifier, ExtensionOperationService.OP_INSTALL, appInfo.name);
 
@@ -816,6 +820,12 @@ export class ExtensionOperationService {
 
         // Get extension info first to get the name for lock
         const extensionInfo = await extensionMarketService.getApplicationDetail(identifier);
+
+        if (!extensionInfo.isCompatible) {
+            throw HttpErrorFactory.badRequest(
+                `应用 ${extensionInfo.name} 不兼容当前平台，无法升级`,
+            );
+        }
 
         // Acquire lock with extension name
         await this.acquireLock(

@@ -11,6 +11,9 @@ import { number, object, string } from "yup";
 
 const EditPassword = defineAsyncComponent(() => import("./edit-password.vue"));
 const EditPower = defineAsyncComponent(() => import("./edit-power.vue"));
+const UserSubscriptionRecordsModal = defineAsyncComponent(
+    () => import("./user-subscription-records-modal.vue"),
+);
 
 const props = withDefaults(
     defineProps<{
@@ -204,6 +207,12 @@ const { isLock, lockFn: submitForm } = useLockFn(async () => {
         return false;
     }
 });
+
+const handleOpenSubscriptionRecords = () => {
+    if (!props.id) return;
+    const modal = overlay.create(UserSubscriptionRecordsModal);
+    modal.open({ userId: props.id });
+};
 
 onMounted(() => {
     getRoleList();
@@ -438,28 +447,31 @@ onMounted(() => {
 
                     <div class="grid grid-cols-2 gap-6">
                         <!-- 会员等级 -->
-                        <UFormField label="会员等级" name="level">
+                        <UFormField :label="t('user.backend.membership.level')" name="level">
                             <USelect
                                 v-model="formData.level"
                                 :items="levelOptions"
                                 label-key="label"
                                 value-key="value"
-                                placeholder="普通用户"
+                                :placeholder="t('user.backend.membership.normalUser')"
                                 size="xl"
                                 class="w-full"
-                                :disabled="levelOptions.length === 0"
+                                :disabled="true"
                             />
                         </UFormField>
 
                         <!-- 有效期 -->
-                        <UFormField label="有效期" name="levelEndTime">
+                        <UFormField
+                            :label="t('user.backend.membership.validity')"
+                            name="levelEndTime"
+                        >
                             <BdDatePicker
                                 v-model="formData.levelEndTime"
                                 show-time
                                 size="xl"
                                 class="w-full"
                                 :ui="{ root: 'w-full' }"
-                                :disabled="!formData.level"
+                                :disabled="true"
                             />
                         </UFormField>
                     </div>
@@ -474,6 +486,16 @@ onMounted(() => {
                             class="px-8"
                         >
                             {{ t("console-common.cancel") }}
+                        </UButton>
+                        <UButton
+                            v-if="props.id"
+                            color="neutral"
+                            variant="outline"
+                            size="lg"
+                            @click="handleOpenSubscriptionRecords"
+                            class="px-8"
+                        >
+                            {{ t("user.backend.subscriptionRecords.title") }}
                         </UButton>
                         <UButton
                             v-if="props.id"
