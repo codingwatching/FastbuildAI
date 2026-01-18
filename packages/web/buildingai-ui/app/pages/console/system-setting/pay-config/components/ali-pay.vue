@@ -80,9 +80,7 @@ const schema = object({
     sort: number().required(t("payment-config.validation.sortRequired")),
     config: object({
         appId: string().required(t("payment-config.validation.appIdRequired")),
-        gateway: string()
-            .required(t("payment-config.validation.gatewayRequired"))
-            .url(t("payment-config.validation.gatewayUrl")),
+        gateway: string().url(t("payment-config.validation.gatewayUrl")),
         privateKey: string().required(t("payment-config.validation.privateKeyRequired")),
         appCert: string().required(t("payment-config.validation.appCertRequired")),
         alipayPublicCert: string().required(
@@ -195,7 +193,6 @@ const schema = object({
                     <UFormField
                         :label="t('payment-config.form.gateway')"
                         name="config.gateway"
-                        required
                         :description="t('payment-config.form.gatewayHelp')"
                     >
                         <UInput

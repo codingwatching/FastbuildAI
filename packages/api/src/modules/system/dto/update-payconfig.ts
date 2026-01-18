@@ -12,6 +12,7 @@ import {
     IsEnum,
     IsInt,
     IsNotEmpty,
+    IsOptional,
     IsString,
     Validate,
     validateSync,
@@ -93,7 +94,7 @@ export class AlipayConfigDto {
     @IsString()
     privateKey: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
     gateway: string;
 

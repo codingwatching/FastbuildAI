@@ -15,13 +15,14 @@ export class AlipayService {
     private logger = new Logger(AlipayService.name);
 
     constructor(config: AlipayConfig) {
+        const { gateway, ...otherConfig } = config;
         this.config = {
-            gateway: "https://openapi.alipay.com/gateway.do",
             charset: "utf-8",
             signType: "RSA2",
             version: "1.0",
-            useCert: true, // default
-            ...config,
+            useCert: true,
+            gateway: gateway || "https://openapi.alipay.com/gateway.do",
+            ...otherConfig,
         };
 
         const sdk = this.init();
