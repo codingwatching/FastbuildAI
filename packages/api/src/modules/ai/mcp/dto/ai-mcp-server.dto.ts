@@ -186,6 +186,13 @@ export class McpServerUrlConfig {
     url: string;
 
     /**
+     * 通信类型
+     */
+    @IsNotEmpty({ message: "通信传输方式不能为空" })
+    @IsEnum(McpCommunicationType, { message: "通信传输方式必须是sse或者streamable-http" })
+    type: McpCommunicationType;
+
+    /**
      * 自定义请求头
      */
     @IsOptional()
