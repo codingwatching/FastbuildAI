@@ -75,6 +75,8 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
     <BdModal
         :title="t('extensions.manage.installActivation.title')"
         :ui="{ content: currentStep === 'preview' ? 'max-w-xl' : 'max-w-md' }"
+        :disabled-close="isInstalling"
+        :close-on-esc="!isInstalling"
         @close="handleCancel"
     >
         <template #title>
@@ -85,6 +87,7 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
                     variant="ghost"
                     icon="i-lucide-arrow-left"
                     size="sm"
+                    :disabled="isInstalling"
                     @click="handleBack"
                 />
                 <span>{{ t("extensions.manage.installActivation.title") }}</span>
@@ -104,7 +107,7 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
                     name="activationCode"
                     required
                 >
-                    <template #description>
+                    <!--<template #description>
                         <p class="text-muted-foreground mb-2 text-sm">
                             {{ t("extensions.manage.installActivation.activationCodeDescription") }}
                             <a
@@ -125,7 +128,7 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
                                 )
                             }}
                         </p>
-                    </template>
+                    </template>-->
                     <UInput
                         v-model="formData.activationCode"
                         :placeholder="
@@ -197,7 +200,13 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
 
         <template v-if="currentStep === 'preview'" #footer>
             <div class="flex justify-end gap-2">
-                <UButton color="neutral" variant="outline" size="lg" @click="handleCancel">
+                <UButton
+                    color="neutral"
+                    variant="outline"
+                    size="lg"
+                    :disabled="isInstalling"
+                    @click="handleCancel"
+                >
                     {{ t("extensions.manage.installActivation.cancel") }}
                 </UButton>
                 <UButton
@@ -206,7 +215,11 @@ const { lockFn: handleConfirmInstall } = useLockFn(async () => {
                     :loading="isInstalling"
                     @click="handleConfirmInstall"
                 >
-                    {{ t("extensions.manage.installActivation.confirmInstall") }}
+                    {{
+                        isInstalling
+                            ? t("extensions.manage.installActivation.installing")
+                            : t("extensions.manage.installActivation.confirmInstall")
+                    }}
                 </UButton>
             </div>
         </template>

@@ -65,7 +65,7 @@ const handleBack = () => {
     if (import.meta.dev) {
         router.push("/");
     } else {
-        window.location.href = "/console/plugins/manage";
+        window.location.href = "/console/manage";
     }
 };
 

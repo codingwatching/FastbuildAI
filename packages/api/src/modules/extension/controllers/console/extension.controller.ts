@@ -134,7 +134,7 @@ export class ExtensionConsoleController extends BaseController {
     @Post("install-by-activation-code/:activationCode")
     @Permissions({
         code: "install-by-activation-code",
-        name: "通过激活码安装应用",
+        name: "通过兑换码安装应用",
     })
     async installByActivationCode(
         @Param("activationCode") activationCode: string,
@@ -169,7 +169,7 @@ export class ExtensionConsoleController extends BaseController {
     @Get("get-by-activation-code/:activationCode")
     @Permissions({
         code: "get-by-activation-code",
-        name: "通过激活码获取应用信息",
+        name: "通过兑换码获取应用信息",
     })
     @BuildFileUrl(["**.icon"])
     async getApplicationByActivationCode(@Param("activationCode") activationCode: string) {
