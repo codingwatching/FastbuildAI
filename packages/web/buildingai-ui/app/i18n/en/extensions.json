@@ -153,25 +153,27 @@
         "uninstall": {
             "title": "Uninstall App",
             "btn": "Uninstall",
-            "description": "Uninstalling the app will clear all existing data. This operation is irreversible. Please back up the system before proceeding!",
+            "description": "Uninstalling the app will clear all existing data. This operation is irreversible. ",
+            "descriptionWarning": "Please back up the system before proceeding!",
             "confirmText": "Don't Keep",
             "cancelText": "Keep"
         },
         "installActivation": {
             "title": "Install App",
-            "activationCodeRequired": "Please enter activation code",
-            "activationCodeInvalid": "Invalid activation code. No corresponding app found. Please check if the activation code is correct",
+            "activationCodeRequired": "Please enter redemption code",
+            "activationCodeInvalid": "Invalid redemption code. No corresponding app found. Please check if the redemption code is correct",
             "queryFailed": "Failed to query app",
             "installSuccess": "Installation successful",
             "installFailed": "Failed to install app",
-            "activationCodeLabel": "Activation Code",
+            "activationCodeLabel": "Redemption Code",
             "activationCodeDescription": "Please go to App Market [Personal Center] -> [",
             "activationCodeDescriptionLink": "App Management",
-            "activationCodeDescriptionSuffix": "] to copy the activation code",
+            "activationCodeDescriptionSuffix": "] to copy the redemption code",
             "activationCodePlaceholder": "Please enter",
             "cancel": "Cancel",
             "query": "Query",
-            "confirmInstall": "Confirm Install"
+            "confirmInstall": "Confirm Install",
+            "installing": "Installing..."
         },
         "empty": {
             "title": "No apps",

@@ -304,7 +304,7 @@ export class ExtensionFeatureScanService {
                     name: feature.name,
                     description: feature.description,
                 });
-                TerminalLogger.info("", `更新功能: ${feature.code}`);
+                TerminalLogger.info("更新功能", `${feature.code}`);
                 result.updated++;
             } else {
                 // 创建新功能
@@ -316,7 +316,7 @@ export class ExtensionFeatureScanService {
                     status: true,
                 });
                 await this.extensionFeatureRepository.save(newFeature);
-                TerminalLogger.info("", `创建功能: ${feature.code} (${feature.name})`);
+                TerminalLogger.info("创建功能", `${feature.code} (${feature.name})`);
                 result.added++;
             }
         }

@@ -987,22 +987,30 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
                 source: 0, // 系统调整
             });
 
-            // 查询用户当前该等级的系统订阅记录（source = 0）
-            const existingSubscription = await entityManager.findOne(UserSubscription, {
+            // 查询用户的所有系统订阅记录（source = 0），确保每个用户只有一条系统订阅记录
+            const existingSubscriptions = await entityManager.find(UserSubscription, {
                 where: {
                     userId,
-                    levelId,
                     source: SUBSCRIPTION_SOURCE.SYSTEM,
                 },
             });
 
             // 更新或创建订阅记录
-            if (existingSubscription) {
-                // 更新现有订阅记录
-                existingSubscription.startTime = now;
-                existingSubscription.endTime = endTime;
-                existingSubscription.orderId = order.id;
-                await entityManager.save(UserSubscription, existingSubscription);
+            if (existingSubscriptions.length > 0) {
+                // 如果存在多条系统订阅记录，删除多余的，只保留一条
+                if (existingSubscriptions.length > 1) {
+                    // 保留第一条，删除其他的
+                    const subscriptionsToDelete = existingSubscriptions.slice(1);
+                    await entityManager.remove(UserSubscription, subscriptionsToDelete);
+                }
+
+                // 更新保留的订阅记录
+                const subscriptionToUpdate = existingSubscriptions[0];
+                subscriptionToUpdate.levelId = levelId;
+                subscriptionToUpdate.startTime = now;
+                subscriptionToUpdate.endTime = endTime;
+                subscriptionToUpdate.orderId = order.id;
+                await entityManager.save(UserSubscription, subscriptionToUpdate);
             } else {
                 // 创建新的订阅记录
                 await entityManager.save(UserSubscription, {

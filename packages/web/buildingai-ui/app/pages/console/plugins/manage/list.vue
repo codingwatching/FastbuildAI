@@ -18,6 +18,7 @@ import {
     apiUninstallExtension,
     apiUpgradeExtension,
 } from "@buildingai/service/consoleapi/extensions";
+import { h } from "vue";
 
 const ExtensionChangelogDrawer = defineAsyncComponent(() => import("../components/changelog.vue"));
 const ExtensionDetailDrawer = defineAsyncComponent(() => import("../components/details.vue"));
@@ -172,7 +173,16 @@ const { lockFn: handleUninstall } = useLockFn(async (extension: ExtensionFormDat
     try {
         await useModal({
             title: t("extensions.manage.uninstall.title"),
-            description: t("extensions.manage.uninstall.description"),
+            content: h("div", { class: "text-sm text-muted-foreground" }, [
+                t("extensions.manage.uninstall.description"),
+                h(
+                    "span",
+                    {
+                        style: { color: "red", fontWeight: "bold" },
+                    },
+                    t("extensions.manage.uninstall.descriptionWarning"),
+                ),
+            ]),
             color: "error",
         });
         await apiUninstallExtension(extension.identifier);
