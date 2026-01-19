@@ -252,8 +252,8 @@ export class ExtensionMarketService {
      * @returns System key or null
      */
     private async getSystemKey(): Promise<string | null> {
-        // const generatedMachineId = machineIdSync(true);
-        const generatedMachineId = await machineId();
+        const generatedMachineId = machineIdSync(true);
+        // const generatedMachineId = await machineId();
 
         if (!generatedMachineId || generatedMachineId.trim() === "") {
             throw HttpErrorFactory.badRequest("Generated machine ID is empty");
