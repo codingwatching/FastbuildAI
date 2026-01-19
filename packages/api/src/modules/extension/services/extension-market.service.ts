@@ -112,8 +112,6 @@ export class ExtensionMarketService {
             if (platformSecret) {
                 this.platformSecret = originalSecret;
             }
-            const errorMessage = createHttpErrorMessage(error);
-            this.logger.error(`Failed to get platform info: ${errorMessage}`, error);
             return null;
         }
     }
@@ -126,8 +124,6 @@ export class ExtensionMarketService {
             const response = await this.httpClient.get("/lists");
             return response.data;
         } catch (error) {
-            const errorMessage = createHttpErrorMessage(error);
-            this.logger.error(`Failed to get application list: ${errorMessage}`, error);
             throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
@@ -140,11 +136,6 @@ export class ExtensionMarketService {
             const response = await this.httpClient.get(`/detail/${identifier}`);
             return response.data;
         } catch (error) {
-            const errorMessage = createHttpErrorMessage(error);
-            this.logger.error(
-                `Failed to get application detail for ${identifier}: ${errorMessage}`,
-                error,
-            );
             throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
@@ -163,11 +154,6 @@ export class ExtensionMarketService {
             const response = await this.httpClient.get(`/versions/${identifier}`);
             return response.data;
         } catch (error) {
-            const errorMessage = createHttpErrorMessage(error);
-            this.logger.error(
-                `Failed to get application versions for ${identifier}: ${errorMessage}`,
-                error,
-            );
             throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
@@ -197,11 +183,6 @@ export class ExtensionMarketService {
             );
             return response.data;
         } catch (error) {
-            const errorMessage = createHttpErrorMessage(error);
-            this.logger.error(
-                `Failed to download application ${identifier}@${version}-${type}: ${errorMessage}`,
-                error,
-            );
             throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
@@ -214,11 +195,6 @@ export class ExtensionMarketService {
             const response = await this.httpClient.get(`/getVersionInfo/${identifier}/${version}`);
             return response.data;
         } catch (error) {
-            const errorMessage = createHttpErrorMessage(error);
-            this.logger.error(
-                `Failed to get application upgrade content for ${identifier}@${version}: ${errorMessage}`,
-                error,
-            );
             throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
@@ -231,11 +207,6 @@ export class ExtensionMarketService {
             const response = await this.httpClient.post(`/uninstall/${identifier}/${version}`);
             return response.data;
         } catch (error) {
-            const errorMessage = createHttpErrorMessage(error);
-            this.logger.error(
-                `Failed to uninstall application ${identifier}@${version}: ${errorMessage}`,
-                error,
-            );
             throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
@@ -267,11 +238,6 @@ export class ExtensionMarketService {
             ) {
                 throw error;
             }
-            const errorMessage = createHttpErrorMessage(error);
-            this.logger.error(
-                `Failed to get application by activation code ${activationCode}: ${errorMessage}`,
-                error,
-            );
             throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
@@ -311,11 +277,6 @@ export class ExtensionMarketService {
 
             return response.data;
         } catch (error) {
-            const errorMessage = createHttpErrorMessage(error);
-            this.logger.error(
-                `Failed to install application by activation code ${activationCode}: ${errorMessage}`,
-                error,
-            );
             throw HttpErrorFactory.badRequest(error.response?.data?.message);
         }
     }
@@ -344,7 +305,7 @@ export class ExtensionMarketService {
                     marketVersionMap.set(item.key, item.newVersion);
                 });
             } catch (error) {
-                this.logger.error(`Failed to get application list for update check: ${error}`);
+                // 静默处理更新检查失败，不影响已安装扩展列表的返回
             }
         }
 
