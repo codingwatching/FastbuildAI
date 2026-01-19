@@ -820,6 +820,9 @@ export class ExtensionOperationService {
 
         // Get extension info first to get the name for lock
         const extensionInfo = await extensionMarketService.getApplicationDetail(identifier);
+        if (extensionInfo.appsStatus === 0) {
+            throw HttpErrorFactory.badRequest("当前应用未在官网注册安装，不支持更新");
+        }
 
         if (!extensionInfo.isCompatible) {
             throw HttpErrorFactory.badRequest(
@@ -852,7 +855,6 @@ export class ExtensionOperationService {
                 latestVersion,
                 ExtensionDownload.UPGRADE,
             );
-            console.log("upgrade url", url);
             await this.download(url, identifier, ExtensionDownload.UPGRADE, latestVersion);
 
             // 3. Update extension in database

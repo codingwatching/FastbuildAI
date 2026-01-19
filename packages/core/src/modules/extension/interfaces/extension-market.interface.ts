@@ -10,6 +10,7 @@ export type VersionListItemType = {
 };
 
 export interface ExtensionDetailType {
+    appsStatus?: number;
     isCompatible: boolean;
     id: string;
     name: string;

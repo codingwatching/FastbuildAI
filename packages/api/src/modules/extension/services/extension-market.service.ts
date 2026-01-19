@@ -9,9 +9,9 @@ import {
 import { ExtensionDetailType, ExtensionsService, PlatformInfo } from "@buildingai/core/modules";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
-import { createHttpClient, createHttpErrorMessage, HttpClientInstance } from "@buildingai/utils";
+import { createHttpClient, HttpClientInstance } from "@buildingai/utils";
 import { Injectable, Logger } from "@nestjs/common";
-import { machineId } from "node-machine-id";
+import { machineId, machineIdSync } from "node-machine-id";
 import * as semver from "semver";
 
 /**
@@ -133,7 +133,12 @@ export class ExtensionMarketService {
      */
     async getApplicationDetail(identifier: string): Promise<ExtensionDetailType> {
         try {
-            const response = await this.httpClient.get(`/detail/${identifier}`);
+            const systemKey = await this.getSystemKey();
+            const response = await this.httpClient.get(`/detail/${identifier}`, {
+                headers: {
+                    "system-key": systemKey,
+                },
+            });
             return response.data;
         } catch (error) {
             throw HttpErrorFactory.badRequest(error.response?.data?.message);
@@ -247,6 +252,7 @@ export class ExtensionMarketService {
      * @returns System key or null
      */
     private async getSystemKey(): Promise<string | null> {
+        // const generatedMachineId = machineIdSync(true);
         const generatedMachineId = await machineId();
 
         if (!generatedMachineId || generatedMachineId.trim() === "") {
@@ -306,6 +312,7 @@ export class ExtensionMarketService {
                 });
             } catch (error) {
                 // 静默处理更新检查失败，不影响已安装扩展列表的返回
+                this.logger.error("更新检查失败", error);
             }
         }
 
