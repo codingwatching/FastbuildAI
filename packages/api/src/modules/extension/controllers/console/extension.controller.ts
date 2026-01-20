@@ -129,6 +129,26 @@ export class ExtensionConsoleController extends BaseController {
     }
 
     /**
+     * Install application by activation code
+     */
+    @Post("install-by-activation-code/:activationCode")
+    @Permissions({
+        code: "install-by-activation-code",
+        name: "通过兑换码安装应用",
+    })
+    async installByActivationCode(
+        @Param("activationCode") activationCode: string,
+        @Body() dto: DownloadExtensionDto,
+    ) {
+        return await this.extensionOperationService.installByActivationCode(
+            activationCode,
+            dto.identifier,
+            dto.version,
+            this.extensionMarketService,
+        );
+    }
+
+    /**
      * upgrade content
      */
     @Get("upgrade-content/:identifier")
@@ -141,6 +161,19 @@ export class ExtensionConsoleController extends BaseController {
             identifier,
             this.extensionMarketService,
         );
+    }
+
+    /**
+     * Get application by activation code
+     */
+    @Get("get-by-activation-code/:activationCode")
+    @Permissions({
+        code: "get-by-activation-code",
+        name: "通过兑换码获取应用信息",
+    })
+    @BuildFileUrl(["**.icon"])
+    async getApplicationByActivationCode(@Param("activationCode") activationCode: string) {
+        return await this.extensionMarketService.getApplicationByActivationCode(activationCode);
     }
 
     /**
@@ -335,7 +368,7 @@ export class ExtensionConsoleController extends BaseController {
      * @returns Extension details
      */
     @Get("detail/:identifier")
-    @BuildFileUrl(["**.icon"])
+    @BuildFileUrl(["**.aliasIcon", "**.icon"])
     @Permissions({
         code: "detail-by-identifier-from-db",
         name: "查看入库应用详情",

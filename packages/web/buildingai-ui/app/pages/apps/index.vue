@@ -101,7 +101,7 @@ watch(() => searchForm.name, handleSearch);
  */
 const handleAppClick = (app: ExtensionFormData) => {
     if (app.identifier) {
-        router.push(`/buildingai/extension/${app.identifier}`);
+        router.push(`/app/${app.identifier}`);
     }
 };
 

@@ -75,6 +75,7 @@
         "memberCenter": "Member Center"
     },
     "dateGroup": {
+        "pinned": "Pinned",
         "today": "Today",
         "yesterday": "Yesterday",
         "week": "7 days",
@@ -267,6 +268,8 @@
         "confirmDelete": "Delete chat",
         "confirmDeleteMessage": "This cannot be undone. Confirm?",
         "confirmDeleteAction": "Delete",
+        "pin": "Pin",
+        "unpin": "Unpin",
         "editChatTitle": "Rename chat",
         "chatTitleLabel": "Chat name",
         "chatTitlePlaceholder": "Enter chat name",

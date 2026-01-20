@@ -386,6 +386,17 @@ export function apiUpdateAiConversation(
 }
 
 /**
+ * update conversation pin status
+ * @description Updates the pin status of an AI conversation
+ * @param id Conversation ID
+ * @param isPinned Whether to pin the conversation
+ * @returns Promise with update result
+ */
+export function apiUpdateAiConversationPin(id: string, isPinned: boolean): Promise<void> {
+    return useWebPatch(`/ai-conversations/${id}/pin`, { isPinned });
+}
+
+/**
  * Delete conversation record
  * @description Deletes an AI conversation
  * @param id Record ID

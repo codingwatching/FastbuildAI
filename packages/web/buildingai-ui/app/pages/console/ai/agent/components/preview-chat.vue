@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import type {
+    FileUploadConfig,
     FormFieldConfig,
     UpdateAgentConfigParams,
 } from "@buildingai/service/consoleapi/ai-agent";
-import { apiAgentChat, apiCreateAgentAnnotation } from "@buildingai/service/consoleapi/ai-agent";
+import {
+    apiAgentChat,
+    apiCreateAgentAnnotation,
+    apiGetAgentFileUploadConfig,
+} from "@buildingai/service/consoleapi/ai-agent";
 import type { AiMessage } from "@buildingai/service/models/message";
 
 const AgentAnnotationModal = defineAsyncComponent(() => import("./logs/annotation-modal.vue"));
@@ -35,6 +40,29 @@ const agentId = computed(() => (URLQueryParams as Record<string, string>).id);
 const conversationId = shallowRef<string | null>(null);
 
 const initialMessages: AiMessage[] = [];
+
+// 文件上传配置（用于 Dify 等第三方平台）
+const fileUploadConfig = shallowRef<FileUploadConfig | null>(null);
+
+// 获取文件上传配置
+const fetchFileUploadConfig = async () => {
+    if (agents.value.createMode === "dify" && agentId.value) {
+        try {
+            fileUploadConfig.value = await apiGetAgentFileUploadConfig(agentId.value);
+        } catch {
+            fileUploadConfig.value = null;
+        }
+    } else {
+        fileUploadConfig.value = null;
+    }
+};
+
+// 监听 createMode 变化，重新获取文件上传配置
+watch(
+    () => agents.value.createMode,
+    () => fetchFileUploadConfig(),
+    { immediate: true },
+);
 
 const currentContext = shallowRef<AiMessage[]>([]);
 
@@ -481,6 +509,8 @@ defineExpose({
                 v-model:file-list="files"
                 :is-loading="isLoading"
                 :model-config="agent.modelConfig"
+                :agent-create-mode="agent.createMode"
+                :file-upload-config="fileUploadConfig ?? undefined"
                 class="sticky bottom-0 z-10 [view-transition-name:chat-prompt]"
                 @stop="stop"
                 @submit="handleSubmitMessage"

@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { FileUploadConfig } from "@buildingai/service/consoleapi/ai-agent";
 import { apiGetAiModel } from "@buildingai/service/webapi/ai-conversation";
+
 const emits = defineEmits<{
     (e: "file-select", file: File): void;
     (e: "url-submit", url: string): void;
@@ -27,6 +29,15 @@ const props = defineProps<{
      * 用于前台智能体场景，后端直接返回模型特性而不暴露模型配置
      */
     modelFeatures?: string[];
+    /**
+     * 智能体创建模式：'direct' | 'coze' | 'dify' 等
+     * 用于针对不同第三方平台设置不同的文件类型支持
+     */
+    agentCreateMode?: string;
+    /**
+     * 第三方平台的文件上传配置（如 Dify 的 allowed_file_extensions）
+     */
+    fileUploadConfig?: FileUploadConfig;
 }>();
 
 const controlsStore = useControlsStore();
@@ -80,7 +91,72 @@ watch(
     { immediate: true },
 );
 
+/**
+ * 所有支持的文件类型（用于 Coze 智能体，支持所有类型）
+ */
+const ALL_SUPPORTED_TYPES = {
+    document: [".pdf", ".docx", ".doc", ".txt", ".md", ".rtf", ".csv", ".xlsx", ".xls", ".pptx"],
+    image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg"],
+    audio: [".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a"],
+    video: [".mp4", ".avi", ".mov", ".wmv", ".flv", ".webm", ".mkv"],
+};
+
 const supportedFileTypes = computed(() => {
+    // 1. 如果是 Coze 智能体，支持所有类型
+    if (props.agentCreateMode === "coze") {
+        const allTypes = [
+            ...ALL_SUPPORTED_TYPES.document,
+            ...ALL_SUPPORTED_TYPES.image,
+            ...ALL_SUPPORTED_TYPES.audio,
+            ...ALL_SUPPORTED_TYPES.video,
+        ];
+        return allTypes.join(",");
+    }
+    // 2. 如果是 Dify 智能体，使用 fileUploadConfig 中的 allowedFileExtensions
+    if (props.agentCreateMode === "dify" && props.fileUploadConfig) {
+        const config = props.fileUploadConfig;
+
+        // 如果文件上传未启用，返回空
+        if (config.enabled === false) {
+            return "";
+        }
+
+        // 优先使用 allowedFileExtensions
+        if (config.allowedFileExtensions?.length) {
+            // 确保扩展名以点开头
+            return config.allowedFileExtensions
+                .map((ext) => (ext.startsWith(".") ? ext : `.${ext}`))
+                .join(",");
+        }
+
+        // 如果有 allowedFileTypes，根据类型映射扩展名
+        if (config.allowedFileTypes?.length) {
+            const extensions: string[] = [];
+            for (const type of config.allowedFileTypes) {
+                const lowerType = type.toLowerCase();
+                if (lowerType === "image" || lowerType.includes("image")) {
+                    extensions.push(...ALL_SUPPORTED_TYPES.image);
+                }
+                if (lowerType === "document" || lowerType.includes("document")) {
+                    extensions.push(...ALL_SUPPORTED_TYPES.document);
+                }
+                if (lowerType === "audio" || lowerType.includes("audio")) {
+                    extensions.push(...ALL_SUPPORTED_TYPES.audio);
+                }
+                if (lowerType === "video" || lowerType.includes("video")) {
+                    extensions.push(...ALL_SUPPORTED_TYPES.video);
+                }
+            }
+            if (extensions.length) {
+                return [...new Set(extensions)].join(",");
+            }
+        }
+
+        // Dify 未配置具体类型时，默认支持文档和图片
+        return [...ALL_SUPPORTED_TYPES.document, ...ALL_SUPPORTED_TYPES.image].join(",");
+    }
+
+    // 3. 默认模式（direct 或其他）：根据模型特性决定
     // 如果没有任何模型特性来源，只支持文档类型
     if (!props.modelFeatures?.length && !props.modelConfig && !controlsStore.selectedModel) {
         return ".pdf,.doc,.docx,.txt,.md";
@@ -90,31 +166,16 @@ const supportedFileTypes = computed(() => {
     const supportedTypes: string[] = [];
 
     // 始终支持文档类型（因为提示内容说"支持各类文档"）
-    const documentTypes = [
-        ".pdf",
-        ".docx",
-        ".txt",
-        ".md",
-        ".rtf",
-        ".csv",
-        ".xlsx",
-        ".xls",
-        ".pptx",
-    ];
-    supportedTypes.push(...documentTypes);
+    supportedTypes.push(...ALL_SUPPORTED_TYPES.document);
 
     // 如果模型支持图片，添加图片类型
     if (features.includes("vision")) {
-        supportedTypes.push(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp");
+        supportedTypes.push(...ALL_SUPPORTED_TYPES.image);
     }
-
-    // if (features.includes("video")) {
-    //     supportedTypes.push(".mp4", ".avi", ".mov", ".wmv", ".flv", ".webm");
-    // }
 
     // 如果模型支持音频，添加音频类型
     if (features.includes("audio")) {
-        supportedTypes.push(".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a");
+        supportedTypes.push(...ALL_SUPPORTED_TYPES.audio);
     }
 
     return supportedTypes.join(",");
@@ -204,7 +265,7 @@ function handleUrlSubmit() {
                 variant="ghost"
                 icon="i-lucide-paperclip"
                 class="rounded-full font-bold"
-                :disabled="disabled"
+                :disabled="disabled || !supportedFileTypes"
             >
             </UButton>
             <template #content>

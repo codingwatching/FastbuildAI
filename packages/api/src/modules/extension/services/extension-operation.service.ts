@@ -459,6 +459,79 @@ export class ExtensionOperationService {
     }
 
     /**
+     * Get all installed plugin package names from extensions directory
+     * @returns Array of package names
+     */
+    private async getInstalledPluginPackageNames(): Promise<string[]> {
+        const packageNames: string[] = [];
+
+        try {
+            const extensionDirs = await fs.readdir(this.extensionsDir);
+
+            for (const dir of extensionDirs) {
+                const extensionDir = path.join(this.extensionsDir, dir);
+                const stat = await fs.stat(extensionDir);
+
+                if (stat.isDirectory()) {
+                    const packageJsonPath = path.join(extensionDir, "package.json");
+
+                    if (await fs.pathExists(packageJsonPath)) {
+                        try {
+                            const packageJson = await fs.readJson(packageJsonPath);
+                            if (packageJson.name) {
+                                packageNames.push(packageJson.name);
+                            }
+                        } catch (error) {
+                            this.logger.warn(
+                                `Failed to read package.json from ${extensionDir}: ${error.message}`,
+                            );
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            this.logger.error(`Failed to scan extensions directory: ${error.message}`);
+        }
+
+        return packageNames;
+    }
+
+    /**
+     * Clean up extension installation when package name conflict detected
+     * @param identifier Extension identifier
+     * @param packageName Package name from package.json
+     */
+    private async cleanupFailedInstallation(
+        identifier: string,
+        packageName: string,
+    ): Promise<void> {
+        this.logger.warn(
+            `Package name conflict detected: ${packageName}. Cleaning up failed installation...`,
+        );
+
+        try {
+            // Remove extension directory if exists
+            const targetDir = path.join(this.extensionsDir, this.toSafeName(identifier));
+            if (await fs.pathExists(targetDir)) {
+                await fs.remove(targetDir);
+                this.logger.log(`Removed extension directory: ${targetDir}`);
+            }
+
+            // Remove from extensions.json
+            await this.extensionConfigService.removeExtension(identifier);
+
+            // Remove from database
+            const extension = await this.extensionsService.findOne({ where: { identifier } });
+            if (extension) {
+                await this.extensionsService.delete(extension.id);
+                this.logger.log(`Removed extension from database: ${identifier}`);
+            }
+        } catch (error) {
+            this.logger.error(`Failed to cleanup installation: ${error.message}`);
+        }
+    }
+
+    /**
      * 解压插件包到插件目录
      *
      * @param packagePath 插件包路径
@@ -483,6 +556,33 @@ export class ExtensionOperationService {
             zip.extractAllTo(tempExtractDir, true);
 
             const sourceDir = await this.resolvePluginRoot(tempExtractDir);
+
+            // Read package.json to get package name
+            const packageJsonPath = path.join(sourceDir, "package.json");
+            if (!(await fs.pathExists(packageJsonPath))) {
+                throw HttpErrorFactory.badRequest("Plugin package.json not found");
+            }
+
+            const packageJson = await fs.readJson(packageJsonPath);
+            const packageName = packageJson.name;
+
+            if (!packageName) {
+                throw HttpErrorFactory.badRequest("Plugin package.json missing name field");
+            }
+
+            // Check for package name conflicts (only for fresh installs, not upgrades)
+            if (type !== ExtensionDownload.UPGRADE) {
+                const installedPackageNames = await this.getInstalledPluginPackageNames();
+
+                if (installedPackageNames.includes(packageName)) {
+                    // Clean up failed installation
+                    await this.cleanupFailedInstallation(identifier, packageName);
+                    throw HttpErrorFactory.badRequest(
+                        `Extension with package name "${packageName}" already exists. Installation cancelled.`,
+                    );
+                }
+            }
+
             const targetDir = path.join(this.extensionsDir, this.toSafeName(identifier));
 
             // Handle upgrade: preserve data, storage, node_modules
@@ -699,6 +799,88 @@ export class ExtensionOperationService {
     }
 
     /**
+     * Install application by activation code
+     * @param activationCode Activation code
+     * @param requestedVersion Optional version (may not be used if API returns specific version)
+     * @param extensionMarketService Extension market service instance
+     * @returns Installed extension entity
+     */
+    async installByActivationCode(
+        activationCode: string,
+        identifier: string,
+        requestedVersion: string | undefined,
+        extensionMarketService: ExtensionMarketService,
+    ) {
+        this.logger.log(`Starting install application by activation code: ${activationCode}`);
+
+        // Get extension info first to get the name for lock
+        const appInfo = await extensionMarketService.getApplicationDetail(identifier);
+
+        if (!appInfo.isCompatible) {
+            throw HttpErrorFactory.badRequest(`应用 ${appInfo.name} 不兼容当前平台，无法安装`);
+        }
+
+        // Acquire lock with extension name
+        await this.acquireLock(identifier, ExtensionOperationService.OP_INSTALL, appInfo.name);
+
+        try {
+            const targetVersion =
+                requestedVersion ??
+                (await this.resolveLatestVersion(identifier, extensionMarketService));
+
+            if (!targetVersion) {
+                throw HttpErrorFactory.badRequest(
+                    `No available version found for extension: ${identifier}`,
+                );
+            }
+
+            const { url } =
+                await extensionMarketService.installApplicationByActivationCode(activationCode);
+
+            await this.download(url, identifier, ExtensionDownload.INSTALL, targetVersion);
+
+            const extension = await this.extensionsService.create({
+                name: appInfo.name,
+                identifier: appInfo.identifier,
+                version: targetVersion,
+                description: appInfo.description,
+                icon: appInfo.icon,
+                type: appInfo.type as ExtensionTypeType,
+                supportTerminal: appInfo.supportTerminal as ExtensionSupportTerminalType[],
+                author: appInfo.author,
+                documentation: appInfo.content,
+                status: ExtensionStatus.ENABLED,
+                isLocal: false,
+            });
+
+            // Update extensions.json to enable the new extension
+            await this.updateExtensionsConfigWrapper(appInfo, targetVersion);
+
+            // Install dependencies before restarting
+            await this.installDependencies();
+
+            // Synchronize extension tables and execute seeds BEFORE restart
+            await this.synchronizeExtensionTablesAndSeeds(identifier);
+
+            // Scan and sync member-only features
+            await this.scanExtensionMemberFeatures(identifier, extension.id);
+
+            // Schedule PM2 restart after response is sent
+            this.scheduleRestart();
+
+            this.logger.log(`Extension installed successfully: ${identifier}@${targetVersion}`);
+            return extension;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to install application by activation code: ${errorMessage}`);
+            throw error;
+        } finally {
+            // Release lock (heavy operation)
+            await this.releaseLock(identifier, true);
+        }
+    }
+
+    /**
      * Upgrade extension content to latest version
      */
     async upgradeContent(identifier: string, extensionMarketService: ExtensionMarketService) {
@@ -738,6 +920,15 @@ export class ExtensionOperationService {
 
         // Get extension info first to get the name for lock
         const extensionInfo = await extensionMarketService.getApplicationDetail(identifier);
+        if (extensionInfo.appsStatus === 0) {
+            throw HttpErrorFactory.badRequest("当前应用未在官网注册安装，不支持更新");
+        }
+
+        if (!extensionInfo.isCompatible) {
+            throw HttpErrorFactory.badRequest(
+                `应用 ${extensionInfo.name} 不兼容当前平台，无法升级`,
+            );
+        }
 
         // Acquire lock with extension name
         await this.acquireLock(

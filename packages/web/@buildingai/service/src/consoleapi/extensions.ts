@@ -82,6 +82,15 @@ export interface ExtensionFormData extends BaseEntity {
     aliasShow?: boolean;
 }
 
+export interface AppInfo {
+    appsNo: string;
+    cover: string;
+    describe: string;
+    icon: string;
+    key: string;
+    name: string;
+}
+
 /**
  * Extension query request parameters interface
  * @description Interface for extension query request parameters
@@ -194,6 +203,8 @@ export interface ExtensionVersion {
  * @description Interface for extension install request
  */
 export interface ExtensionInstallRequest {
+    /** Extension identifier */
+    identifier?: string;
     /** Extension version to install */
     version?: string;
 }
@@ -377,10 +388,37 @@ export function apiInstallExtension(
 }
 
 /**
+ * Install extension by activation code
+ * @description Installs an extension by activation code
+ * @param activationCode Activation code
+ * @returns Promise with installed extension data
+ */
+export function apiInstallByActivationCode(
+    activationCode: string,
+    identifier: string,
+    version?: string,
+): Promise<ExtensionFormData> {
+    const data: ExtensionInstallRequest = version ? { version, identifier } : { identifier };
+    return useConsolePost(`/extensions/install-by-activation-code/${activationCode}`, data, {
+        timeout: 1800000,
+    });
+}
+
+/**
  * Upgrade extension content
  */
 export function apiUpgradeExtensionContent(identifier: string): Promise<ExtensionFormData> {
     return useConsoleGet(`/extensions/upgrade-content/${identifier}`);
+}
+
+/**
+ * Get application by activation code
+ * @description Get application information by activation code
+ * @param activationCode Activation code
+ * @returns Promise with application data
+ */
+export function apiGetApplicationByActivationCode(activationCode: string): Promise<AppInfo> {
+    return useConsoleGet(`/extensions/get-by-activation-code/${activationCode}`);
 }
 
 /**

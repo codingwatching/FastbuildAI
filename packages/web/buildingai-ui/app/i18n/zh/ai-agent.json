@@ -6,7 +6,9 @@
         "search": {
             "placeholder": "搜索智能体名称、描述或标识符",
             "allStatus": "全部状态",
-            "filterByStatus": "按状态筛选"
+            "filterByStatus": "按状态筛选",
+            "allMode": "全部",
+            "filterByMode": "按创建模式筛选"
         },
         "create": {
             "title": "创建智能体",
@@ -66,8 +68,9 @@
             "formVariable": "表单变量",
             "formVariableDesc": "变量将以表单形式让用户在对话前填写",
             "formVariableDesc2": "用户填写的表单内容将自动替换角色设定中的变量。",
-            "formVariableNameEmpty": "字段名不能为空",
-            "formVariableLabelEmpty": "字段标签不能为空",
+            "formVariableNameEmpty": "变量名不能为空",
+            "formVariableNameInvalid": "变量名只可以设置为英文、数字下划线等",
+            "formVariableLabelEmpty": "显示名称不能为空",
             "formVariableTypeEmpty": "字段类型不能为空",
             "formVariableNameExists": "字段名已存在，请使用其他名称",
             "formVariableEditTitle": "编辑表单变量",
@@ -78,9 +81,9 @@
             "formVariableTypeTextarea": "多行文本",
             "formVariableTypeSelect": "下拉选择",
             "formVariableName": "变量名",
-            "formVariableNamePlaceholder": "请输入变量名",
-            "formVariableLabel": "字段标签",
-            "formVariableLabelPlaceholder": "请输入字段标签",
+            "formVariableNamePlaceholder": "请输入变量名，只可以设置为英文、数字下划线等",
+            "formVariableLabel": "显示名称",
+            "formVariableLabelPlaceholder": "请输入显示名称",
             "formVariableOptions": "选项列表",
             "formVariableOptionsPlaceholder": "请输入选项列表",
             "formVariableOptionsAdd": "添加选项",
@@ -322,6 +325,9 @@
                 "urlRequired": "请先输入URL"
             },
             "success": "DSL 文件导入成功！",
+            "batchSuccess": "成功导入 {count} 个文件",
+            "partialSuccess": "成功导入 {success}/{total} 个文件",
+            "batchFailed": "所有文件导入失败，请检查文件格式",
             "form": {
                 "urlLabel": "URL",
                 "urlPlaceholder": "请输入DSL文件的URL"

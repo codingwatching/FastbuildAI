@@ -18,13 +18,16 @@ import {
     apiUninstallExtension,
     apiUpgradeExtension,
 } from "@buildingai/service/consoleapi/extensions";
-import type { TabsItem } from "@nuxt/ui";
+import { h } from "vue";
 
 const ExtensionChangelogDrawer = defineAsyncComponent(() => import("../components/changelog.vue"));
 const ExtensionDetailDrawer = defineAsyncComponent(() => import("../components/details.vue"));
 const AddLocalExtension = defineAsyncComponent(() => import("../components/add-extension.vue"));
 const FeatureConfigModal = defineAsyncComponent(() => import("../components/feature-config.vue"));
 const UpgradePreviewModal = defineAsyncComponent(() => import("../components/upgrade-preview.vue"));
+const InstallActivationModal = defineAsyncComponent(
+    () => import("../components/install-activation-modal.vue"),
+);
 
 const { t } = useI18n();
 const overlay = useOverlay();
@@ -36,22 +39,20 @@ const statistics = ref<{ total: number; installed: number; uninstalled: number }
     uninstalled: 0,
 });
 
-const extensionTypeItems = computed<TabsItem[]>(() => [
-    {
-        label: `${t("extensions.manage.tabs.all")} (${statistics.value.total})`,
-        value: "all",
-    },
-    {
-        label: `${t("extensions.manage.tabs.installed")} (${statistics.value.installed})`,
-        value: "installed",
-    },
-    {
-        label: `${t("extensions.manage.tabs.uninstalled")} (${statistics.value.uninstalled})`,
-        value: "uninstalled",
-    },
-]);
-
-const selectedTab = shallowRef("all");
+// const extensionTypeItems = computed<TabsItem[]>(() => [
+//     {
+//         label: `${t("extensions.manage.tabs.all")} (${statistics.value.total})`,
+//         value: "all",
+//     },
+//     {
+//         label: `${t("extensions.manage.tabs.installed")} (${statistics.value.installed})`,
+//         value: "installed",
+//     },
+//     {
+//         label: `${t("extensions.manage.tabs.uninstalled")} (${statistics.value.uninstalled})`,
+//         value: "uninstalled",
+//     },
+// ])
 
 const searchForm = shallowReactive<ExtensionQueryRequest>({
     type: undefined,
@@ -99,17 +100,17 @@ const handleSearch = useDebounceFn(() => {
     getLists();
 }, 500);
 
-const handleTabChange = (value: string | number) => {
-    selectedTab.value = String(value);
-    const tabValue = selectedTab.value;
-    if (tabValue === "all") {
-        delete searchForm.isInstalled;
-    } else {
-        searchForm.isInstalled = tabValue === "installed";
-    }
-    paging.page = 1;
-    getLists();
-};
+// const handleTabChange = (value: string | number) => {
+//     selectedTab.value = String(value);
+//     const tabValue = selectedTab.value;
+//     if (tabValue === "all") {
+//         delete searchForm.isInstalled;
+//     } else {
+//         searchForm.isInstalled = tabValue === "installed";
+//     }
+//     paging.page = 1;
+//     getLists();
+// };
 
 const handleNavigate = (extension: ExtensionFormData) => {
     window.open(`${ROUTES.EXTENSION}/${extension.identifier}/buildingai-middleware`, "_blank");
@@ -170,6 +171,20 @@ const handleConfirmUpgrade = async (extension: ExtensionFormData) => {
 
 const { lockFn: handleUninstall } = useLockFn(async (extension: ExtensionFormData) => {
     try {
+        await useModal({
+            title: t("extensions.manage.uninstall.title"),
+            content: h("div", { class: "text-sm text-muted-foreground" }, [
+                t("extensions.manage.uninstall.description"),
+                h(
+                    "span",
+                    {
+                        style: { color: "red", fontWeight: "bold" },
+                    },
+                    t("extensions.manage.uninstall.descriptionWarning"),
+                ),
+            ]),
+            color: "error",
+        });
         await apiUninstallExtension(extension.identifier);
         paging.page = 1;
         await getLists();
@@ -259,6 +274,16 @@ const handleChangelogExtension = (extension: ExtensionFormData) => {
     });
 };
 
+const handleInstallByActivationCode = async () => {
+    const modal = overlay.create(InstallActivationModal);
+    const instance = modal.open();
+    const success = await instance.result;
+    if (success) {
+        paging.page = 1;
+        await getLists();
+    }
+};
+
 onMounted(() => getLists());
 </script>
 
@@ -268,12 +293,15 @@ onMounted(() => getLists());
             <div class="space-y-4">
                 <div class="flex w-full flex-wrap justify-between gap-4">
                     <div class="flex items-end justify-end">
-                        <UTabs
+                        <h3 class="text-lg font-medium">
+                            {{ t("extensions.manage.myApps") }} ({{ statistics.total }})
+                        </h3>
+                        <!-- <UTabs
                             :items="extensionTypeItems"
                             v-model="selectedTab"
                             @update:model-value="handleTabChange"
                             class="block w-auto"
-                        />
+                        /> -->
                     </div>
 
                     <div class="flex items-center gap-4">
@@ -321,13 +349,13 @@ onMounted(() => getLists());
                             :placeholder="t('extensions.manage.status.all')"
                             @update:model-value="handleSearch"
                         />
-                        <UButton
+                        <!-- <UButton
                             icon="i-lucide-plus"
                             color="primary"
                             @click="handleLocal({} as ExtensionFormData, false)"
                         >
                             {{ t("extensions.manage.add") }}
-                        </UButton>
+                        </UButton> -->
                     </div>
                 </div>
             </div>
@@ -345,17 +373,24 @@ onMounted(() => getLists());
                     </h3>
                     <div
                         class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
-                        @click="handleLocal({} as ExtensionFormData, false)"
+                        @click="handleInstallByActivationCode"
                     >
-                        <UIcon name="i-lucide-file-plus-2" class="mr-2 size-4" />
-                        <span>{{ t("extensions.manage.add") }}</span>
+                        <UIcon name="i-lucide-hard-drive-download" class="mr-2 size-4" />
+                        <span>{{ t("extensions.manage.installApp") }}</span>
                     </div>
                     <div
                         class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
                         @click="toStore"
                     >
-                        <UIcon name="i-lucide-external-link" class="mr-2 size-4" />
+                        <UIcon name="i-tabler-api-app" class="mr-2 size-4" />
                         <span>{{ t("extensions.manage.store") }}</span>
+                    </div>
+                    <div
+                        class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
+                        @click="handleLocal({} as ExtensionFormData, false)"
+                    >
+                        <UIcon name="i-lucide-square-terminal" class="mr-2 size-4" />
+                        <span>{{ t("extensions.manage.developApp") }}</span>
                     </div>
                 </div>
             </div>
@@ -387,18 +422,28 @@ onMounted(() => getLists());
                                     {{ t("extensions.manage.add") }}
                                 </h3>
                                 <div
-                                    class="text-primary hover:bg-primary-50 dark:hover:bg-primary/15 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
-                                    @click="handleLocal({} as ExtensionFormData, false)"
+                                    class="text-primary hover:bg-primary-50 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
+                                    @click="handleInstallByActivationCode"
                                 >
-                                    <UIcon name="i-lucide-file-plus-2" class="mr-2 size-4" />
-                                    <span>{{ t("extensions.manage.add") }}</span>
+                                    <UIcon
+                                        name="i-lucide-hard-drive-download"
+                                        class="mr-2 size-4"
+                                    />
+                                    <span>{{ t("extensions.manage.installApp") }}</span>
                                 </div>
                                 <div
                                     class="text-primary hover:bg-primary-50 dark:hover:bg-primary/15 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
                                     @click="toStore"
                                 >
-                                    <UIcon name="i-lucide-external-link" class="mr-2 size-4" />
+                                    <UIcon name="i-tabler-api-app" class="mr-2 size-4" />
                                     <span>{{ t("extensions.manage.store") }}</span>
+                                </div>
+                                <div
+                                    class="text-primary hover:bg-primary-50 dark:hover:bg-primary/15 flex cursor-pointer items-center rounded-lg px-2 py-2 text-sm"
+                                    @click="handleLocal({} as ExtensionFormData, false)"
+                                >
+                                    <UIcon name="i-lucide-square-terminal" class="mr-2 size-4" />
+                                    <span>{{ t("extensions.manage.developApp") }}</span>
                                 </div>
                             </div>
                         </div>
@@ -648,7 +693,7 @@ onMounted(() => getLists());
                                                           }
                                                         : undefined,
                                                     {
-                                                        label: t('extensions.manage.uninstall'),
+                                                        label: t('extensions.manage.uninstall.btn'),
                                                         icon: 'i-lucide-trash-2',
                                                         color: 'error',
                                                         onSelect: () => {

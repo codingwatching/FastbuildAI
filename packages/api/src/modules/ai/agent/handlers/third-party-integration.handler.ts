@@ -1,7 +1,7 @@
 import { type UserPlayground } from "@buildingai/db";
 import { Agent } from "@buildingai/db/entities";
 import { AgentChatRecord } from "@buildingai/db/entities";
-import { extractTextFromMessageContent } from "@buildingai/utils";
+import { extractFilesFromMessageContent, extractTextFromMessageContent } from "@buildingai/utils";
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import type { Response } from "express";
 
@@ -101,6 +101,11 @@ interface DifyParametersResponse {
         };
     }>;
     file_upload?: {
+        enabled?: boolean;
+        allowed_file_types?: string[];
+        allowed_file_extensions?: string[];
+        allowed_file_upload_methods?: string[];
+        number_limits?: number;
         image?: {
             enabled: boolean;
             number_limits?: number;
@@ -109,6 +114,7 @@ interface DifyParametersResponse {
     };
     system_parameters?: {
         image_file_size_limit?: string;
+        file_size_limit?: number;
     };
 }
 
@@ -178,12 +184,19 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
      * 获取 Dify 应用参数
      * 调用 Dify /parameters 接口获取应用配置
      * @param config 第三方配置（包含 apiKey 和 baseURL）
-     * @returns 应用参数（opening_statement、suggested_questions、suggested_questions_after_answer）
+     * @returns 应用参数（opening_statement、suggested_questions、suggested_questions_after_answer、file_upload）
      */
     async fetchDifyParameters(config: { apiKey: string; baseURL: string }): Promise<{
         openingStatement?: string;
         openingQuestions?: string[];
         autoQuestionsEnabled?: boolean;
+        fileUploadConfig?: {
+            enabled?: boolean;
+            allowedFileExtensions?: string[];
+            allowedFileTypes?: string[];
+            numberLimits?: number;
+            fileSizeLimit?: number;
+        };
     }> {
         const url = `${config.baseURL}/parameters`;
 
@@ -208,13 +221,36 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
 
             const data = (await response.json()) as DifyParametersResponse;
             this.logger.log(
-                `[Dify] Parameters fetched successfully: opening_statement=${data.opening_statement?.substring(0, 50) || "none"}, suggested_questions=${data.suggested_questions?.length || 0}, suggested_questions_after_answer=${data.suggested_questions_after_answer?.enabled || false}`,
+                `[Dify] Parameters fetched successfully: opening_statement=${data.opening_statement?.substring(0, 50) || "none"}, suggested_questions=${data.suggested_questions?.length || 0}, suggested_questions_after_answer=${data.suggested_questions_after_answer?.enabled || false}, file_upload=${JSON.stringify(data.file_upload || {})}`,
             );
+
+            // 构建文件上传配置
+            let fileUploadConfig:
+                | {
+                      enabled?: boolean;
+                      allowedFileExtensions?: string[];
+                      allowedFileTypes?: string[];
+                      numberLimits?: number;
+                      fileSizeLimit?: number;
+                  }
+                | undefined;
+
+            if (data.file_upload) {
+                fileUploadConfig = {
+                    enabled: data.file_upload.enabled ?? data.file_upload.image?.enabled,
+                    allowedFileExtensions: data.file_upload.allowed_file_extensions,
+                    allowedFileTypes: data.file_upload.allowed_file_types,
+                    numberLimits:
+                        data.file_upload.number_limits ?? data.file_upload.image?.number_limits,
+                    fileSizeLimit: data.system_parameters?.file_size_limit,
+                };
+            }
 
             return {
                 openingStatement: data.opening_statement || undefined,
                 openingQuestions: data.suggested_questions || undefined,
                 autoQuestionsEnabled: data.suggested_questions_after_answer?.enabled,
+                fileUploadConfig,
             };
         } catch (error) {
             if (error instanceof BadRequestException) {
@@ -437,8 +473,8 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
         // 准备第三方对话上下文
         const enhancedDto = await this.prepareThirdPartyContext(dto, conversationRecord, platform);
 
-        // 获取用户消息
-        const userMessage = this.extractUserMessage(dto);
+        // 获取用户消息（包含文本和文件）
+        const { text: userMessage, files: userFiles } = this.extractUserMessageWithFiles(dto);
 
         // 调用第三方平台 API
         const result = await this.callThirdPartyAPI(
@@ -446,6 +482,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
             config,
             userMessage,
             enhancedDto.conversationId,
+            userFiles,
         );
 
         // 保存第三方对话ID到metadata
@@ -540,8 +577,8 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                 platform,
             );
 
-            // 获取用户消息
-            const userMessage = this.extractUserMessage(dto);
+            // 获取用户消息（包含文本和文件）
+            const { text: userMessage, files: userFiles } = this.extractUserMessageWithFiles(dto);
 
             // 调用第三方平台流式 API
             const result = await this.callThirdPartyStreamAPI(
@@ -551,6 +588,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                 enhancedDto.conversationId,
                 res,
                 agent,
+                userFiles,
             );
 
             // 保存第三方对话ID到metadata
@@ -624,7 +662,32 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
     }
 
     /**
-     * 提取用户消息
+     * 提取用户消息（文本和文件）
+     * @param dto 聊天请求DTO
+     * @returns 包含文本消息和文件列表的对象
+     */
+    private extractUserMessageWithFiles(dto: AgentChatDto): {
+        text: string;
+        files: Array<{ type: string; url: string }>;
+    } {
+        const lastUserMessage = dto.messages.filter((m) => m.role === "user").slice(-1)[0];
+        if (!lastUserMessage) {
+            throw new BadRequestException("消息列表中没有用户消息");
+        }
+
+        const text = extractTextFromMessageContent(lastUserMessage.content);
+        // 优先使用 dto.files，如果没有则从消息内容中提取
+        const files =
+            dto.files && dto.files.length > 0
+                ? dto.files
+                : extractFilesFromMessageContent(lastUserMessage.content);
+
+        return { text, files };
+    }
+
+    /**
+     * 提取用户消息（仅文本）
+     * @deprecated 使用 extractUserMessageWithFiles 代替
      */
     private extractUserMessage(dto: AgentChatDto): string {
         const lastUserMessage = dto.messages.filter((m) => m.role === "user").slice(-1)[0];
@@ -636,12 +699,18 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
 
     /**
      * 调用第三方平台 API（阻塞模式）
+     * @param platform 平台类型
+     * @param config 第三方配置
+     * @param query 用户查询
+     * @param conversationId 会话ID
+     * @param files 文件列表（附件）
      */
     private async callThirdPartyAPI(
         platform: string,
         config: ThirdPartyConfig,
         query: string,
         conversationId?: string,
+        files?: Array<{ type: string; url: string }>,
     ): Promise<{
         response: string;
         conversationId: string;
@@ -649,9 +718,9 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
     }> {
         switch (platform) {
             case "dify":
-                return await this.callDifyAPI(config, query, conversationId);
+                return await this.callDifyAPI(config, query, conversationId, files);
             case "coze":
-                return await this.callCozeAPI(config, query, conversationId);
+                return await this.callCozeAPI(config, query, conversationId, files);
             default:
                 throw new BadRequestException(`不支持的第三方平台: ${platform}`);
         }
@@ -665,6 +734,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
      * @param conversationId 会话ID
      * @param res 响应对象
      * @param agent 智能体配置（用于获取自动追问配置）
+     * @param files 文件列表（附件）
      */
     private async callThirdPartyStreamAPI(
         platform: string,
@@ -673,6 +743,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
         conversationId: string | undefined,
         res: Response,
         agent?: Agent,
+        files?: Array<{ type: string; url: string }>,
     ): Promise<{
         fullContent: string;
         conversationId: string;
@@ -680,21 +751,79 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
     }> {
         switch (platform) {
             case "dify":
-                return await this.callDifyStreamAPI(config, query, conversationId, res, agent);
+                return await this.callDifyStreamAPI(
+                    config,
+                    query,
+                    conversationId,
+                    res,
+                    agent,
+                    files,
+                );
             case "coze":
-                return await this.callCozeStreamAPI(config, query, conversationId, res);
+                return await this.callCozeStreamAPI(config, query, conversationId, res, files);
             default:
                 throw new BadRequestException(`不支持的第三方平台: ${platform}`);
         }
     }
 
     /**
+     * 将文件类型映射到 Dify 支持的类型
+     * Dify 支持: image, document, audio, video, custom
+     */
+    private mapFileToDifyType(fileType: string): string {
+        const type = fileType.toLowerCase();
+        if (type.startsWith("image") || type === "image") {
+            return "image";
+        }
+        if (type.startsWith("audio") || type === "audio") {
+            return "audio";
+        }
+        if (type.startsWith("video") || type === "video") {
+            return "video";
+        }
+        // 文档类型（pdf, doc, docx, txt, md, etc.）
+        if (
+            type.startsWith("document") ||
+            type === "document" ||
+            type.includes("pdf") ||
+            type.includes("doc") ||
+            type.includes("txt") ||
+            type.includes("text")
+        ) {
+            return "document";
+        }
+        // 默认为文档类型
+        return "document";
+    }
+
+    /**
+     * 将文件类型映射到 Coze 支持的类型
+     * Coze object_string 支持: text, file, image, audio
+     */
+    private mapFileToCozeType(fileType: string): string {
+        const type = fileType.toLowerCase();
+        if (type.startsWith("image") || type === "image") {
+            return "image";
+        }
+        if (type.startsWith("audio") || type === "audio") {
+            return "audio";
+        }
+        // Coze 使用 "file" 类型处理文档和其他文件
+        return "file";
+    }
+
+    /**
      * 调用 Dify API（阻塞模式）
+     * @param config 第三方配置
+     * @param query 用户查询
+     * @param conversationId 会话ID
+     * @param files 文件列表（附件）
      */
     private async callDifyAPI(
         config: ThirdPartyConfig,
         query: string,
         conversationId?: string,
+        files?: Array<{ type: string; url: string }>,
     ): Promise<{
         response: string;
         conversationId: string;
@@ -711,6 +840,16 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
 
         if (conversationId) {
             body.conversation_id = conversationId;
+        }
+
+        // 添加文件（附件）支持
+        if (files && files.length > 0) {
+            body.files = files.map((file) => ({
+                type: this.mapFileToDifyType(file.type),
+                transfer_method: "remote_url",
+                url: file.url,
+            }));
+            this.logger.log(`[Dify] Sending ${files.length} files with blocking request`);
         }
 
         this.logger.debug(`[Dify] Calling API: ${url}`);
@@ -752,6 +891,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
      * @param conversationId 会话ID
      * @param res 响应对象
      * @param agent 智能体配置（用于获取自动追问配置）
+     * @param files 文件列表（附件）
      */
     private async callDifyStreamAPI(
         config: ThirdPartyConfig,
@@ -759,6 +899,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
         conversationId: string | undefined,
         res: Response,
         agent?: Agent,
+        files?: Array<{ type: string; url: string }>,
     ): Promise<{
         fullContent: string;
         conversationId: string;
@@ -775,6 +916,17 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
 
         if (conversationId) {
             body.conversation_id = conversationId;
+        }
+
+        // 添加文件（附件）支持
+        // Dify 文件格式: { type: "image"|"document"|..., transfer_method: "remote_url", url: "..." }
+        if (files && files.length > 0) {
+            body.files = files.map((file) => ({
+                type: this.mapFileToDifyType(file.type),
+                transfer_method: "remote_url",
+                url: file.url,
+            }));
+            this.logger.log(`[Dify] Sending ${files.length} files with request`);
         }
 
         this.logger.log(`[Dify] Calling Stream API: ${url}, query: ${query.substring(0, 50)}`);
@@ -977,17 +1129,52 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
     /**
      * 调用 Coze API（阻塞模式）
      * Coze API 文档: https://www.coze.cn/docs/developer_guides/chat_v3
+     * @param config 第三方配置
+     * @param query 用户查询
+     * @param conversationId 会话ID
+     * @param files 文件列表（附件）
      */
     private async callCozeAPI(
         config: ThirdPartyConfig,
         query: string,
         conversationId?: string,
+        files?: Array<{ type: string; url: string }>,
     ): Promise<{
         response: string;
         conversationId: string;
         tokenUsage?: AgentChatResponse["tokenUsage"];
     }> {
         const url = `${config.baseURL}/v3/chat`;
+
+        // 构建消息内容
+        let messageContent: string | object[];
+        let contentType = "text";
+
+        if (files && files.length > 0) {
+            // 使用 object_string 格式发送文件
+            const contentParts: object[] = [];
+
+            if (query) {
+                contentParts.push({
+                    type: "text",
+                    text: query,
+                });
+            }
+
+            for (const file of files) {
+                const cozeFileType = this.mapFileToCozeType(file.type);
+                contentParts.push({
+                    type: cozeFileType,
+                    file_url: file.url,
+                });
+            }
+
+            messageContent = contentParts;
+            contentType = "object_string";
+            this.logger.log(`[Coze] Sending ${files.length} files with blocking request`);
+        } else {
+            messageContent = query;
+        }
 
         const body: Record<string, any> = {
             bot_id: config.appId || config.extendedConfig?.botId,
@@ -997,8 +1184,11 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
             additional_messages: [
                 {
                     role: "user",
-                    content: query,
-                    content_type: "text",
+                    content:
+                        contentType === "object_string"
+                            ? JSON.stringify(messageContent)
+                            : messageContent,
+                    content_type: contentType,
                 },
             ],
         };
@@ -1046,18 +1236,60 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
 
     /**
      * 调用 Coze 流式 API
+     * @param config 第三方配置
+     * @param query 用户查询
+     * @param conversationId 会话ID
+     * @param res 响应对象
+     * @param files 文件列表（附件）
      */
     private async callCozeStreamAPI(
         config: ThirdPartyConfig,
         query: string,
         conversationId: string | undefined,
         res: Response,
+        files?: Array<{ type: string; url: string }>,
     ): Promise<{
         fullContent: string;
         conversationId: string;
         tokenUsage?: AgentChatResponse["tokenUsage"];
     }> {
         const url = `${config.baseURL}/v3/chat`;
+
+        // 构建消息内容
+        // Coze 支持 object_string 格式来发送多模态内容（包括文件）
+        let messageContent: string | object[];
+        let contentType = "text";
+
+        if (files && files.length > 0) {
+            // 使用 object_string 格式发送文件
+            // 格式: [{ type: "text", text: "..." }, { type: "file", file_url: "..." }, { type: "image", file_url: "..." }]
+            const contentParts: object[] = [];
+
+            // 添加文本部分
+            if (query) {
+                contentParts.push({
+                    type: "text",
+                    text: query,
+                });
+            }
+
+            // 添加文件部分
+            for (const file of files) {
+                const cozeFileType = this.mapFileToCozeType(file.type);
+                contentParts.push({
+                    type: cozeFileType,
+                    file_url: file.url,
+                });
+            }
+
+            messageContent = contentParts;
+            contentType = "object_string";
+            this.logger.log(
+                `[Coze] Sending ${files.length} files with request using object_string format`,
+            );
+        } else {
+            messageContent = query;
+        }
 
         const body: Record<string, any> = {
             bot_id: config.appId || config.extendedConfig?.botId,
@@ -1067,8 +1299,11 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
             additional_messages: [
                 {
                     role: "user",
-                    content: query,
-                    content_type: "text",
+                    content:
+                        contentType === "object_string"
+                            ? JSON.stringify(messageContent)
+                            : messageContent,
+                    content_type: contentType,
                 },
             ],
         };
@@ -1109,6 +1344,15 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
         // Coze SSE 格式: "event: xxx\ndata: {json}"
         // 需要同时解析 event 行和 data 行
         let currentEventType = "";
+
+        // 追踪工具调用，用于匹配 function_call 和 tool_response
+        // key: function_call 的消息 ID，value: { toolId, toolName, input }
+        const pendingToolCalls: Map<
+            string,
+            { toolId: string; toolName: string; input: Record<string, any> }
+        > = new Map();
+        // 按顺序存储待处理的工具调用 ID（用于顺序匹配）
+        const pendingToolCallIds: string[] = [];
 
         try {
             while (true) {
@@ -1172,6 +1416,15 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                                         const funcCall = JSON.parse(data.content || "{}");
                                         const toolId = data.id || `tool_${Date.now()}`;
                                         const toolName = funcCall.name || "unknown_tool";
+                                        const toolInput = funcCall.arguments || {};
+
+                                        // 保存工具调用信息，用于后续 tool_response 匹配
+                                        pendingToolCalls.set(toolId, {
+                                            toolId,
+                                            toolName,
+                                            input: toolInput,
+                                        });
+                                        pendingToolCallIds.push(toolId);
 
                                         res.write(
                                             `data: ${JSON.stringify({
@@ -1180,7 +1433,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                                                     id: toolId,
                                                     mcpServer: { name: "Coze", id: "coze" },
                                                     tool: { name: toolName, description: "" },
-                                                    input: funcCall.arguments || {},
+                                                    input: toolInput,
                                                     output: null,
                                                     timestamp: Date.now(),
                                                     status: "pending",
@@ -1192,18 +1445,38 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                                             `[Coze] Failed to parse function_call: ${data.content}`,
                                         );
                                     }
-                                } else if (messageType === "tool_output") {
+                                } else if (
+                                    messageType === "tool_output" ||
+                                    messageType === "tool_response"
+                                ) {
                                     // 工具输出结果 - 更新状态为 success
-                                    const toolId = data.id || `tool_${Date.now()}`;
+                                    // Coze 的 tool_response/tool_output 可能没有直接关联到 function_call 的 ID
+                                    // 按顺序匹配：取第一个待处理的工具调用
+                                    let matchedToolId = pendingToolCallIds.shift();
+                                    let matchedToolInfo = matchedToolId
+                                        ? pendingToolCalls.get(matchedToolId)
+                                        : null;
+
+                                    if (!matchedToolId) {
+                                        // 如果没有待处理的工具调用，使用当前消息 ID
+                                        matchedToolId = data.id || `tool_${Date.now()}`;
+                                    }
+
+                                    if (matchedToolInfo) {
+                                        pendingToolCalls.delete(matchedToolInfo.toolId);
+                                    }
 
                                     res.write(
                                         `data: ${JSON.stringify({
                                             type: "mcp_tool_result",
                                             data: {
-                                                id: toolId,
+                                                id: matchedToolId,
                                                 mcpServer: { name: "Coze", id: "coze" },
-                                                tool: { name: "tool", description: "" },
-                                                input: {},
+                                                tool: {
+                                                    name: matchedToolInfo?.toolName || "tool",
+                                                    description: "",
+                                                },
+                                                input: matchedToolInfo?.input || {},
                                                 output: data.content,
                                                 timestamp: Date.now(),
                                                 status: "success",

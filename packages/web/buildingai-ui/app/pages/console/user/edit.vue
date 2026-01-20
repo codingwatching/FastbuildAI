@@ -57,15 +57,8 @@ const handleSubmit = async (formData: UserUpdateRequest | UserCreateRequest) => 
     try {
         // 移除更新时不需要的字段
 
-        const {
-            username,
-            password,
-            isRoot,
-            totalRechargeAmount,
-            level,
-            levelEndTime,
-            ...submitData
-        } = formData as UserInfo;
+        const { username, password, isRoot, totalRechargeAmount, ...submitData } =
+            formData as UserInfo;
 
         await apiUpdateUser(userId.value, submitData as UserUpdateRequest);
         message.success(t("user.backend.messages.updateSuccess"));

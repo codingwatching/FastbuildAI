@@ -26,6 +26,7 @@ import { SYSTEM_CONFIG } from "@common/constants";
 import { PermissionService } from "@modules/permission/services/permission.service";
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import fse from "fs-extra";
+import { machineId } from "node-machine-id";
 import * as path from "path";
 
 import { ExtensionUpgradeOrchestratorService } from "../extension-upgrade/extension-upgrade-orchestrator.service";

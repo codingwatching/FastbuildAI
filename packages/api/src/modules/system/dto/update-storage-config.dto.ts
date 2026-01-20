@@ -7,7 +7,6 @@ import {
     IsBoolean,
     IsEnum,
     IsNotEmpty,
-    IsOptional,
     IsString,
     IsUrl,
     Validate,

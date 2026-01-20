@@ -75,6 +75,7 @@
         "memberCenter": "会員センター"
     },
     "dateGroup": {
+        "pinned": "ピン留め",
         "today": "今日",
         "yesterday": "昨日",
         "week": "7日以内",
@@ -267,6 +268,8 @@
         "confirmDelete": "会話を完全に削除",
         "confirmDeleteMessage": "削除後、この会話は復元できません。削除しますか？",
         "confirmDeleteAction": "削除する",
+        "pin": "ピン留め",
+        "unpin": "ピン留め解除",
         "editChatTitle": "会話タイトルを編集",
         "chatTitleLabel": "会話タイトル",
         "chatTitlePlaceholder": "会話タイトルを入力してください",

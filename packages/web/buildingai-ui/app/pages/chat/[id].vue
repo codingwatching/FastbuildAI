@@ -69,6 +69,10 @@ const initialMessages = messagesData.value.items.map((item: AiMessage) => {
         content: item.errorMessage || item.content,
         status: item.errorMessage ? ("failed" as const) : ("completed" as const),
         mcpToolCalls: item.mcpToolCalls,
+        // 只保留助手消息的创建时间，用户消息不需要
+        ...(item.role === "assistant" && { createdAt: item.createdAt }),
+        updatedAt: item.updatedAt,
+        avatar: item.avatar,
     };
 });
 
@@ -140,6 +144,11 @@ async function loadMoreMessages(): Promise<void> {
                 content: item.errorMessage || item.content,
                 status: item.errorMessage ? ("failed" as const) : ("completed" as const),
                 mcpToolCalls: item.mcpToolCalls,
+                // 只保留助手消息的创建时间，用户消息不需要
+                ...(item.role === "assistant" && { createdAt: item.createdAt }),
+                updatedAt: item.updatedAt,
+                avatar: item.avatar,
+                metadata: item.metadata,
             }),
         );
         messages.value.unshift(...newMessages);

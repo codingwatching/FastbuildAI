@@ -170,7 +170,11 @@ onMounted(() => {
                                 {{ $t("extensions.market.updateTime") }}
                             </h4>
                             <p class="text-accent-foreground dark:text-gray-400">
-                                {{ extension.updatedAt || extension.createdAt }}
+                                <TimeDisplay
+                                    v-if="extension.updatedAt"
+                                    :datetime="extension.updatedAt || extension.createdAt"
+                                    mode="datetime"
+                                />
                             </p>
                         </div>
 

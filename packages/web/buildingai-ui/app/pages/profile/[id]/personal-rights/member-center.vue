@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { PayConfigPayType, type PayConfigType } from "@buildingai/constants/shared";
 import type {
     MemberCenterInfo,
     MembershipOrderInfo,
@@ -41,7 +42,7 @@ const state = reactive({
     paymentMethods: [] as PaymentMethod[],
     selectedPlanIndex: 0,
     selectedLevelIndex: 0,
-    selectedPaymentMethod: 1,
+    selectedPaymentMethod: PayConfigPayType.WECHAT as PayConfigType,
     membershipSuccess: false,
     isQrCodeExpired: false,
     membershipStatus: false,

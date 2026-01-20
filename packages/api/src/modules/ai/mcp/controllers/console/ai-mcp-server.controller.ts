@@ -294,6 +294,13 @@ export class AiMcpServerConsoleController extends BaseController {
                         type: "string",
                         enum: Object.values(McpCommunicationType),
                     },
+                    headers: {
+                        type: "object",
+                        patternProperties: {
+                            "^.*$": { type: "string" },
+                        },
+                        additionalProperties: false,
+                    },
                     customHeaders: {
                         type: "object",
                         patternProperties: {
@@ -302,7 +309,7 @@ export class AiMcpServerConsoleController extends BaseController {
                         additionalProperties: false,
                     },
                 },
-                required: ["url"],
+                required: ["url", "type"],
                 additionalProperties: false,
             };
 

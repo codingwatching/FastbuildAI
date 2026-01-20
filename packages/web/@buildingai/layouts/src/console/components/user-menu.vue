@@ -11,6 +11,8 @@ import { useColorMode } from "@vueuse/core";
 
 import type { DropdownMenuItem } from "#ui/types";
 
+const SystemInfoModal = defineAsyncComponent(() => import("./system-info-modal.vue"));
+
 const props = defineProps<{
     /** 显示模式：'sidebar' 或 'mixture' */
     mode: "sidebar" | "mixture";
@@ -39,6 +41,12 @@ const userStore = useUserStore();
 
 const languageCookie = useCookie<LanguageCode>("nuxt-ui-language");
 const open = shallowRef<boolean>(false);
+const overlay = useOverlay();
+
+const openSystemInfo = async () => {
+    const modal = overlay.create(SystemInfoModal);
+    await modal.open();
+};
 
 const currentThemeMode = computed(() => {
     if (store.value === "auto")
@@ -219,6 +227,14 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
         },
     ],
     [
+        {
+            label: t("layouts.systemInfo.title"),
+            icon: "i-tabler-info-circle",
+            onSelect(e: MouseEvent) {
+                e.preventDefault();
+                void openSystemInfo();
+            },
+        },
         {
             label: t("layouts.officeLink"),
             icon: "i-lucide-external-link",

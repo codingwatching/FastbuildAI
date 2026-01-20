@@ -143,6 +143,8 @@ const initialMessages = computed(() => {
         id: item.id || uuid(),
         avatar: agent.value?.chatAvatar || agent.value?.avatar,
         status: "completed" as const,
+        // 只保留助手消息的创建时间，用户消息不需要
+        ...(item.role === "assistant" && { createdAt: item.createdAt }),
     }));
 });
 
@@ -278,6 +280,8 @@ const loadMoreMessages = async () => {
                 content: item.content,
                 status: "completed" as const,
                 mcpToolCalls: item.mcpToolCalls,
+                // 只保留助手消息的创建时间，用户消息不需要
+                ...(item.role === "assistant" && { createdAt: item.createdAt }),
             })) || [];
 
         messages.value.unshift(...newMessages);
@@ -838,10 +842,13 @@ useHead({
                     <ChatsPrompt
                         v-model="input"
                         v-model:file-list="files"
+                        :needAuth="true"
                         :is-loading="isLoading"
                         :placeholder="t('ai-chat.frontend.and', { name: agent.name })"
                         :attachmentSizeLimit="chatConfig?.attachmentSizeLimit"
                         :model-features="agent.modelFeatures"
+                        :agent-create-mode="agent.createMode"
+                        :file-upload-config="agent.fileUploadConfig"
                         class="sticky bottom-0 z-10 [view-transition-name:chat-prompt]"
                         :rows="1"
                         @stop="stop"

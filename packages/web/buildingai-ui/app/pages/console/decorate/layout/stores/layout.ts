@@ -26,8 +26,9 @@ export const useLayoutStore = defineStore("layout", () => {
     }));
 
     // 计算属性：导航配置（用于布局组件显示）
+    // 过滤掉隐藏的菜单项，确保预览面板同步隐藏状态
     const navigationConfig = computed<NavigationConfig>(() => ({
-        items: currentMenus.value,
+        items: currentMenus.value.filter((item) => !item.isHidden),
     }));
 
     /**

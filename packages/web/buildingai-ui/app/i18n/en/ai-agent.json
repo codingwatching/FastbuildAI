@@ -6,7 +6,9 @@
         "search": {
             "placeholder": "Search agent name, description, or ID",
             "allStatus": "All Status",
-            "filterByStatus": "Filter by Status"
+            "filterByStatus": "Filter by Status",
+            "allMode": "All",
+            "filterByMode": "Filter by Creation Mode"
         },
         "create": {
             "title": "Create Agent",
@@ -66,8 +68,9 @@
             "formVariable": "Form Variable",
             "formVariableDesc": "Variables will be filled via form before chat",
             "formVariableDesc2": "Form inputs replace variables in role prompt.",
-            "formVariableNameEmpty": "Field name required",
-            "formVariableLabelEmpty": "Field label required",
+            "formVariableNameEmpty": "Variable name cannot be empty",
+            "formVariableNameInvalid": "Variable name can only contain English letters, numbers, and underscores",
+            "formVariableLabelEmpty": "Display name cannot be empty",
             "formVariableTypeEmpty": "Field type required",
             "formVariableNameExists": "Name exists, use another",
             "formVariableEditTitle": "Edit Form Variable",
@@ -78,8 +81,8 @@
             "formVariableTypeTextarea": "Textarea",
             "formVariableTypeSelect": "Select",
             "formVariableName": "Variable Name",
-            "formVariableNamePlaceholder": "Enter variable name",
-            "formVariableLabel": "Field Label",
+            "formVariableNamePlaceholder": "Enter variable name, only English letters, numbers, and underscores are allowed",
+            "formVariableLabel": "Display Name",
             "formVariableLabelPlaceholder": "Enter field label",
             "formVariableOptions": "Options",
             "formVariableOptionsPlaceholder": "Enter options",
@@ -322,6 +325,9 @@
                 "urlRequired": "Please enter a URL first"
             },
             "success": "DSL file imported successfully!",
+            "batchSuccess": "Successfully imported {count} file(s)",
+            "partialSuccess": "Successfully imported {success} of {total} file(s)",
+            "batchFailed": "All files failed to import, please check the file format",
             "form": {
                 "urlLabel": "URL",
                 "urlPlaceholder": "Enter the DSL file URL"

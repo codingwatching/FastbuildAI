@@ -114,6 +114,9 @@
             "allTypes": "全タイプ"
         },
         "add": "プラグイン作成",
+        "myApps": "マイアプリ",
+        "installApp": "アプリをインストール",
+        "developApp": "アプリを開発",
         "store": "市場インストール",
         "selectType": "プラグインタイプを選択",
         "noDescription": "説明はありません",
@@ -146,6 +149,31 @@
             "disableError": "アプリの無効化に失敗",
             "uninstallSuccess": "アプリ \"{name}\" をアンインストールしました",
             "uninstallError": "アプリのアンインストールに失敗"
+        },
+        "uninstall": {
+            "title": "アプリのアンインストール",
+            "btn": "アンインストール",
+            "description": "アプリをアンインストールすると、既存のデータがすべて削除されます。この操作は元に戻せません。",
+            "descriptionWarning": "システムをバックアップしてから慎重に操作してください！",
+            "confirmText": "保持しない",
+            "cancelText": "保持"
+        },
+        "installActivation": {
+            "title": "アプリをインストール",
+            "activationCodeRequired": "引き換えコードを入力してください",
+            "activationCodeInvalid": "引き換えコードが無効です。対応するアプリが見つかりません。引き換えコードが正しいか確認してください",
+            "queryFailed": "アプリのクエリに失敗",
+            "installSuccess": "インストール成功",
+            "installFailed": "アプリのインストールに失敗",
+            "activationCodeLabel": "引き換えコード",
+            "activationCodeDescription": "アプリ市場の【個人センター】->【",
+            "activationCodeDescriptionLink": "アプリ管理",
+            "activationCodeDescriptionSuffix": "】にアクセスして引き換えコードをコピーしてください",
+            "activationCodePlaceholder": "入力してください",
+            "cancel": "キャンセル",
+            "query": "クエリ",
+            "confirmInstall": "インストールを確認",
+            "installing": "インストール中..."
         },
         "empty": {
             "title": "アプリはありません",

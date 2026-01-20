@@ -356,6 +356,19 @@ export class AiAgentService extends BaseService<Agent> {
             }
         }
 
+        // 创建模式筛选
+        if (dto.createMode) {
+            if (dto.keyword) {
+                queryBuilder.andWhere("agent.createMode = :createMode", {
+                    createMode: dto.createMode,
+                });
+            } else {
+                queryBuilder.where("agent.createMode = :createMode", {
+                    createMode: dto.createMode,
+                });
+            }
+        }
+
         // 标签筛选：必须同时拥有所有指定的标签（AND 逻辑）
         if (dto.tagIds?.length) {
             const whereCondition = dto.keyword || dto.isPublic !== undefined ? "andWhere" : "where";
@@ -771,9 +784,18 @@ export class AiAgentService extends BaseService<Agent> {
      * 通过发布令牌获取公开智能体信息
      * @description 只返回公开可见的字段，过滤掉所有私密信息
      */
-    async getPublicAgentByToken(
-        publishToken: string,
-    ): Promise<Agent & { modelFeatures?: string[] }> {
+    async getPublicAgentByToken(publishToken: string): Promise<
+        Agent & {
+            modelFeatures?: string[];
+            fileUploadConfig?: {
+                enabled?: boolean;
+                allowedFileExtensions?: string[];
+                allowedFileTypes?: string[];
+                numberLimits?: number;
+                fileSizeLimit?: number;
+            };
+        }
+    > {
         const agent = await this.agentRepository
             .createQueryBuilder("agent")
             .select([
@@ -795,6 +817,8 @@ export class AiAgentService extends BaseService<Agent> {
                 "agent.formFields",
                 "agent.quickCommands",
                 "agent.modelConfig",
+                "agent.createMode",
+                "agent.thirdPartyIntegration",
             ])
             .leftJoin("agent.tags", "tag")
             .addSelect(["tag.id", "tag.name", "tag.type", "tag.createdAt", "tag.updatedAt"])
@@ -819,13 +843,51 @@ export class AiAgentService extends BaseService<Agent> {
             modelFeatures = model?.features || [];
         }
 
-        // 移除敏感的 modelConfig，只返回 modelFeatures
-        const { modelConfig: _modelConfig, ...publicAgent } = agent;
+        // 获取第三方平台的文件上传配置
+        let fileUploadConfig:
+            | {
+                  enabled?: boolean;
+                  allowedFileExtensions?: string[];
+                  allowedFileTypes?: string[];
+                  numberLimits?: number;
+                  fileSizeLimit?: number;
+              }
+            | undefined;
+
+        // 如果是 Dify 智能体，获取 Dify 的文件上传配置
+        if (
+            agent.createMode === "dify" &&
+            agent.thirdPartyIntegration?.apiKey &&
+            agent.thirdPartyIntegration?.baseURL
+        ) {
+            try {
+                const difyParams = await this.thirdPartyIntegrationHandler.fetchDifyParameters({
+                    apiKey: agent.thirdPartyIntegration.apiKey,
+                    baseURL: agent.thirdPartyIntegration.baseURL,
+                });
+                fileUploadConfig = difyParams.fileUploadConfig;
+            } catch {
+                // 获取 Dify 参数失败时忽略，使用默认配置
+            }
+        }
+
+        // 移除敏感的 modelConfig 和 thirdPartyIntegration，只返回安全的公开信息
+        const { modelConfig: _modelConfig, thirdPartyIntegration: _tpi, ...publicAgent } = agent;
 
         return {
             ...publicAgent,
             modelFeatures,
-        } as Agent & { modelFeatures?: string[] };
+            fileUploadConfig,
+        } as Agent & {
+            modelFeatures?: string[];
+            fileUploadConfig?: {
+                enabled?: boolean;
+                allowedFileExtensions?: string[];
+                allowedFileTypes?: string[];
+                numberLimits?: number;
+                fileSizeLimit?: number;
+            };
+        };
     }
 
     /**
@@ -841,6 +903,43 @@ export class AiAgentService extends BaseService<Agent> {
         }
 
         return agent as Agent;
+    }
+
+    /**
+     * 获取智能体的文件上传配置
+     * 对于 Dify 智能体，从 Dify 平台获取文件上传配置
+     * @param agentId 智能体ID
+     * @returns 文件上传配置
+     */
+    async getAgentFileUploadConfig(agentId: string): Promise<{
+        enabled?: boolean;
+        allowedFileExtensions?: string[];
+        allowedFileTypes?: string[];
+        numberLimits?: number;
+        fileSizeLimit?: number;
+    } | null> {
+        const agent = await this.getAgentDetail(agentId);
+
+        // 如果是 Dify 智能体，获取 Dify 的文件上传配置
+        if (
+            agent.createMode === "dify" &&
+            agent.thirdPartyIntegration?.apiKey &&
+            agent.thirdPartyIntegration?.baseURL
+        ) {
+            try {
+                const difyParams = await this.thirdPartyIntegrationHandler.fetchDifyParameters({
+                    apiKey: agent.thirdPartyIntegration.apiKey,
+                    baseURL: agent.thirdPartyIntegration.baseURL,
+                });
+                return difyParams.fileUploadConfig || null;
+            } catch {
+                // 获取 Dify 参数失败时返回 null
+                return null;
+            }
+        }
+
+        // 非 Dify 智能体返回 null（前端会使用默认配置）
+        return null;
     }
 
     /**
