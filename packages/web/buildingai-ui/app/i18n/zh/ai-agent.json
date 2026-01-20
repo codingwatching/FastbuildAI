@@ -83,7 +83,7 @@
             "formVariableName": "变量名",
             "formVariableNamePlaceholder": "请输入变量名，只可以设置为英文、数字下划线等",
             "formVariableLabel": "显示名称",
-            "formVariableLabelPlaceholder": "请输入字段标签",
+            "formVariableLabelPlaceholder": "请输入显示名称",
             "formVariableOptions": "选项列表",
             "formVariableOptionsPlaceholder": "请输入选项列表",
             "formVariableOptionsAdd": "添加选项",

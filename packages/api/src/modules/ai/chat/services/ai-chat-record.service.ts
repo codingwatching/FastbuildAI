@@ -88,13 +88,15 @@ export class AiChatRecordService extends BaseService<AiChatRecord> {
             const excludeFields = includeUserInfo ? ["user.password", "user.openid"] : [];
 
             // 构建查询选项
+            // 前端需要置顶优先；后台不需要置顶优先（仅按更新时间排序）
+            const order = includeUserInfo
+                ? { updatedAt: "DESC" as const }
+                : { isPinned: "DESC" as const, updatedAt: "DESC" as const };
+
             const queryOptions = {
                 where: whereConditions,
                 relations,
-                order: {
-                    isPinned: "DESC" as const,
-                    updatedAt: "DESC" as const,
-                },
+                order,
                 excludeFields,
             };
 
