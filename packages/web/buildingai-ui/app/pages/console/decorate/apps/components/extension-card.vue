@@ -58,11 +58,15 @@ const selectExtension = () => {
                         }}
                     </UBadge>
                     <UBadge
-                        :color="props.extension.aliasShow ? 'primary' : 'neutral'"
+                        :color="
+                            props.extension.aliasShow && props.extension.status === 1
+                                ? 'primary'
+                                : 'neutral'
+                        "
                         variant="soft"
                     >
                         {{
-                            props.extension.aliasShow
+                            props.extension.aliasShow && props.extension.status === 1
                                 ? t("decorate.apps.extensionCard.aliasVisible")
                                 : t("decorate.apps.extensionCard.aliasHidden")
                         }}
