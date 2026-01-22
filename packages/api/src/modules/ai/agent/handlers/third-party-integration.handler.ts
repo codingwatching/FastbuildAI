@@ -266,14 +266,16 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
      * 调用 Dify /messages/{message_id}/suggested 接口
      * @param config 第三方配置（包含 apiKey 和 baseURL）
      * @param messageId 消息ID
+     * @param userId 用户ID
      * @returns 推荐问题列表
      */
     async fetchDifySuggestedQuestions(
         config: { apiKey: string; baseURL: string },
         messageId: string,
+        userId: string,
     ): Promise<string[]> {
         // Dify API 要求传递 user 参数
-        const url = `${config.baseURL}/messages/${messageId}/suggested?user=buildingai-user`;
+        const url = `${config.baseURL}/messages/${messageId}/suggested?user=${encodeURIComponent(userId)}`;
 
         this.logger.log(`[Dify] Fetching suggested questions from: ${url}`);
 
@@ -483,6 +485,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
             userMessage,
             enhancedDto.conversationId,
             userFiles,
+            user.id,
         );
 
         // 保存第三方对话ID到metadata
@@ -589,6 +592,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                 res,
                 agent,
                 userFiles,
+                user.id,
             );
 
             // 保存第三方对话ID到metadata
@@ -704,6 +708,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
      * @param query 用户查询
      * @param conversationId 会话ID
      * @param files 文件列表（附件）
+     * @param userId 用户ID
      */
     private async callThirdPartyAPI(
         platform: string,
@@ -711,6 +716,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
         query: string,
         conversationId?: string,
         files?: Array<{ type: string; url: string }>,
+        userId?: string,
     ): Promise<{
         response: string;
         conversationId: string;
@@ -718,9 +724,9 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
     }> {
         switch (platform) {
             case "dify":
-                return await this.callDifyAPI(config, query, conversationId, files);
+                return await this.callDifyAPI(config, query, conversationId, files, userId);
             case "coze":
-                return await this.callCozeAPI(config, query, conversationId, files);
+                return await this.callCozeAPI(config, query, conversationId, files, userId);
             default:
                 throw new BadRequestException(`不支持的第三方平台: ${platform}`);
         }
@@ -735,6 +741,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
      * @param res 响应对象
      * @param agent 智能体配置（用于获取自动追问配置）
      * @param files 文件列表（附件）
+     * @param userId 用户ID
      */
     private async callThirdPartyStreamAPI(
         platform: string,
@@ -744,6 +751,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
         res: Response,
         agent?: Agent,
         files?: Array<{ type: string; url: string }>,
+        userId?: string,
     ): Promise<{
         fullContent: string;
         conversationId: string;
@@ -758,9 +766,17 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                     res,
                     agent,
                     files,
+                    userId,
                 );
             case "coze":
-                return await this.callCozeStreamAPI(config, query, conversationId, res, files);
+                return await this.callCozeStreamAPI(
+                    config,
+                    query,
+                    conversationId,
+                    res,
+                    files,
+                    userId,
+                );
             default:
                 throw new BadRequestException(`不支持的第三方平台: ${platform}`);
         }
@@ -818,12 +834,14 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
      * @param query 用户查询
      * @param conversationId 会话ID
      * @param files 文件列表（附件）
+     * @param userId 用户ID
      */
     private async callDifyAPI(
         config: ThirdPartyConfig,
         query: string,
         conversationId?: string,
         files?: Array<{ type: string; url: string }>,
+        userId?: string,
     ): Promise<{
         response: string;
         conversationId: string;
@@ -835,7 +853,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
             inputs: {},
             query,
             response_mode: "blocking",
-            user: "buildingai-user",
+            user: userId,
         };
 
         if (conversationId) {
@@ -892,6 +910,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
      * @param res 响应对象
      * @param agent 智能体配置（用于获取自动追问配置）
      * @param files 文件列表（附件）
+     * @param userId 用户ID
      */
     private async callDifyStreamAPI(
         config: ThirdPartyConfig,
@@ -900,6 +919,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
         res: Response,
         agent?: Agent,
         files?: Array<{ type: string; url: string }>,
+        userId?: string,
     ): Promise<{
         fullContent: string;
         conversationId: string;
@@ -911,7 +931,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
             inputs: {},
             query,
             response_mode: "streaming",
-            user: "buildingai-user",
+            user: userId,
         };
 
         if (conversationId) {
@@ -1101,6 +1121,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
                 const suggestedQuestions = await this.fetchDifySuggestedQuestions(
                     { apiKey: config.apiKey, baseURL: config.baseURL },
                     messageId,
+                    userId,
                 );
 
                 if (suggestedQuestions.length > 0) {
@@ -1133,12 +1154,14 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
      * @param query 用户查询
      * @param conversationId 会话ID
      * @param files 文件列表（附件）
+     * @param userId 用户ID
      */
     private async callCozeAPI(
         config: ThirdPartyConfig,
         query: string,
         conversationId?: string,
         files?: Array<{ type: string; url: string }>,
+        userId?: string,
     ): Promise<{
         response: string;
         conversationId: string;
@@ -1178,7 +1201,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
 
         const body: Record<string, any> = {
             bot_id: config.appId || config.extendedConfig?.botId,
-            user_id: "buildingai-user",
+            user_id: userId,
             stream: false,
             auto_save_history: true,
             additional_messages: [
@@ -1241,6 +1264,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
      * @param conversationId 会话ID
      * @param res 响应对象
      * @param files 文件列表（附件）
+     * @param userId 用户ID
      */
     private async callCozeStreamAPI(
         config: ThirdPartyConfig,
@@ -1248,6 +1272,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
         conversationId: string | undefined,
         res: Response,
         files?: Array<{ type: string; url: string }>,
+        userId?: string,
     ): Promise<{
         fullContent: string;
         conversationId: string;
@@ -1293,7 +1318,7 @@ export class ThirdPartyIntegrationHandler implements IThirdPartyIntegrationHandl
 
         const body: Record<string, any> = {
             bot_id: config.appId || config.extendedConfig?.botId,
-            user_id: "buildingai-user",
+            user_id: userId,
             stream: true,
             auto_save_history: true,
             additional_messages: [
