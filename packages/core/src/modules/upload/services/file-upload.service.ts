@@ -517,4 +517,63 @@ export class FileUploadService extends BaseService<File> {
             presetUrl: fileUrl,
         };
     }
+
+    /**
+     * Save OSS file record to database
+     *
+     * @param params OSS file information
+     * @param request Express request object
+     * @returns Upload result with file ID
+     */
+    async saveOSSFileRecord(
+        params: {
+            url: string;
+            originalName: string;
+            size: number;
+            extension?: string;
+            type?: string;
+            description?: string;
+            path?: string;
+        },
+        request: Request,
+        extensionId?: string,
+    ): Promise<UploadFileResult> {
+        const clientIp = RequestUtil.getClientIP(request);
+        const uploaderId = RequestUtil.getUploaderId(request);
+
+        // Get effective extensionId from options or request path
+        const effectiveExtensionId = RequestUtil.getEffectiveExtensionId(request, extensionId);
+
+        // Determine MIME type and file type
+        const mimeType =
+            params.type || mime.lookup(params.originalName) || "application/octet-stream";
+        const fileExtension =
+            params.extension || path.extname(params.originalName).replace(".", "").toLowerCase();
+        const fileType = FileTypeDetector.detect(mimeType);
+
+        // Save to database
+        const savedFile = await this.create({
+            url: params.url,
+            ip: clientIp,
+            originalName: params.originalName,
+            storageName: path.basename(params.path || params.url) || params.originalName,
+            type: fileType,
+            mimeType: mimeType,
+            size: params.size,
+            extension: fileExtension,
+            path: params.path || params.url,
+            description: params.description || null,
+            uploaderId,
+            extensionIdentifier: effectiveExtensionId || null,
+        });
+
+        return {
+            id: savedFile.id,
+            url: savedFile.url,
+            originalName: savedFile.originalName,
+            size: savedFile.size,
+            mimeType: savedFile.mimeType,
+            extension: savedFile.extension,
+        };
+    }
 }

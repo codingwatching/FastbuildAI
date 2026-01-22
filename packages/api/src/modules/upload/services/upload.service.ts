@@ -176,4 +176,27 @@ export class UploadService extends BaseService<File> {
             extensionId ? { extensionId } : undefined,
         );
     }
+
+    /**
+     * Save OSS file record to database
+     *
+     * @param dto OSS file information
+     * @param request Express request object
+     * @returns Upload result with file ID
+     */
+    async saveOSSFileRecord(dto: any, request: Request): Promise<UploadFileResult> {
+        return this.fileUploadService.saveOSSFileRecord(
+            {
+                url: dto.url,
+                originalName: dto.originalName,
+                size: dto.size,
+                extension: dto.extension,
+                type: dto.type,
+                description: dto.description,
+                path: dto.path,
+            },
+            request,
+            dto.extensionId,
+        );
+    }
 }

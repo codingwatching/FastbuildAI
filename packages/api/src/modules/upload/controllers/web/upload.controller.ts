@@ -9,7 +9,11 @@ import { SYSTEM_CONFIG } from "@common/constants";
 import { WebController } from "@common/decorators/controller.decorator";
 import { QueryFileDto } from "@modules/upload/dto/query-file.dto";
 import { RemoteUploadDto } from "@modules/upload/dto/remote-upload.dto";
-import { SignatureRequestDto, UploadFileDto } from "@modules/upload/dto/upload-file.dto";
+import {
+    SaveOSSFileDto,
+    SignatureRequestDto,
+    UploadFileDto,
+} from "@modules/upload/dto/upload-file.dto";
 import {
     Body,
     Delete,
@@ -220,6 +224,20 @@ export class UploadController extends BaseController {
     async uploadRemoteFile(@Body() remoteUploadDto: RemoteUploadDto, @Req() req: Request) {
         // User info will be extracted from request in core service
         return this.uploadService.uploadRemoteFile(remoteUploadDto, req);
+    }
+
+    /**
+     * 保存 OSS 文件记录到数据库
+     *
+     * @param saveOSSFileDto OSS 文件信息
+     * @param req 请求对象
+     * @returns 上传结果（包含文件ID）
+     */
+    @Post("oss-file")
+    @BuildFileUrl(["**.url"])
+    async saveOSSFileRecord(@Body() saveOSSFileDto: SaveOSSFileDto, @Req() req: Request) {
+        // User info will be extracted from request in core service
+        return this.uploadService.saveOSSFileRecord(saveOSSFileDto, req);
     }
 
     /**
