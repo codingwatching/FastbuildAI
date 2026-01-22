@@ -1,6 +1,7 @@
 import { StorageType } from "@buildingai/constants/shared/storage-config.constant";
 import { CloudStorageService } from "@buildingai/core";
 import { Dict, StorageConfig } from "@buildingai/db/entities";
+import { DictCacheService } from "@buildingai/dict";
 import { FileUrlProcessorUtil } from "@buildingai/utils";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -25,6 +26,7 @@ export class StorageConfigService {
     constructor(
         private dataSource: DataSource,
         private readonly cloudStorageService: CloudStorageService,
+        private readonly dictCacheService: DictCacheService,
     ) {}
 
     async getAllConfigs() {
@@ -58,6 +60,8 @@ export class StorageConfigService {
 
             FileUrlProcessorUtil.clearCache();
         });
+
+        await this.dictCacheService.clearCache();
     }
 
     getActiveStorageConfig() {
