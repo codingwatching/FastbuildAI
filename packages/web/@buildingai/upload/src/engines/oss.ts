@@ -1,10 +1,12 @@
 import type { FileUploadResponse } from "@buildingai/service/common";
+import { apiSaveOSSFileRecord } from "@buildingai/service/common";
 import type {
     OssFilesUploadParams,
     OssFileUploadParams,
     OssWrappedFileUploadOptions,
 } from "../types";
 import { useStorageStore } from "../store";
+import { getExtensionId } from "../utils";
 
 async function fileUploadToOSS(
     { file, ...params }: OssFileUploadParams,
@@ -41,16 +43,34 @@ async function fileUploadToOSS(
             }
 
             // listen complete
-            xhr.addEventListener("load", () => {
+            xhr.addEventListener("load", async () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    resolve({
-                        id: "",
-                        type: "",
-                        url: fileUrl,
-                        originalName: metadata.originalName,
-                        size: metadata.size,
-                        extension: metadata.extension,
-                    });
+                    try {
+                        // Save file record to database after successful OSS upload
+                        const extensionId = getExtensionId(params.extensionId);
+                        const fileRecord = await apiSaveOSSFileRecord({
+                            url: fileUrl,
+                            originalName: metadata.originalName,
+                            size: metadata.size,
+                            extension: metadata.extension,
+                            type: metadata.type,
+                            path: fullPath,
+                            extensionId,
+                        });
+                        resolve(fileRecord);
+                    } catch (error) {
+                        console.error("[Upload] Failed to save OSS file record:", error);
+                        // Even if saving to database fails, return the upload result
+                        // The file is already uploaded to OSS
+                        resolve({
+                            id: "",
+                            type: metadata.type || "",
+                            url: fileUrl,
+                            originalName: metadata.originalName,
+                            size: metadata.size,
+                            extension: metadata.extension,
+                        });
+                    }
                 } else {
                     const error = new Error(`OSS upload failed: ${xhr.status} ${xhr.statusText}`);
                     reject(error);

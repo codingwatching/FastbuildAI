@@ -40,12 +40,7 @@ export class ExtensionWebController extends BaseController {
             extensionsList = await this.extensionMarketService.getMixedApplicationList();
         } else {
             // If no platform secret, only fetch local installed extensions
-            const installedExtensions = await this.extensionsService.findAll();
-            extensionsList = installedExtensions.map((ext) => ({
-                ...ext,
-                isInstalled: true,
-                aliasShow: true,
-            }));
+            extensionsList = await this.extensionsService.findAll();
         }
 
         // Extension filter conditions
@@ -73,13 +68,7 @@ export class ExtensionWebController extends BaseController {
         }
 
         // 默认只返回已启用且已安装的应用
-        // status 可能是布尔值 true 或数字 1 (ExtensionStatus.ENABLED)
-        extensionsList = extensionsList.filter(
-            (ext) =>
-                (ext.status === true || ext.status === 1) &&
-                ext.isInstalled === true &&
-                ext.aliasShow === true,
-        );
+        extensionsList = extensionsList.filter((ext) => ext.status === 1 && ext.aliasShow === true);
 
         return this.paginationResult(extensionsList, extensionsList.length, query);
     }

@@ -306,6 +306,37 @@ export function apiUploadFiles(
 }
 
 /**
+ * Save OSS file record to database
+ * @description Save OSS uploaded file information to database and get file ID
+ * @param params OSS file information
+ * @param params.url File URL (OSS address)
+ * @param params.originalName Original file name
+ * @param params.size File size in bytes
+ * @param params.extension File extension (optional)
+ * @param params.type File MIME type (optional)
+ * @param params.description File description (optional)
+ * @param params.extensionId Extension ID (optional)
+ * @param params.path File storage path in OSS (optional)
+ * @returns Promise with file information including file ID
+ */
+export function apiSaveOSSFileRecord(params: {
+    url: string;
+    originalName: string;
+    size: number;
+    extension?: string;
+    type?: string;
+    description?: string;
+    extensionId?: string;
+    path?: string;
+}): Promise<FileUploadResponse> {
+    const extensionId = getExtensionId(params.extensionId);
+    return useWebPost<FileUploadResponse>("/upload/oss-file", {
+        ...params,
+        ...(extensionId && { extensionId }),
+    });
+}
+
+/**
  * ==========================================
  * Currently, when initializing the system, it is uploaded to the Local by default,
  * so there is no need to wrap it here. If it is required later, it needs to be rewrapped here.
