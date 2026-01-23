@@ -1,2 +1,0 @@
-const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./PRmQctdg.js","./CCWXqQE5.js","./wsZimk3T.js","./CpEqV4sF.js","./CWpJD8K1.js","./CMd6LPC2.js"])))=>i.map(i=>d[i]);
-import{d as o,f as n,o as t,g as r,W as a,X as s}from"#entry";const p=o({__name:"mobile",setup(_){const e=a(()=>s(()=>import("./PRmQctdg.js"),__vite__mapDeps([0,1,2,3,4,5]),import.meta.url));return(i,m)=>(t(),n(r(e),{"design-id":"",terminal:"web"}))}});export{p as default};
