@@ -57,6 +57,7 @@ export class OssStorageService {
     async clearOssStsCredentials() {
         const cacheKey = `${this.CACHE_PREFIX}:oss`;
         await this.cacheService.del(cacheKey);
+        this.ossClient = null;
     }
 
     private getOssClient(config: AliyunOssConfig) {
