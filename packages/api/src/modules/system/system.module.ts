@@ -9,7 +9,6 @@ import { Permission } from "@buildingai/db/entities";
 import { Role } from "@buildingai/db/entities";
 import { UserToken } from "@buildingai/db/entities";
 import { StorageConfig } from "@buildingai/db/entities";
-import { DictModule } from "@buildingai/dict";
 import { RolePermissionService } from "@common/modules/auth/services/role-permission.service";
 import { PayModule } from "@common/modules/pay/pay.module";
 import { AuthModule } from "@modules/auth/auth.module";
@@ -33,7 +32,6 @@ import { WebsiteService } from "./services/website.service";
     imports: [
         AuthModule,
         CloudStorageModule,
-        DictModule,
         TypeOrmModule.forFeature([
             Dict,
             Permission,
