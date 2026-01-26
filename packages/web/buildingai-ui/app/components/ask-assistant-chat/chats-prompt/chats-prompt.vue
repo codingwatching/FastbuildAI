@@ -106,15 +106,16 @@ function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
 
+        // 当 isLoading 存在时，禁止回车触发
+        if (props.isLoading) {
+            return;
+        }
+
         if (!canSubmit.value) {
             return;
         }
 
-        if (props.isLoading) {
-            emits("stop");
-        } else {
-            emits("submit", inputValue.value);
-        }
+        emits("submit", inputValue.value);
     }
 }
 
