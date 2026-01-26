@@ -1,10 +1,8 @@
 <script setup lang="ts">
 definePageMeta({ auth: false });
 
-import {
-    apiGetExtensionDetailByIdentifier,
-    type ExtensionFormData,
-} from "@buildingai/service/consoleapi/extensions";
+import { type ExtensionFormData } from "@buildingai/service/consoleapi/extensions";
+import { apiGetWebExtensionDetailByIdentifier } from "@buildingai/service/webapi/extensions";
 
 const route = useRoute();
 
@@ -20,7 +18,7 @@ const { data: extensionInfo } = await useAsyncData<ExtensionFormData | null>(
     async () => {
         if (!extensionId.value) return null;
         try {
-            return await apiGetExtensionDetailByIdentifier(extensionId.value);
+            return await apiGetWebExtensionDetailByIdentifier(extensionId.value);
         } catch (error) {
             console.error("[extension] Failed to load extension info:", error);
             return null;

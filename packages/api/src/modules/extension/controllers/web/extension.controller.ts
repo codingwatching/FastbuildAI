@@ -4,9 +4,10 @@ import { ExtensionsService, QueryExtensionDto } from "@buildingai/core/modules";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
 import { DictService } from "@buildingai/dict";
+import { HttpErrorFactory } from "@buildingai/errors";
 import { WebController } from "@common/decorators/controller.decorator";
 import { ExtensionMarketService } from "@modules/extension/services/extension-market.service";
-import { Get, Query } from "@nestjs/common";
+import { Get, Param, Query } from "@nestjs/common";
 
 @WebController("extension")
 export class ExtensionWebController extends BaseController {
@@ -16,6 +17,23 @@ export class ExtensionWebController extends BaseController {
         private readonly extensionMarketService: ExtensionMarketService,
     ) {
         super();
+    }
+
+    /**
+     * Get stored extension info by identifier
+     *
+     * @param identifier Extension identifier
+     * @returns Extension details
+     */
+    @Get("detail/:identifier")
+    @BuildFileUrl(["**.aliasIcon", "**.icon"])
+    @Public()
+    async getDetailByIdentifier(@Param("identifier") identifier: string) {
+        const extension = await this.extensionsService.findByIdentifier(identifier);
+        if (!extension) {
+            throw HttpErrorFactory.notFound("Extension does not exist");
+        }
+        return extension;
     }
 
     /**
