@@ -9,5 +9,7 @@ import type { ExtensionFormData } from "../consoleapi/extensions";
 export function apiGetWebExtensionDetailByIdentifier(
     identifier: string,
 ): Promise<ExtensionFormData> {
-    return useWebGet(`/extensions/detail/${identifier}`);
+    console.log("apiGetWebExtensionDetailByIdentifier", identifier);
+
+    return useWebGet(`/extension/detail/${identifier}`);
 }

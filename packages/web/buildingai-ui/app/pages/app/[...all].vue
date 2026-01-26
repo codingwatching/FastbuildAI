@@ -2,7 +2,7 @@
 definePageMeta({ auth: false });
 
 import { type ExtensionFormData } from "@buildingai/service/consoleapi/extensions";
-import { apiGetWebExtensionDetailByIdentifier } from "@buildingai/service/webapi/extensions";
+import { apiGetWebExtensionDetailByIdentifier } from "@buildingai/service/webapi/extension";
 
 const route = useRoute();
 
