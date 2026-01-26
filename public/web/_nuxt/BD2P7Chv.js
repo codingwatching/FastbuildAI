@@ -1,1 +1,0 @@
-import{P as s}from"./CClQHGwT.js";import{ay as o,aA as n,az as e}from"#entry";const f={[s.WECHAT]:"WeChat Pay",[s.ALIPAY]:"Alipay"};function p(){return o("/system-payconfig")}function c(a){return o(`/system-payconfig/${a}`)}function P(a,t){return e(`/system-payconfig/${a}`,{isEnable:t})}function r(a){return n("/system-payconfig",a)}export{f as P,c as a,r as b,p as c,P as d};

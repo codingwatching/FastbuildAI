@@ -1,1 +1,0 @@
-import{ay as s,aB as r,az as c,aA as a}from"#entry";const n=e=>s("/secret",e),u=e=>s(`/secret/${e}`),l=e=>a("/secret",e),S=(e,t)=>c(`/secret/${e}`,t),d=e=>r(`/secret/${e}`),p=e=>r("/secret",{ids:e}),C=(e,t)=>c(`/secret/${e}/status`,t);export{n as a,p as b,S as c,d,l as e,u as g,C as u};
