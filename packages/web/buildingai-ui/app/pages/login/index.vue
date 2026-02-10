@@ -7,7 +7,7 @@ import type { LoginResponse } from "@buildingai/service/webapi/user";
 import LogoFull from "../../../public/logo-full.svg";
 import AccountLogin from "./components/account/account.vue";
 import LoginBind from "./components/login-bind.vue";
-// import PhoneLogin from "@/co/components/phone/index.vue";
+import PhoneLogin from "./components/phone/phone.vue";
 import WechatLogin from "./components/wechat/wechat.vue";
 
 definePageMeta({ layout: "full-screen", auth: false, guest: true });
@@ -29,11 +29,11 @@ const LOGIN_COMPONENTS = computed<Record<string | number, LoginComponentConfig>>
         icon: "tabler:lock",
         label: t("login.continueWithAccount"),
     },
-    // [LOGIN_TYPE.PHONE]: {
-    //     component: PhoneLogin,
-    //     icon: "tabler:phone",
-    //     label: "手机号登录",
-    // },
+    [LOGIN_TYPE.PHONE]: {
+        component: PhoneLogin,
+        icon: "tabler:phone",
+        label: "手机号登录",
+    },
     [LOGIN_TYPE.WECHAT]: {
         component: WechatLogin,
         icon: "tabler:brand-wechat",
@@ -76,7 +76,8 @@ function switchLoginMethod(methodName: string | number): void {
 }
 
 function loginHandle(data: LoginResponse & { hasBind: boolean }): void {
-    if (appStore.loginWay.coerceMobile * 1 && !data.hasBind && !data.mobile) {
+    const user = data.user;
+    if (appStore.loginWay.coerceMobile * 1 && !user.hasBind && !user.mobile) {
         userStore.tempLogin(data.token);
         currentLoginMethod.value = LOGIN_STATUS.BIND;
         return;

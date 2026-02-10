@@ -1,4 +1,5 @@
 import { BaseController } from "@buildingai/base";
+import { SmsScene } from "@buildingai/constants/shared/sms.constant";
 import { UserTerminal } from "@buildingai/constants/shared/status-codes.constant";
 import { type UserPlayground } from "@buildingai/db";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
@@ -8,7 +9,9 @@ import { WebController } from "@common/decorators";
 import { ChangePasswordDto } from "@common/modules/auth/dto/change-password.dto";
 import { LoginDto } from "@common/modules/auth/dto/login.dto";
 import { RegisterDto } from "@common/modules/auth/dto/register.dto";
+import { SendSmsCodeDto, SmsLoginDto } from "@common/modules/auth/dto/sms.dto";
 import { AuthService } from "@common/modules/auth/services/auth.service";
+import { SmsService } from "@common/modules/sms/services/sms.service";
 import { WechatOaService } from "@common/modules/wechat/services/wechatoa.service";
 import { Body, Get, Headers, Param, Post, Query, Req, Res } from "@nestjs/common";
 import type { Request, Response } from "express";
@@ -22,6 +25,7 @@ export class AuthWebController extends BaseController {
     constructor(
         private authService: AuthService,
         private wechatOaService: WechatOaService,
+        private smsService: SmsService,
     ) {
         super();
     }
@@ -256,5 +260,29 @@ export class AuthWebController extends BaseController {
     @Get("wechat-qrcode-status/:scene_str")
     async getWechatQrcodeStatus(@Param("scene_str") scene_str: string) {
         return this.wechatOaService.getQrCodeStatus(scene_str);
+    }
+
+    @Public()
+    @Post("sms/send-code")
+    async sendSmsCode(@Body() sendSmsCodeDto: SendSmsCodeDto) {
+        await this.smsService.sendCode(
+            sendSmsCodeDto.mobile,
+            sendSmsCodeDto.areaCode,
+            SmsScene.LOGIN,
+        );
+        return "The verification code has been sent and is valid for 5 minutes";
+    }
+
+    @Public()
+    @Post("sms/login")
+    @BuildFileUrl(["**.avatar"])
+    async smsLogin(
+        @Body() smsLoginDto: SmsLoginDto,
+        @Headers("user-agent") userAgent?: string,
+        @Headers("x-real-ip") ipAddress?: string,
+    ) {
+        const { mobile, areaCode, code, terminal } = smsLoginDto;
+        await this.smsService.verifyCode(mobile, areaCode, code, SmsScene.LOGIN);
+        return this.authService.loginBySms(mobile, areaCode, terminal, ipAddress, userAgent);
     }
 }
