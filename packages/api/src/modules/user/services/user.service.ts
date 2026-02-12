@@ -17,6 +17,7 @@ import { HttpErrorFactory } from "@buildingai/errors";
 import { generateNo } from "@buildingai/utils";
 import { isEnabled } from "@buildingai/utils";
 import { RolePermissionService } from "@common/modules/auth/services/role-permission.service";
+import { UserTokenService } from "@common/modules/auth/services/user-token.service";
 import { Inject, Injectable } from "@nestjs/common";
 import * as bcrypt from "bcryptjs";
 
@@ -65,6 +66,7 @@ export class UserService extends BaseService<User> {
         private readonly membershipLevelsRepository: Repository<MembershipLevels>,
         @Inject(RolePermissionService)
         private readonly rolePermissionService: RolePermissionService,
+        private readonly userTokenService: UserTokenService,
     ) {
         super(userRepository);
     }
@@ -406,11 +408,16 @@ export class UserService extends BaseService<User> {
         // 加密新密码
         const hashedPassword = await this.hashPassword(newPassword);
 
-        return this.updateById(
+                const result = await this.updateById(
             id,
             { password: hashedPassword },
             { excludeFields: ["password", "openid"] },
         );
+
+        // 清除用户所有 token，强制重新登录
+        await this.userTokenService.revokeAllTokens(id);
+
+        return result;
     }
 
     /**
@@ -431,11 +438,16 @@ export class UserService extends BaseService<User> {
         // 加密新密码
         const hashedPassword = await this.hashPassword(newPassword);
 
-        return this.updateById(
+                const result = await this.updateById(
             id,
             { password: hashedPassword },
             { excludeFields: ["password", "openid"] },
         );
+
+        // 清除用户所有 token，强制重新登录
+        await this.userTokenService.revokeAllTokens(id);
+
+        return result;
     }
 
     /**
