@@ -1,7 +1,7 @@
 {
     "name": "buildingai-monorepo",
     "title": "BuildingAI",
-    "version": "25.3.4",
+    "version": "25.3.5",
     "description": "BuildingAI Monorepo",
     "author": {
         "name": "BuildingAI Teams",
