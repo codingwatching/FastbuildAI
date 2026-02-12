@@ -10,6 +10,7 @@ import {
 import { Permission } from "@buildingai/db/entities";
 import { Role } from "@buildingai/db/entities";
 import { AiDatasetsModule } from "@modules/ai/datasets/datasets.module";
+import { AuthModule } from "@modules/auth/auth.module";
 import { Module } from "@nestjs/common";
 
 import { MembershipModule } from "../membership/membership.module";
@@ -34,6 +35,7 @@ import { UserService } from "./services/user.service";
             MembershipOrder,
             MembershipLevels,
         ]),
+        AuthModule,
         MenuModule,
         RoleModule,
         AiDatasetsModule,

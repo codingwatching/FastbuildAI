@@ -492,6 +492,9 @@ export class AuthService extends BaseService<User> {
             password: hashedPassword,
         });
 
+        // 清除用户所有 token，强制重新登录
+        await this.userTokenService.revokeAllTokens(userId);
+
         return null;
     }
 
