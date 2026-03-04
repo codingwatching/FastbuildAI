@@ -137,16 +137,5 @@ export class WxOaConfigService extends BaseService<Dict> {
         }
     }
 
-    /**
-     * 获取存储配置
-     *
-     * @returns 存储配置对象
-     */
-    private async getDomain(): Promise<StorageConfig> {
-        const config = await this.dictCacheService.getGroupValues<StorageConfig>("storage_config");
-        return {
-            // TODO 优先解析请求的域名
-            domain: config?.domain || process.env.APP_DOMAIN,
-        };
-    }
+  
 }

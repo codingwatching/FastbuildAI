@@ -83,7 +83,7 @@ export class PayfactoryService {
         }
 
         try {
-            const domain = await this.getDomain();
+            const domain = process.env.APP_DOMAIN || "";
             if (!domain) {
                 throw HttpErrorFactory.badGateway("域名未配置，请在.env中配置APP_DOMAIN");
             }
@@ -136,41 +136,6 @@ export class PayfactoryService {
         }
     }
 
-    // /**
-    //  * 获取支付服务配置
-    //  *
-    //  * @param payType 支付类型
-    //  * @returns 支付服务配置
-    //  */
-    // private async getPayServiceConfig(payType: PayConfigType): Promise<PayServiceConfig> {
-    //     const payconfig = await this.payconfigService.getPayconfig(payType);
-    //     const domain = await this.getDomain();
-    //
-    //     if (!domain) {
-    //         throw HttpErrorFactory.badGateway("域名未配置，请在.env中配置APP_DOMAIN");
-    //     }
-    //
-    //     return {
-    //         appId: payconfig.appId,
-    //         mchId: payconfig.mchId,
-    //         publicKey: payconfig.cert,
-    //         privateKey: payconfig.paySignKey,
-    //         apiSecret: payconfig.apiKey,
-    //         domain,
-    //     };
-    // }
-
-    /**
-     * 获取域名配置
-     *
-     * @returns 域名
-     */
-    private async getDomain(): Promise<string> {
-        const config = await this.dictCacheService.getGroupValues<{
-            domain?: string;
-        }>("storage_config");
-        return config?.domain || process.env.APP_DOMAIN || "";
-    }
 
     /**
      * 清除指定支付类型的缓存
