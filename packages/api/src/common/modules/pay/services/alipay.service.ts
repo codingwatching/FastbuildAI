@@ -117,10 +117,5 @@ export class AlipayService {
         }
     }
 
-    private async getDomain(): Promise<string> {
-        const config = await this.dictCacheService.getGroupValues<{
-            domain?: string;
-        }>("storage_config");
-        return config?.domain || process.env.APP_DOMAIN || "";
-    }
+
 }
