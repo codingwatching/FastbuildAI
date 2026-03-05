@@ -221,14 +221,21 @@ export class MembershipGiftService {
         dayEnd.setDate(dayEnd.getDate() + 1);
 
         await this.userRepository.manager.transaction(async (entityManager) => {
-            const subscription = await entityManager.findOne(UserSubscription, {
+            const lockedSubscription = await entityManager.findOne(UserSubscription, {
                 where: { id: subscriptionId },
-                relations: ["level", "order"],
                 lock: { mode: "pessimistic_write" },
             });
 
+            if (!lockedSubscription) return;
+            if (lockedSubscription.startTime > dayStart || lockedSubscription.endTime < dayStart)
+                return;
+
+            const subscription = await entityManager.findOne(UserSubscription, {
+                where: { id: subscriptionId },
+                relations: ["level", "order"],
+            });
+
             if (!subscription) return;
-            if (subscription.startTime > dayStart || subscription.endTime < dayStart) return;
 
             const givePower = (subscription.level as any)?.givePower || 0;
             if (givePower <= 0) return;
