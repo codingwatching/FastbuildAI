@@ -56,6 +56,7 @@ export class SystemConsoleController {
     @Permissions({
         code: "restart",
         name: "重启应用",
+        hidden: true,
     })
     async restartApplication() {
         return this.systemService.restartApplication();

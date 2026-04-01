@@ -56,4 +56,9 @@ export interface PowerAdditionOptions {
      * 仅对会员赠送积分有效,到期后积分清零
      */
     expireAt?: Date;
+    /**
+     * 关联的会员订阅ID
+     * 用于会员赠送积分的周期追踪与过期处理
+     */
+    subscriptionId?: string;
 }

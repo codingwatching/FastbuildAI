@@ -1,21 +1,17 @@
-import type {
-    AIRawResponse,
-    MessageMetadata,
-    TokenUsage,
-} from "@buildingai/types/ai/agent-config.interface";
-import type { Attachment, MessageContent } from "@buildingai/types/ai/message-content.interface";
+import type { ChatUIMessage } from "@buildingai/types";
+import type { AIRawResponse } from "@buildingai/types/ai/agent-config.interface";
 
 import { AppEntity } from "../decorators/app-entity.decorator";
-import { Column, Index, JoinColumn, ManyToOne, type Relation } from "../typeorm";
+import { Column, Index, JoinColumn, ManyToOne, OneToMany, type Relation } from "../typeorm";
 import { Agent } from "./ai-agent.entity";
+import { AgentChatMessageFeedback } from "./ai-agent-chat-message-feedback.entity";
 import { AgentChatRecord } from "./ai-agent-chat-record.entity";
-import { McpToolCall } from "./ai-chat-message.entity";
 import { BaseEntity } from "./base";
 import { User } from "./user.entity";
 
 /**
  * 智能体对话消息实体
- * 记录智能体对话中的每条消息
+ * 记录智能体对话中的每条消息，message 为 ChatUIMessage（含 role、parts、metadata、usage、userConsumedPower）
  */
 @AppEntity({ name: "ai_agent_chat_message", comment: "智能体对话消息" })
 @Index(["conversationId", "createdAt"])
@@ -41,6 +37,18 @@ export class AgentChatMessage extends BaseEntity {
     agentId: string;
 
     /**
+     * 父消息 ID
+     * 用于消息重新生成时记录版本关系，多个 assistant 消息可共享同一 parentId（同一 user 消息的不同回复版本）
+     */
+    @Column({
+        type: "uuid",
+        comment: "父消息ID，用于重新生成版本管理",
+        nullable: true,
+    })
+    @Index()
+    parentId?: string;
+
+    /**
      * 用户ID (注册用户时使用)
      */
     @Column({
@@ -63,56 +71,19 @@ export class AgentChatMessage extends BaseEntity {
     @Index()
     anonymousIdentifier?: string;
 
-    /**
-     * 消息角色
-     */
-    @Column({
-        type: "enum",
-        enum: ["user", "assistant", "system"],
-        comment: "消息角色",
-    })
-    role: "user" | "assistant" | "system";
-
-    /**
-     * 消息内容
-     * 支持字符串或数组格式（包含文本、图片、音频、视频等）
-     */
     @Column({
         type: "jsonb",
-        comment: "消息内容，支持字符串或数组格式",
+        comment: "消息内容（ChatUIMessage：含 role、parts、metadata、usage、userConsumedPower）",
     })
-    content: MessageContent;
+    message: ChatUIMessage;
 
-    /**
-     * 消息类型
-     */
     @Column({
         type: "varchar",
         length: 20,
-        default: "text",
-        comment: "消息类型: text-文本, image-图片, file-文件",
+        default: "completed",
+        comment: "消息状态: streaming-流式传输中, completed-已完成, failed-失败",
     })
-    messageType: string;
-
-    /**
-     * 附件信息
-     */
-    @Column({
-        type: "jsonb",
-        nullable: true,
-        comment: "附件信息，包含文件URL、类型等",
-    })
-    attachments?: Attachment[];
-
-    /**
-     * Token使用统计
-     */
-    @Column({
-        type: "jsonb",
-        nullable: true,
-        comment: "Token使用统计",
-    })
-    tokens?: TokenUsage;
+    status: "streaming" | "completed" | "failed";
 
     /**
      * 原始AI响应
@@ -145,28 +116,6 @@ export class AgentChatMessage extends BaseEntity {
     formFieldsInputs?: Record<string, any>;
 
     /**
-     * 扩展数据
-     * 包含引用来源、上下文、建议等信息
-     */
-    @Column({
-        type: "jsonb",
-        nullable: true,
-        comment: "扩展数据，包含引用来源、上下文、建议等信息",
-    })
-    metadata?: MessageMetadata;
-
-    /**
-     * MCP tool call records
-     * Records MCP tool call status for this message
-     */
-    @Column({
-        type: "jsonb",
-        nullable: true,
-        comment: "MCP tool call records",
-    })
-    mcpToolCalls?: McpToolCall[];
-
-    /**
      * 关联的用户 (注册用户时使用)
      */
     @ManyToOne(() => User, {
@@ -185,12 +134,12 @@ export class AgentChatMessage extends BaseEntity {
     @JoinColumn({ name: "agent_id" })
     agent: Agent;
 
-    /**
-     * 关联的对话记录
-     */
     @ManyToOne(() => AgentChatRecord, "messages", {
         onDelete: "CASCADE",
     })
     @JoinColumn({ name: "conversation_id" })
     conversation: Relation<AgentChatRecord>;
+
+    @OneToMany(() => AgentChatMessageFeedback, (f) => f.message)
+    feedbacks?: Relation<AgentChatMessageFeedback[]>;
 }

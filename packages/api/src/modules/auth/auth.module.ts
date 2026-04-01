@@ -1,5 +1,7 @@
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
 import {
+    Department,
+    DepartmentUserIndex,
     Extension,
     ExtensionFeature,
     MembershipLevels,
@@ -41,6 +43,8 @@ import { AuthWebController } from "./controller/web/auth.controller";
             ExtensionFeature,
             MembershipLevels,
             UserSubscription,
+            Department,
+            DepartmentUserIndex,
         ]),
         ChannelModule,
         JwtModule.registerAsync({

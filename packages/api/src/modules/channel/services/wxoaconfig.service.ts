@@ -136,6 +136,4 @@ export class WxOaConfigService extends BaseService<Dict> {
             throw error; // 将错误向上抛出，便于控制器处理
         }
     }
-
-  
 }

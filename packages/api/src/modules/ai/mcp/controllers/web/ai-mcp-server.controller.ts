@@ -8,8 +8,7 @@ import { Playground } from "@buildingai/decorators/playground.decorator";
 import { Public } from "@buildingai/decorators/public.decorator";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
-import { buildWhere } from "@buildingai/utils";
-import { isEnabled } from "@buildingai/utils";
+import { buildWhere, isEnabled } from "@buildingai/utils";
 import { WebController } from "@common/decorators/controller.decorator";
 import {
     BatchCheckMcpConnectionDto,
@@ -21,8 +20,9 @@ import {
     UpdateWebAiMcpServerDto,
 } from "@modules/ai/mcp/dto/web/ai-mcp-server.dto";
 import { WebAiMcpServerWebService } from "@modules/ai/mcp/services/web/ai-mcp-server.service";
-import { Body, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
+import { Body, Delete, Get, Param, Post, Put, Query, Req } from "@nestjs/common";
 import Ajv from "ajv";
+import type { Request } from "express";
 
 /**
  * MCP服务前台控制器
@@ -47,10 +47,9 @@ export class WebAiMcpServerWebController {
     @Get()
     @BuildFileUrl(["**.icon"])
     async list(@Playground() user: UserPlayground, @Query() queryDto: QueryAiMcpServerDto) {
-        const { isDisabled, type = McpServerType.SYSTEM, name } = queryDto;
+        const { type = McpServerType.SYSTEM, name } = queryDto;
         const whereBase = buildWhere<AiMcpServer>({
             creatorId: type === McpServerType.USER ? user.id : undefined,
-            isDisabled: isDisabled !== undefined ? isEnabled(isDisabled) : undefined,
             type: type,
         });
 
@@ -67,18 +66,27 @@ export class WebAiMcpServerWebController {
 
         const result = await this.webAiMcpServerService.paginate(queryDto, {
             where,
-            relations: ["userMcpServer"],
+            relations: ["userMcpServer", "tools"],
         });
 
-        result.items.forEach((item: AiMcpServer) => {
-            if (item.userMcpServer?.length > 0) {
-                item.isDisabled = item.userMcpServer[0].isDisabled;
-            }
-            // 只有用户类型的服务才返回真实的url，系统类型的服务url设置为null
-            if (item.type !== McpServerType.USER) {
-                item.url = null;
-            }
-        });
+        result.items = result.items
+            .map((item: AiMcpServer) => {
+                if (item.type === McpServerType.SYSTEM) {
+                    if (item.isDisabled || !item.connectable) {
+                        return null;
+                    }
+                    const userSetting = item.userMcpServer?.find((ums) => ums.userId === user.id);
+                    item.isDisabled = userSetting ? userSetting.isDisabled : true;
+                }
+                if (item.type !== McpServerType.USER) {
+                    item.url = null;
+                    item.headers = null;
+                }
+                return item;
+            })
+            .filter((item) => item !== null);
+
+        result.total = result.items.length;
 
         return result;
     }
@@ -92,48 +100,52 @@ export class WebAiMcpServerWebController {
      * @param isShow 是否显示
      */
     @Get("all")
+    @Public()
     @BuildFileUrl(["**.icon"])
-    async all(@Playground() user: UserPlayground) {
-        const where = buildWhere<AiMcpServer>({
-            isDisabled: false,
-        });
-
+    async all(
+        @Query() _queryDto: QueryAiMcpServerDto,
+        @Req() request: Request & { user?: UserPlayground },
+    ) {
+        const user = request.user;
         const result = await this.webAiMcpServerService.findAll({
-            where,
             relations: ["userMcpServer", "tools"],
+            excludeFields: ["url", "headers"],
+            where: {
+                isDisabled: false,
+            },
         });
         const isQuickMenuId = await this.dictService.get(AI_MCP_IS_QUICK_MENU);
 
-        if (user) {
-            const filtered = result.filter((item) => {
-                return !(
-                    (item.type === McpServerType.USER && item.creatorId !== user.id) ||
-                    item.id === isQuickMenuId
-                );
-            });
+        const filtered = result
+            .map((item) => {
+                if (item.id === isQuickMenuId) return null;
 
-            // 只有用户类型的服务才返回真实的url，系统类型的服务url设置为null
-            filtered.forEach((item) => {
+                if (user) {
+                    if (item.type === McpServerType.USER && item.creatorId !== user.id) return null;
+
+                    if (item.type === McpServerType.SYSTEM) {
+                        const userSetting = item.userMcpServer?.find(
+                            (ums) => ums.userId === user.id,
+                        );
+                        item.isDisabled = userSetting ? userSetting.isDisabled : true;
+                    }
+                } else {
+                    if (item.type !== McpServerType.SYSTEM) return null;
+                }
+
+                if (!item.connectable) return null;
+
                 if (item.type !== McpServerType.USER) {
                     item.url = null;
+                    item.headers = null;
                 }
-            });
 
-            return filtered;
-        } else {
-            const filtered = result.filter((item) => {
-                return item.type === McpServerType.SYSTEM && item.id !== isQuickMenuId;
-            });
+                return item;
+            })
+            .filter((item) => item !== null)
+            .filter((item) => !isEnabled(item.isDisabled));
 
-            // 只有用户类型的服务才返回真实的url，系统类型的服务url设置为null
-            filtered.forEach((item) => {
-                if (item.type !== McpServerType.USER) {
-                    item.url = null;
-                }
-            });
-
-            return filtered;
-        }
+        return filtered;
     }
 
     /**
@@ -288,7 +300,7 @@ export class WebAiMcpServerWebController {
                         additionalProperties: false,
                     },
                 },
-                required: ["url", "type"],
+                required: ["url"],
                 additionalProperties: false,
             };
 
@@ -316,13 +328,11 @@ export class WebAiMcpServerWebController {
             let parsedData;
             try {
                 parsedData = JSON.parse(importJsonDto.jsonString);
-                // 将 headers 转换为 customHeaders
+                // Set default type to 'sse' if not provided
                 if (parsedData.mcpServers) {
                     for (const key in parsedData.mcpServers) {
-                        const server = parsedData.mcpServers[key];
-                        if (server.headers) {
-                            server.customHeaders = server.headers;
-                            delete server.headers;
+                        if (!parsedData.mcpServers[key].type) {
+                            parsedData.mcpServers[key].type = McpCommunicationType.SSE;
                         }
                     }
                 }

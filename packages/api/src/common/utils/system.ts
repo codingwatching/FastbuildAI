@@ -153,11 +153,14 @@ export const setAssetsDir = async (app: NestExpressApplication) => {
     // extension static
     const extensionsMain = enabledIdentifiers
         .filter((item) => item.enabled)
-        .map((item) => {
-            return {
-                dir: path.join(rootDir, "extensions", item.identifier, ".output", "public"),
-                prefix: `/extension/${item.identifier}`,
-            };
+        .flatMap((item) => {
+            const dir = path.join(rootDir, "extensions", item.identifier, ".output", "public");
+            return [
+                {
+                    dir,
+                    prefix: `/extension/${item.identifier}`,
+                },
+            ];
         });
 
     const extensionIndexHtmlCache = new Map<string, string>();

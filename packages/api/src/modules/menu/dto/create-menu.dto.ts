@@ -26,7 +26,8 @@ export class CreateMenuDto {
      */
     @IsString({ message: "唯一标识必须是字符串" })
     @IsOptional()
-    @Length(1, 50, { message: "唯一标识长度必须在1-50个字符之间" })
+    @Length(0, 50, { message: "唯一标识长度不能超过50个字符" })
+    @Transform(({ value }) => (value === "" ? null : value))
     code?: string;
 
     /**
@@ -97,5 +98,6 @@ export class CreateMenuDto {
      * 2: 插件菜单
      */
     @IsEnum(MenuSourceType, { message: "菜单来源类型必须是有效的枚举值" })
-    sourceType: MenuSourceType;
+    @IsOptional()
+    sourceType?: MenuSourceType;
 }

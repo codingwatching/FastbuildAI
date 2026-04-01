@@ -1,7 +1,21 @@
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
-import { isEnabled } from "@buildingai/utils";
 import { Transform } from "class-transformer";
 import { IsBoolean, IsOptional, IsString } from "class-validator";
+
+function isEnabled(value: unknown): boolean {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value === 1;
+    if (typeof value === "string") {
+        const normalized = value.trim().toLowerCase();
+        return (
+            normalized === "true" ||
+            normalized === "1" ||
+            normalized === "yes" ||
+            normalized === "on"
+        );
+    }
+    return Boolean(value);
+}
 
 /**
  * 查询角色DTO
@@ -27,17 +41,4 @@ export class QueryRoleDto extends PaginationDto {
     @IsOptional()
     @IsString({ message: "角色描述必须是字符串" })
     description?: string;
-
-    /**
-     * 是否禁用
-     *
-     * 禁用的角色将不能被分配给用户，已分配该角色的用户将无法使用该角色的权限
-     */
-    @IsOptional()
-    @IsBoolean({ message: "禁用状态必须是布尔值" })
-    @Transform(({ value }) => {
-        if (value === undefined || value === null) return value;
-        return isEnabled(value);
-    })
-    isDisabled?: boolean;
 }

@@ -636,12 +636,17 @@ export class DashboardService extends BaseService<any> {
             .where("message.createdAt >= :start", { start: daysStart })
             .select("model.id", "modelId")
             .addSelect("model.name", "modelName")
+            .addSelect("provider.provider", "provider")
             .addSelect("provider.name", "providerName")
             .addSelect("provider.iconUrl", "iconUrl")
             .addSelect("COUNT(DISTINCT message.conversationId)", "conversations")
-            .addSelect("COALESCE(SUM((message.tokens->>'total_tokens')::int), 0)", "tokens")
+            .addSelect(
+                "COALESCE(SUM((message.message->'usage'->>'totalTokens')::int), 0)",
+                "tokens",
+            )
             .groupBy("model.id")
             .addGroupBy("model.name")
+            .addGroupBy("provider.provider")
             .addGroupBy("provider.name")
             .addGroupBy("provider.iconUrl")
             .orderBy("tokens", "DESC")
@@ -651,6 +656,7 @@ export class DashboardService extends BaseService<any> {
         const byModel = modelStatsQuery.map((item) => ({
             modelId: item.modelId,
             modelName: item.modelName || "未知模型",
+            provider: item.provider || "",
             providerName: item.providerName || "未知供应商",
             iconUrl: item.iconUrl || undefined,
             conversations: Number(item.conversations || 0),
@@ -668,7 +674,10 @@ export class DashboardService extends BaseService<any> {
             .addSelect("provider.name", "providerName")
             .addSelect("provider.iconUrl", "iconUrl")
             .addSelect("COUNT(DISTINCT message.conversationId)", "conversations")
-            .addSelect("COALESCE(SUM((message.tokens->>'total_tokens')::int), 0)", "tokens")
+            .addSelect(
+                "COALESCE(SUM((message.message->'usage'->>'totalTokens')::int), 0)",
+                "tokens",
+            )
             .groupBy("provider.id")
             .addGroupBy("provider.provider")
             .addGroupBy("provider.name")

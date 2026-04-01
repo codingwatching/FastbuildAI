@@ -75,14 +75,6 @@ function validateIdentifier(identifier) {
         return { valid: false, message: "Identifier is required" };
     }
 
-    // Must start with buildingai-
-    if (!identifier.startsWith("buildingai-")) {
-        return {
-            valid: false,
-            message: "Identifier must start with 'buildingai-'",
-        };
-    }
-
     // Only allow lowercase letters, numbers, and hyphens
     if (!/^[a-z0-9-]+$/.test(identifier)) {
         return {
@@ -92,10 +84,10 @@ function validateIdentifier(identifier) {
     }
 
     // Check minimum length
-    if (identifier.length < 12) {
+    if (identifier.length < 1) {
         return {
             valid: false,
-            message: "Identifier must be at least 12 characters (including 'buildingai-')",
+            message: "Identifier must be at least 1 character",
         };
     }
 
@@ -220,13 +212,8 @@ export async function releaseExtension() {
     try {
         let identifier = "";
         while (true) {
-            const rawIdentifier = await prompt(
-                rl,
-                "Extension identifier (buildingai-<name> or <name>)",
-            );
-            identifier = rawIdentifier.startsWith("buildingai-")
-                ? rawIdentifier
-                : `buildingai-${rawIdentifier}`;
+            const rawIdentifier = await prompt(rl, "Extension identifier");
+            identifier = rawIdentifier;
 
             const validation = validateIdentifier(identifier);
             if (!validation.valid) {
@@ -726,9 +713,7 @@ export async function createExtension() {
         // 1. Get extension identifier
         let identifier = "";
         while (true) {
-            const rawIdentifier = await prompt(rl, "Extension identifier (buildingai-<name>)");
-            const normalizedIdentifier = rawIdentifier.replace(/^(?:buildingai-)+/g, "");
-            identifier = `buildingai-${normalizedIdentifier}`;
+            identifier = await prompt(rl, "Extension identifier");
             const validation = validateIdentifier(identifier);
             if (!validation.valid) {
                 Logger.error("Validation", validation.message);

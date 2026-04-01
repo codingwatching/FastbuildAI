@@ -18,6 +18,13 @@ export class initializeDto extends OmitType(RegisterDto, ["terminal"]) {
     websiteName?: string;
 
     /**
+     * 网站主题
+     */
+    @IsOptional()
+    @IsString({ message: "网站主题必须是字符串" })
+    websiteTheme?: string;
+
+    /**
      * 网站描述
      */
     @IsOptional()

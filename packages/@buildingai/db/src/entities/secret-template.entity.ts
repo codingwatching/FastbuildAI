@@ -29,8 +29,6 @@ export enum FieldType {
 export interface TemplateField {
     /** 字段名称 */
     name: string;
-    /** 字段类型 */
-    type: FieldType;
     /** 是否必填 */
     required: boolean;
     /** 占位符 */

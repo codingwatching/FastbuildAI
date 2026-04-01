@@ -71,6 +71,15 @@ export class SystemService {
      */
     async initialize(dto: initializeDto, ipAddress?: string, userAgent?: string) {
         try {
+            const existingUser = await this.userService.findOne({
+                where: {
+                    username: dto.username,
+                },
+            });
+
+            if (existingUser) {
+                throw HttpErrorFactory.badRequest("User already exists");
+            }
             const hashedPassword = await this.userService.hashPassword(dto.password);
 
             // 创建超级管理员账户
@@ -91,6 +100,11 @@ export class SystemService {
             if (dto.websiteName) {
                 await this.dictService.set("name", dto.websiteName, { group: "webinfo" });
             }
+
+            if (dto.websiteTheme) {
+                await this.dictService.set("theme", dto.websiteTheme, { group: "webinfo" });
+            }
+
             if (dto.websiteDescription) {
                 await this.dictService.set("description", dto.websiteDescription, {
                     group: "webinfo",

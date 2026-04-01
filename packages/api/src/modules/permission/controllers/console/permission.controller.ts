@@ -31,6 +31,7 @@ export class PermissionConsoleController extends BaseController {
         code: "scan-permissions",
         name: "扫描权限（即时）",
         description: "即时扫描系统所有接口权限",
+        hidden: true,
     })
     getPermissions(@Query("group") group = "true") {
         return group === "true"
@@ -51,6 +52,7 @@ export class PermissionConsoleController extends BaseController {
         code: "scan-api",
         name: "扫描权限接口（即时）",
         description: "即时扫描系统所有带有权限的接口",
+        hidden: true,
     })
     getApiRouterGroupList(@Query("group") group = "true") {
         return group === "true"
@@ -236,6 +238,7 @@ export class PermissionConsoleController extends BaseController {
         code: "cleanup",
         name: "清理权限",
         description: "删除标记为废弃的权限，并清理相关的角色关联",
+        hidden: true,
     })
     async cleanupDeprecatedPermissions(): Promise<{ removed: number }> {
         return this.permissionService.cleanupDeprecatedPermissions();
@@ -252,6 +255,7 @@ export class PermissionConsoleController extends BaseController {
         code: "info",
         name: "查看权限详情",
         description: "根据权限编码查询权限详情",
+        hidden: true,
     })
     async findByCode(@Param("code") code: string) {
         return this.permissionService.findByCode(code);

@@ -64,7 +64,7 @@ services:
             - /buildingai/packages/api/node_modules
             - /buildingai/packages/cli/node_modules
             - /buildingai/packages/core/node_modules
-            - /buildingai/packages/web/buildingai-ui/node_modules
+            - /buildingai/packages/client/node_modules
             - /buildingai/packages/web/@buildingai/designer/node_modules
             - /buildingai/packages/web/@buildingai/hooks/node_modules
             - /buildingai/packages/web/@buildingai/http/node_modules
@@ -73,7 +73,6 @@ services:
             - /buildingai/packages/web/@buildingai/nuxt/node_modules
             - /buildingai/packages/web/@buildingai/service/node_modules
             - /buildingai/packages/web/@buildingai/stores/node_modules
-            - /buildingai/packages/web/@buildingai/storybook/node_modules
             - /buildingai/packages/web/@buildingai/ui/node_modules
             - /buildingai/packages/web/@buildingai/web-config/node_modules
             - /buildingai/packages/@buildingai/ai-sdk/node_modules

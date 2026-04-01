@@ -2,7 +2,7 @@ import { BaseService } from "@buildingai/base";
 import { BooleanNumber, type BooleanNumberType } from "@buildingai/constants";
 import { BusinessCode } from "@buildingai/constants/shared/business-code.constant";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { SecretTemplate } from "@buildingai/db/entities";
+import { Secret, SecretTemplate } from "@buildingai/db/entities";
 import { Like, Repository } from "@buildingai/db/typeorm";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import { HttpErrorFactory } from "@buildingai/errors";
@@ -28,6 +28,8 @@ export class SecretTemplateService extends BaseService<SecretTemplate> {
     constructor(
         @InjectRepository(SecretTemplate)
         private readonly SecretTemplateRepository: Repository<SecretTemplate>,
+        @InjectRepository(Secret)
+        private readonly SecretRepository: Repository<Secret>,
     ) {
         super(SecretTemplateRepository);
     }
@@ -94,7 +96,14 @@ export class SecretTemplateService extends BaseService<SecretTemplate> {
             this.validateFieldConfig(updateSecretTemplateDto.fieldConfig);
         }
 
-        return await super.updateById(id, updateSecretTemplateDto);
+        const result = await super.updateById(id, updateSecretTemplateDto);
+
+        // Sync secret field values when fieldConfig is updated
+        if (updateSecretTemplateDto.fieldConfig) {
+            await this.syncSecretFieldValues(id, updateSecretTemplateDto.fieldConfig);
+        }
+
+        return result;
     }
 
     /**
@@ -212,6 +221,40 @@ export class SecretTemplateService extends BaseService<SecretTemplate> {
     }
 
     /**
+     * Sync secret field values with updated template fieldConfig.
+     * Removes field values that no longer exist in the template's fieldConfig.
+     * @param templateId Template ID
+     * @param newFieldConfig Updated field configuration array
+     */
+    private async syncSecretFieldValues(
+        templateId: string,
+        newFieldConfig: { name: string }[],
+    ): Promise<void> {
+        const secrets = await this.SecretRepository.find({
+            where: { templateId },
+        });
+
+        if (!secrets || secrets.length === 0) return;
+
+        const validFieldNames = new Set(newFieldConfig.map((f) => f.name));
+
+        for (const secret of secrets) {
+            if (!secret.fieldValues || secret.fieldValues.length === 0) continue;
+
+            const filteredFieldValues = secret.fieldValues.filter((fv: any) =>
+                validFieldNames.has(fv.name),
+            );
+
+            // Only update if field values actually changed
+            if (filteredFieldValues.length !== secret.fieldValues.length) {
+                await this.SecretRepository.update(secret.id, {
+                    fieldValues: filteredFieldValues,
+                });
+            }
+        }
+    }
+
+    /**
      * Validate field configuration legality
      * @param fieldConfig Field configuration array
      */
@@ -229,8 +272,8 @@ export class SecretTemplateService extends BaseService<SecretTemplate> {
 
         // Check required fields
         for (const field of fieldConfig) {
-            if (!field.name || !field.type) {
-                throw HttpErrorFactory.paramError("字段名称、标签和类型不能为空");
+            if (!field.name) {
+                throw HttpErrorFactory.paramError("字段名称不能为空");
             }
 
             // Validate field name format (only allow letters, numbers, underscores)

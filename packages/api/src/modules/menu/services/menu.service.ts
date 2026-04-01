@@ -232,9 +232,8 @@ export class MenuService extends BaseService<Menu> {
             return this.buildMenuTree(allMenus);
         }
 
-        // 根据权限筛选菜单
+        // 根据权限筛选菜单（权限编码为空的菜单也保留）
         const filteredMenus = allMenus.filter((menu) => {
-            // 如果菜单没有权限要求，或者用户有该菜单的权限，则保留
             return !menu.permissionCode || permissionCodes.includes(menu.permissionCode);
         });
 
@@ -246,9 +245,10 @@ export class MenuService extends BaseService<Menu> {
 
         // 递归添加所有父菜单ID
         const addParentMenuIds = (menuId: string) => {
+            if (menuIdsWithParents.has(menuId)) return;
+            menuIdsWithParents.add(menuId);
             const menu = allMenus.find((m) => m.id === menuId);
             if (menu && menu.parentId) {
-                menuIdsWithParents.add(menu.parentId);
                 addParentMenuIds(menu.parentId);
             }
         };

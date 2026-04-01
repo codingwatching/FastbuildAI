@@ -11,11 +11,9 @@ import {
     IsNumber,
     IsOptional,
     IsString,
-    IsUrl,
     MaxLength,
     Min,
     MinLength,
-    ValidateIf,
 } from "class-validator";
 
 /**
@@ -74,14 +72,6 @@ export class CreateAiProviderDto {
     iconUrl?: string;
 
     /**
-     * 供应商官网URL
-     */
-    @IsOptional()
-    @ValidateIf((o) => o.websiteUrl !== "")
-    @IsUrl({}, { message: "官网URL格式不正确" })
-    websiteUrl?: string;
-
-    /**
      * 是否启用该供应商
      */
     @IsOptional()
@@ -111,7 +101,6 @@ export class AiProviderResponseDto {
     name: string;
     baseUrl: string;
     iconUrl?: string;
-    websiteUrl?: string;
     isActive: boolean;
     description?: string;
     sortOrder: number;

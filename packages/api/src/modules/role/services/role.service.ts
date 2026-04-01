@@ -1,8 +1,6 @@
 import { BaseService } from "@buildingai/base";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { User } from "@buildingai/db/entities";
-import { Permission } from "@buildingai/db/entities";
-import { Role } from "@buildingai/db/entities";
+import { Department, DepartmentUserIndex, Permission, Role, User } from "@buildingai/db/entities";
 import { In, Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { isEnabled } from "@buildingai/utils";
@@ -25,6 +23,10 @@ export class RoleService extends BaseService<Role> {
         private readonly permissionRepository: Repository<Permission>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+        @InjectRepository(DepartmentUserIndex)
+        private readonly departmentUserIndexRepository: Repository<DepartmentUserIndex>,
+        @InjectRepository(Department)
+        private readonly departmentRepository: Repository<Department>,
         private readonly rolePermissionService: RolePermissionService,
     ) {
         super(roleRepository);
@@ -72,14 +74,9 @@ export class RoleService extends BaseService<Role> {
      * @returns 分页角色列表
      */
     async list(queryRoleDto: QueryRoleDto) {
-        const { name, description, isDisabled } = queryRoleDto;
-
-        const queryBuilder = this.repository
-            .createQueryBuilder("role")
-            .leftJoinAndSelect("role.users", "user")
-            .leftJoinAndSelect("role.permissions", "permission")
-            .orderBy("role.id", "DESC");
-
+        const { name, description } = queryRoleDto;
+        const queryBuilder = this.repository.createQueryBuilder("role");
+        // .orderBy("role.createdAt", "DESC");
         if (name) {
             queryBuilder.andWhere("role.name LIKE :name", {
                 name: `%${name}%`,
@@ -89,13 +86,6 @@ export class RoleService extends BaseService<Role> {
         if (description) {
             queryBuilder.andWhere("role.description LIKE :description", {
                 description: `%${description}%`,
-            });
-        }
-
-        // 如果指定了禁用状态，则按禁用状态筛选
-        if (isDisabled !== undefined) {
-            queryBuilder.andWhere("role.isDisabled = :isDisabled", {
-                isDisabled,
             });
         }
 
@@ -203,14 +193,15 @@ export class RoleService extends BaseService<Role> {
         // 检查是否有用户关联了该角色
         const usersWithRole = await this.getUsersByRoleId(id);
         if (usersWithRole.length > 0) {
-            // 自动解除用户与角色的关联
-            for (const user of usersWithRole) {
-                user.role = null;
-            }
-            await this.userRepository.save(usersWithRole);
-            this.logger.log(
-                `已自动解除 ${usersWithRole.length} 个用户与角色 ${role.name} (ID: ${id}) 的关联`,
-            );
+            throw HttpErrorFactory.badRequest("角色已被用户关联，不能删除");
+            //  自动解除用户与角色的关联
+            // for (const user of usersWithRole) {
+            //     user.role = null;
+            // }
+            // await this.userRepository.save(usersWithRole);
+            // this.logger.log(
+            //     `已自动解除 ${usersWithRole.length} 个用户与角色 ${role.name} (ID: ${id}) 的关联`,
+            // );
         }
 
         // 在删除角色前，清除相关缓存
@@ -229,8 +220,8 @@ export class RoleService extends BaseService<Role> {
      */
     private async getUsersByRoleId(roleId: string): Promise<User[]> {
         return this.userRepository
-            .createQueryBuilder("user")
-            .innerJoin("user.role", "role", "role.id = :roleId", { roleId })
+            .createQueryBuilder("u")
+            .innerJoin("u.role", "r", "r.id = :roleId", { roleId })
             .getMany();
     }
 
@@ -321,5 +312,132 @@ export class RoleService extends BaseService<Role> {
         this.logger.log(`已更新角色 ${updatedRole.name} (ID: ${id}) 的权限，并清除相关缓存`);
 
         return updatedRole;
+    }
+
+    /**
+     * 查询用户角色列表
+     *
+     * @param userId 用户ID
+     * @returns 用户角色列表
+     */
+    async findUserRoles(roleId: string): Promise<Array<User & { department: string[] }>> {
+        const userLists = await this.userRepository
+            .createQueryBuilder("u")
+            .innerJoinAndSelect("u.role", "r", "r.id = :roleId", { roleId })
+            .select([
+                "u.id",
+                "u.nickname",
+                "u.username",
+                "u.realName",
+                "u.avatar",
+                "u.lastLoginAt",
+                "u.manageStatus",
+                "u.isRoot",
+                "r.id",
+                "r.name",
+            ])
+            .getMany();
+
+        if (userLists.length === 0) {
+            return [];
+        }
+
+        const userIds = userLists.map((u) => u.id);
+        const indices = await this.departmentUserIndexRepository.find({
+            where: { userId: In(userIds) },
+            select: ["userId", "departmentId"],
+        });
+
+        const departmentIds = Array.from(new Set(indices.map((row) => row.departmentId)));
+        const departments =
+            departmentIds.length > 0
+                ? await this.departmentRepository.find({
+                      where: { id: In(departmentIds) },
+                      select: ["id", "name"],
+                  })
+                : [];
+        const departmentNameById = new Map<string, string>();
+        for (const department of departments) {
+            if (!department.id || !department.name) {
+                continue;
+            }
+            departmentNameById.set(String(department.id), String(department.name));
+        }
+
+        const departmentNamesByUserId = new Map<string, Set<string>>();
+        for (const row of indices) {
+            const departmentName = departmentNameById.get(row.departmentId);
+            if (!departmentName) {
+                continue;
+            }
+
+            const set = departmentNamesByUserId.get(row.userId);
+            if (set) {
+                set.add(departmentName);
+            } else {
+                departmentNamesByUserId.set(row.userId, new Set([departmentName]));
+            }
+        }
+
+        return userLists.map((u) => ({
+            ...u,
+            department: Array.from(departmentNamesByUserId.get(u.id) ?? []),
+        }));
+    }
+
+    async getRolePermissionsChecklist(
+        roleId: string,
+        isDeprecated?: string,
+        isGrouped?: string,
+    ): Promise<
+        | (Permission & { checked: boolean })[]
+        | { code: string; name: string; permissions: (Permission & { checked: boolean })[] }[]
+    > {
+        const role = await this.roleRepository.findOne({
+            where: { id: roleId },
+            relations: ["permissions"],
+        });
+        if (!role) {
+            throw HttpErrorFactory.notFound("角色不存在");
+        }
+
+        const where: Record<string, any> = {};
+        if (isDeprecated !== undefined) {
+            where.isDeprecated = isEnabled(isDeprecated);
+        }
+
+        const allPermissions = await this.permissionRepository.find({
+            where,
+            order: { group: "ASC", id: "ASC" } as any,
+        });
+        const selectedIds = new Set((role.permissions ?? []).map((p) => p.id));
+        const flat = allPermissions.map((p) => ({ ...p, checked: selectedIds.has(p.id) }));
+
+        if (!isEnabled(isGrouped)) {
+            return flat;
+        }
+
+        const groupMap = new Map<
+            string,
+            { code: string; name: string; permissions: (Permission & { checked: boolean })[] }
+        >();
+        for (const permission of flat) {
+            const groupKey = permission.group || "未分组";
+            const groupName = permission.groupName || groupKey;
+            const existing = groupMap.get(groupKey);
+            if (existing) {
+                existing.permissions.push(permission);
+            } else {
+                groupMap.set(groupKey, {
+                    code: groupKey,
+                    name: groupName,
+                    permissions: [permission],
+                });
+            }
+        }
+
+        const result = Array.from(groupMap.values());
+        result.sort((a, b) => a.code.localeCompare(b.code));
+        return result;
     }
 }

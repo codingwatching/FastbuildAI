@@ -1,4 +1,3 @@
-import { Transform } from "class-transformer";
 import {
     registerDecorator,
     ValidationArguments,
@@ -98,27 +97,4 @@ export function IsValidNpmPackageName(validationOptions?: ValidationOptions) {
             validator: IsValidNpmPackageNameConstraint,
         });
     };
-}
-
-/**
- * Transform decorator to normalize extension identifier
- * 1. Trim leading and trailing spaces
- * 2. Add 'buildingai-' prefix if not present
- */
-export function NormalizeExtensionIdentifier() {
-    return Transform(({ value }) => {
-        if (!value || typeof value !== "string") {
-            return value;
-        }
-
-        // Step 1: Trim spaces
-        let normalized = value.trim();
-
-        // Step 2: Add 'buildingai-' prefix if not present
-        if (!normalized.includes("buildingai-")) {
-            normalized = `buildingai-${normalized}`;
-        }
-
-        return normalized;
-    });
 }

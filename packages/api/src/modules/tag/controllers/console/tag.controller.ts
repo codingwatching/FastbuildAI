@@ -10,7 +10,7 @@ import { Body, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 /**
  * Tag management controller (console)
  */
-@ConsoleController("tag", "Tag Management")
+@ConsoleController("tag", "标签管理")
 export class TagController extends BaseController {
     /**
      * Constructor
@@ -30,8 +30,8 @@ export class TagController extends BaseController {
     @Post()
     @Permissions({
         code: "create",
-        name: "Create tag",
-        description: "Create a new tag",
+        name: "创建标签",
+        description: "创建一个新标签",
     })
     async create(@Body() createTagDto: CreateTagDto): Promise<Partial<Tag>> {
         return this.tagService.createTag(createTagDto);
@@ -46,8 +46,8 @@ export class TagController extends BaseController {
     @Get()
     @Permissions({
         code: "list",
-        name: "List tags",
-        description: "Query tag list",
+        name: "标签列表",
+        description: "查询标签列表",
     })
     async findAll(@Query() queryTagDto: QueryTagDto): Promise<Tag[]> {
         return this.tagService.list(queryTagDto);
@@ -62,8 +62,8 @@ export class TagController extends BaseController {
     @Get(":id")
     @Permissions({
         code: "detail",
-        name: "Get tag detail",
-        description: "Get tag detail by id",
+        name: "获取标签详细",
+        description: "查询某个标签的详情",
     })
     async findOne(@Param("id", UUIDValidationPipe) id: string) {
         return this.tagService.findOneById(id);
@@ -79,8 +79,8 @@ export class TagController extends BaseController {
     @Put(":id")
     @Permissions({
         code: "update",
-        name: "Update tag",
-        description: "Update existing tag",
+        name: "更新标签",
+        description: "更新现有标签",
     })
     async update(@Param("id", UUIDValidationPipe) id: string, @Body() updateTagDto: UpdateTagDto) {
         return this.tagService.updateTagById(id, updateTagDto);
@@ -95,8 +95,8 @@ export class TagController extends BaseController {
     @Delete(":id")
     @Permissions({
         code: "delete",
-        name: "Delete tag",
-        description: "Delete existing tag",
+        name: "删除标签",
+        description: "删除现有标签",
     })
     async remove(@Param("id", UUIDValidationPipe) id: string) {
         // Ensure not used
@@ -132,8 +132,8 @@ export class TagController extends BaseController {
     @Post("batch-delete")
     @Permissions({
         code: "delete",
-        name: "Batch delete tags",
-        description: "Batch delete tags",
+        name: "批量删除标签",
+        description: "批量删除标签",
     })
     async batchRemove(@Body("ids") ids: string[]) {
         try {

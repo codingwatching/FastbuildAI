@@ -1,5 +1,6 @@
+import { SecretService } from "@buildingai/core";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { AiModel } from "@buildingai/db/entities";
+import { AiModel, SecretTemplate } from "@buildingai/db/entities";
 import { AiProvider } from "@buildingai/db/entities";
 import { Dict } from "@buildingai/db/entities";
 import { Module } from "@nestjs/common";
@@ -12,9 +13,9 @@ import { AiProviderService } from "./services/ai-provider.service";
  * AI供应商模块
  */
 @Module({
-    imports: [TypeOrmModule.forFeature([Dict, AiProvider, AiModel])],
+    imports: [TypeOrmModule.forFeature([Dict, AiProvider, AiModel, SecretTemplate])],
     controllers: [AiProviderConsoleController, AiProviderWebController],
-    providers: [AiProviderService],
+    providers: [AiProviderService, SecretService],
     exports: [AiProviderService],
 })
 export class AiProviderModule {}

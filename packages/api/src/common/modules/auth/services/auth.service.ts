@@ -10,13 +10,14 @@ import {
 import { checkUserLoginPlayground } from "@buildingai/db";
 import { LoginUserPlayground, UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { User, UserToken } from "@buildingai/db/entities";
+import { Department, DepartmentUserIndex, User, UserToken } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { generateNo } from "@buildingai/utils";
 import { isDisabled } from "@buildingai/utils";
 import { Injectable } from "@nestjs/common";
 import * as bcrypt from "bcryptjs";
+import { isEmail, isMobilePhone } from "class-validator";
 
 import { RegisterDto } from "../dto/register.dto";
 import { RolePermissionService } from "./role-permission.service";
@@ -34,8 +35,41 @@ export class AuthService extends BaseService<User> {
         private userRepository: Repository<User>,
         private rolePermissionService: RolePermissionService,
         public userTokenService: UserTokenService,
+        @InjectRepository(DepartmentUserIndex)
+        private readonly departmentUserIndexRepository: Repository<DepartmentUserIndex>,
+        @InjectRepository(Department)
+        private readonly departmentRepository: Repository<Department>,
     ) {
         super(userRepository);
+    }
+
+    async checkAccount(account: string) {
+        const res = {
+            hasAccount: false,
+            type: "",
+            hasPassword: false,
+        };
+        const accountData = await this.userRepository.findOne({
+            where: [{ username: account }, { email: account }, { phone: account }],
+            select: ["username", "email", "phone", "password"],
+        });
+        if (!accountData) {
+            return res;
+        }
+
+        if (isEmail(account) && accountData.email === account) {
+            res.type = "email";
+        }
+        if (isMobilePhone(account, "zh-CN") && accountData.phone === account) {
+            res.type = "mobile";
+        }
+        if (accountData.username === account) {
+            res.type = "username";
+        }
+        res.hasAccount = true;
+        res.hasPassword = !!accountData.password;
+
+        return res;
     }
 
     /**
@@ -86,6 +120,16 @@ export class AuthService extends BaseService<User> {
                     user: undefined,
                     error: "无效的令牌",
                     errorType: "JsonWebTokenError",
+                };
+            }
+
+            if (isDisabled(user.status)) {
+                await this.userTokenService.revokeAllTokens(user.id);
+                return {
+                    isValid: false,
+                    user: undefined,
+                    error: "账号已被禁用，请联系客服",
+                    errorType: "UserDisabledError",
                 };
             }
 
@@ -219,19 +263,25 @@ export class AuthService extends BaseService<User> {
 
         // 如果用户不存在
         if (!user) {
-            throw HttpErrorFactory.unauthorized("用户名或密码错误", BusinessCode.LOGIN_FAILED);
+            throw HttpErrorFactory.unauthorized(
+                "Invalid email, account, or phone number.",
+                BusinessCode.LOGIN_FAILED,
+            );
         }
 
         // 验证密码
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            throw HttpErrorFactory.unauthorized("用户名或密码错误", BusinessCode.LOGIN_FAILED);
+            throw HttpErrorFactory.unauthorized(
+                "Invalid email, account, phone number, or password.",
+                BusinessCode.LOGIN_FAILED,
+            );
         }
 
         // 检查用户状态
         if (isDisabled(user.status)) {
             throw HttpErrorFactory.forbidden(
-                "账号已被禁用，请联系客服",
+                "The account has been disabled.",
                 BusinessCode.USER_DISABLED,
             );
         }
@@ -382,7 +432,7 @@ export class AuthService extends BaseService<User> {
      * @param userAgent 用户代理
      * @returns 登录结果
      */
-    private async loginByUser(
+    async loginByUser(
         user: User,
         terminal: UserTerminalType = UserTerminal.PC,
         ipAddress?: string,
@@ -507,6 +557,8 @@ export class AuthService extends BaseService<User> {
 
             const result = await this.userTokenService.revokeToken(token);
 
+            console.log("result", result);
+
             if (result) {
                 // 撤销成功后清理该用户的权限相关缓存（忽略清理失败，不影响主流程）
                 if (userId) {
@@ -601,22 +653,94 @@ export class AuthService extends BaseService<User> {
     }
 
     private generateRandomName() {
-        // 生成随机用户名（随机字符串）
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const randomSuffix = Math.random().toString(34).substring(2, 8);
         const randomUsername = `${randomSuffix}`;
 
-        // 生成随机昵称
         const randomIndex = Math.floor(Math.random() * nicknameData.length);
         const randomNickname = nicknameData[randomIndex];
 
-        // 随机头像索引
-        const randomAvatarIndex = Math.floor(Math.random() * 36) + 1;
+        const randomAvatarIndex = Math.floor(Math.random() * 33) + 1;
         const randomAvatar = `/static/avatars/${randomAvatarIndex}.png`;
 
         return {
             username: randomUsername,
             nickname: randomNickname,
             avatar: randomAvatar,
+        };
+    }
+
+    /**
+     * 通过 openid 自动注册用户
+     *
+     * @param openid 微信 openid
+     * @param terminal 注册终端
+     * @param ipAddress IP地址
+     * @param userAgent 用户代理
+     * @returns 注册结果
+     */
+    async registerByWechat(
+        Conditions: { openid: string } | { mpOpenid: string },
+        terminal: UserTerminalType = UserTerminal.PC,
+        ipAddress?: string,
+        userAgent?: string,
+    ) {
+        // 生成随机用户名（随机字符串）
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const username = `${randomSuffix}`;
+
+        // 生成随机昵称
+        const randomIndex = Math.floor(Math.random() * nicknameData.length);
+        const randomAvatarIndex = Math.floor(Math.random() * 36) + 1;
+        const randomNickname = nicknameData[randomIndex];
+
+        // 创建用户
+        const savedUser = await this.create(
+            {
+                ...Conditions,
+                username,
+                password: "",
+                nickname: randomNickname,
+                status: BooleanNumber.YES, // 默认启用
+                source: UserCreateSource.WECHAT, // 标记为微信注册
+                avatar: `/static/avatars/${randomAvatarIndex}.png`,
+            },
+            { excludeFields: ["password", "openid"] },
+        );
+
+        // 重新获取完整的用户信息以确保类型正确
+        const fullUser = await this.findOne({
+            where: { id: savedUser.id },
+        });
+
+        if (!fullUser) {
+            throw HttpErrorFactory.badRequest("用户创建失败");
+        }
+        // 生成&验证令牌
+        const payload = checkUserLoginPlayground({
+            id: fullUser.id,
+            username: fullUser.username,
+            isRoot: BooleanNumber.NO,
+            terminal: terminal,
+        });
+
+        // 创建并存储令牌
+        const tokenResult = await this.userTokenService.createToken(
+            fullUser.id,
+            payload,
+            terminal,
+            ipAddress,
+            userAgent,
+        );
+
+        // 返回登录结果
+        return {
+            expiresAt: tokenResult.expiresAt,
+            user: {
+                token: tokenResult.token,
+                ...fullUser,
+                permission: [],
+                role: {},
+            },
         };
     }
 }

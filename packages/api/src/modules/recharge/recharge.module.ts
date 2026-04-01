@@ -10,6 +10,7 @@ import { WxPayService } from "@common/modules/pay/services/wxpay.service";
 import { RefundService } from "@common/modules/refund/services/refund.service";
 import { Module } from "@nestjs/common";
 
+import { ChannelModule } from "../channel/channel.module";
 import { PayconfigService } from "../system/services/payconfig.service";
 import { RechargeConfigController } from "./controllers/console/recharge-config.controller";
 import { RechargeOrderController } from "./controllers/console/recharge-order.controller";
@@ -20,6 +21,7 @@ import { RechargeOrderService } from "./services/recharge-order.service";
 
 @Module({
     imports: [
+        ChannelModule,
         TypeOrmModule.forFeature([
             Dict,
             Recharge,

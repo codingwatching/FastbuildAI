@@ -3,11 +3,17 @@ import crypto from "crypto";
 import QRCode from "qrcode";
 import WechatPay from "wechatpay-node-v3";
 
-import { resourceType, resStatusCode, WechatPayRefundParams } from "../interfaces/pay";
 import {
+    resourceType,
+    resStatusCode,
     WechatPayConfig,
+    WechatPayH5OrderParams,
+    WechatPayH5OrderResult,
+    WechatPayJsapiOrderParams,
+    WechatPayJsapiPayParams,
     WechatPayNativeOrderParams,
     WechatPayNotifyParams,
+    WechatPayRefundParams,
 } from "../interfaces/pay";
 
 export class WechatPayService {
@@ -67,18 +73,6 @@ export class WechatPayService {
             },
             attach: params.attach,
         });
-        console.log({
-            out_trade_no: params.out_trade_no,
-            description: params.description,
-            //域名拼接请求前缀，用于回调
-            notify_url:
-                this.config.domain + process.env.VITE_APP_WEB_API_PREFIX + "/pay/notifyWxPay",
-            amount: {
-                total: Math.round(params.amount.total * 100),
-                currency: params.amount.currency,
-            },
-            attach: params.attach,
-        });
 
         const { status, error, data } = res;
 
@@ -119,9 +113,10 @@ export class WechatPayService {
      */
     async closeOrder(out_trade_no: string) {
         const res = await this.client.close(out_trade_no);
+
         const { status, error, data } = res;
 
-        if (status !== resStatusCode.SUCCESS) {
+        if (status !== resStatusCode.CLOSED) {
             const errorMessage = JSON.parse(error).message;
             throw new Error(errorMessage);
         }
@@ -177,9 +172,7 @@ export class WechatPayService {
             reason: params.reason,
             //退款结果通知url
             notify_url:
-                this.config.domain +
-                process.env.VITE_APP_CONSOLE_API_PREFIX +
-                "/pay/notifyRefundWxPay",
+                this.config.domain + process.env.VITE_APP_WEB_API_PREFIX + "/pay/notifyRefundWxPay",
             amount: {
                 //退款金额，币种的最小单位，只能为整数，不能超过原订单支付金额
                 total: Math.round(params.amount.total * 100),
@@ -214,6 +207,106 @@ export class WechatPayService {
         }
 
         return data;
+    }
+
+    /**
+     * 创建微信支付 JSAPI 订单（公众号/小程序）
+     *
+     * 返回值为前端调起支付所需参数（RSA 签名）。
+     */
+    async createJsapiOrder(params: WechatPayJsapiOrderParams): Promise<WechatPayJsapiPayParams> {
+        if (params.out_trade_no.length >= 32) {
+            throw new Error("商户订单号长度不能超过32位");
+        }
+        if (params.amount.total <= 0) {
+            throw new Error("支付金额必须大于0");
+        }
+        if (!params.payer?.openid) {
+            throw new Error("JSAPI 支付必须提供 payer.openid");
+        }
+
+        // 注意：回调地址与 native_pay 保持一致（后端统一处理支付回调）
+        const notifyUrl =
+            this.config.domain + process.env.VITE_APP_WEB_API_PREFIX + "/pay/notifyWxPay";
+
+        this.logger.log(notifyUrl);
+
+        // JSAPI 下单
+        // wechatpay-node-v3: transactions_jsapi
+        const res = await (this.client as any).transactions_jsapi({
+            out_trade_no: params.out_trade_no,
+            description: params.description,
+            notify_url: notifyUrl,
+            amount: {
+                total: Math.round(params.amount.total * 100),
+                currency: params.amount.currency ?? "CNY",
+            },
+            attach: params.attach,
+            payer: {
+                openid: params.payer.openid,
+            },
+        });
+
+        const { status, error, data } = res;
+        if (status !== resStatusCode.SUCCESS) {
+            const errorMessage = JSON.parse(error).message;
+            throw new Error(errorMessage);
+        }
+
+        return data;
+    }
+
+    /**
+     * 创建微信支付 H5 订单（手机浏览器）
+     *
+     * 调用微信支付 API 创建 H5 支付订单，返回 h5_url 供前端跳转完成支付。
+     *
+     * @param params 订单参数
+     * @param params.out_trade_no 商户订单号
+     * @param params.description 商品描述
+     * @param params.amount 支付金额（元）
+     * @param params.scene_info 场景信息（用户 IP 与 H5 信息）
+     * @returns 包含 h5_url 的对象，前端通过 location 跳转该 URL
+     */
+    async createH5Order(params: WechatPayH5OrderParams): Promise<WechatPayH5OrderResult> {
+        if (params.out_trade_no.length >= 32) {
+            throw new Error("商户订单号长度不能超过32位");
+        }
+        if (params.amount.total <= 0) {
+            throw new Error("支付金额必须大于0");
+        }
+        if (!params.scene_info?.payer_client_ip || !params.scene_info?.h5_info?.type) {
+            throw new Error("H5 支付必须提供 scene_info.payer_client_ip 与 scene_info.h5_info");
+        }
+
+        const notifyUrl =
+            this.config.domain + process.env.VITE_APP_WEB_API_PREFIX + "/pay/notifyWxPay";
+
+        const res = await this.client.transactions_h5({
+            out_trade_no: params.out_trade_no,
+            description: params.description,
+            notify_url: notifyUrl,
+            amount: {
+                total: Math.round(params.amount.total * 100),
+                currency: params.amount.currency ?? "CNY",
+            },
+            attach: params.attach,
+            scene_info: {
+                payer_client_ip: params.scene_info.payer_client_ip,
+                h5_info: {
+                    type: params.scene_info.h5_info.type,
+                    app_name: "H5",
+                },
+            },
+        });
+
+        const { status, error, data } = res;
+        if (status !== resStatusCode.SUCCESS) {
+            const errorMessage = JSON.parse(error).message;
+            throw new Error(errorMessage);
+        }
+
+        return { h5_url: data.h5_url };
     }
 }
 

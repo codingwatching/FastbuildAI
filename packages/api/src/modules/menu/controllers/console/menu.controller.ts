@@ -49,6 +49,7 @@ export class MenuConsoleController extends BaseController {
         code: "list",
         name: "查询菜单列表",
         description: "分页查询菜单列表",
+        hidden: true,
     })
     async findAll(@Query() queryMenuDto: QueryMenuDto) {
         return this.menuService.list(queryMenuDto);
@@ -81,6 +82,7 @@ export class MenuConsoleController extends BaseController {
         code: "detail",
         name: "查询菜单详情",
         description: "根据ID查询菜单详情",
+        hidden: true,
     })
     async findOne(@Param("id", UUIDValidationPipe) id: string) {
         return this.menuService.findOneById(id);
@@ -148,9 +150,10 @@ export class MenuConsoleController extends BaseController {
      */
     @Post("batch-delete")
     @Permissions({
-        code: "delete",
+        code: "deletes",
         name: "批量删除菜单",
         description: "批量删除菜单",
+        hidden: true,
     })
     async batchRemove(@Body() batchDeleteMenuDto: BatchDeleteMenuDto) {
         await this.menuService.batchDelete(batchDeleteMenuDto.ids);

@@ -1,13 +1,9 @@
+import { Exclude } from "class-transformer";
+
 import { AppEntity } from "../decorators/app-entity.decorator";
 import { Column, Index, JoinColumn, ManyToOne } from "../typeorm";
 import { BaseEntity } from "./base";
 import { User } from "./user.entity";
-
-export enum AnnotationReviewStatus {
-    PENDING = "pending",
-    APPROVED = "approved",
-    REJECTED = "rejected",
-}
 
 @AppEntity({ name: "ai_agent_annotation", comment: "智能体标注管理" })
 export class AgentAnnotation extends BaseEntity {
@@ -27,32 +23,20 @@ export class AgentAnnotation extends BaseEntity {
     @Index("idx_annotation_hit_count")
     hitCount: number;
 
+    @Exclude()
+    @Column({ type: "float", array: true, nullable: true, comment: "问题向量" })
+    embedding: number[] | null;
+
+    @Column({
+        type: "varchar",
+        length: 100,
+        nullable: true,
+        comment: "向量化使用的模型ID",
+    })
+    embeddingModelId: string | null;
+
     @Column({ type: "boolean", default: true, comment: "是否启用" })
     enabled: boolean;
-
-    @Column({
-        type: "enum",
-        enum: AnnotationReviewStatus,
-        default: AnnotationReviewStatus.APPROVED,
-        comment: "审核状态：pending-待审核，approved-已通过，rejected-已拒绝",
-    })
-    @Index()
-    reviewStatus: AnnotationReviewStatus;
-
-    @Column({
-        type: "uuid",
-        nullable: true,
-        comment: "审核人ID",
-    })
-    @Index("idx_annotation_reviewed_by")
-    reviewedBy?: string;
-
-    @Column({
-        type: "timestamp",
-        nullable: true,
-        comment: "审核时间",
-    })
-    reviewedAt?: Date;
 
     @Column({
         type: "uuid",
@@ -73,8 +57,4 @@ export class AgentAnnotation extends BaseEntity {
     @ManyToOne(() => User, { onDelete: "CASCADE", nullable: true })
     @JoinColumn({ name: "created_by" })
     user?: User;
-
-    @ManyToOne(() => User, { onDelete: "SET NULL", nullable: true })
-    @JoinColumn({ name: "reviewed_by" })
-    reviewer?: User;
 }

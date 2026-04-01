@@ -2,16 +2,19 @@ import { BaseService } from "@buildingai/base";
 import {
     ACCOUNT_LOG_SOURCE,
     ACCOUNT_LOG_TYPE_DESCRIPTION,
+    ACTION,
 } from "@buildingai/constants/shared/account-log.constants";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { User } from "@buildingai/db/entities";
 import { Agent } from "@buildingai/db/entities";
 import { AiChatMessage } from "@buildingai/db/entities";
 import { AccountLog } from "@buildingai/db/entities";
+import { MembershipOrder } from "@buildingai/db/entities";
 import { RechargeOrder } from "@buildingai/db/entities";
 import { In, Repository } from "@buildingai/db/typeorm";
 import { QueryAccountLogDto } from "@modules/finance/dto/query-account-log.dto";
 import { Injectable } from "@nestjs/common";
+import { bignumber, subtract } from "mathjs";
 
 @Injectable()
 export class FinanceService extends BaseService<AccountLog> {
@@ -22,6 +25,8 @@ export class FinanceService extends BaseService<AccountLog> {
         private readonly userRepository: Repository<User>,
         @InjectRepository(RechargeOrder)
         private readonly rechargeOrderRepository: Repository<RechargeOrder>,
+        @InjectRepository(MembershipOrder)
+        private readonly membershipOrderRepository: Repository<MembershipOrder>,
         @InjectRepository(AiChatMessage)
         private readonly aiChatRMessageRepository: Repository<AiChatMessage>,
         @InjectRepository(Agent)
@@ -31,49 +36,75 @@ export class FinanceService extends BaseService<AccountLog> {
     }
 
     async center() {
-        //经营概括
-        //累计收入金额
-        const totalIncomeAmount = await this.rechargeOrderRepository.sum("orderAmount", {
+        // 充值概况（仅 recharge_order）
+        const rechargeAmount = await this.rechargeOrderRepository.sum("orderAmount", {
             payStatus: 1,
         });
-        //累计订单数量
-        const totalIncomeNum = await this.rechargeOrderRepository.count({
+        const rechargeNum = await this.rechargeOrderRepository.count({
             where: { payStatus: 1 },
         });
-        //累计退款金额
-        const totalRefundAmount = await this.rechargeOrderRepository.sum("orderAmount", {
+        const rechargeRefundAmount = await this.rechargeOrderRepository.sum("orderAmount", {
             refundStatus: 1,
         });
-        //累计退款数量
-        const totalRefundNum = await this.rechargeOrderRepository.count({
+        const rechargeRefundNum = await this.rechargeOrderRepository.count({
             where: { refundStatus: 1 },
         });
-        //净收入
-        const totalNetIncome = totalIncomeAmount - totalRefundAmount;
-        //充值概括
-        //充值金额
-        const rechargeAmount = totalIncomeAmount;
-        //充值订单数量
-        const rechargeNum = totalIncomeNum;
-        //充值退款
-        const rechargeRefundAmount = totalRefundAmount;
-        //充值退款数量
-        const rechargeRefundNum = totalRefundNum;
-        //充值净收入
-        const rechargeNetIncome = totalNetIncome;
+        const rechargeNetIncome = Number(
+            subtract(bignumber(rechargeAmount), bignumber(rechargeRefundAmount)).toString(),
+        );
+
+        // 会员概况（仅 membership_order 且 source=1 订单购买）
+        const memberAmount = await this.membershipOrderRepository.sum("orderAmount", {
+            payState: 1,
+            source: 1,
+        });
+        const memberOrderNum = await this.membershipOrderRepository.count({
+            where: { payState: 1, source: 1 },
+        });
+        const memberRefundAmount = await this.membershipOrderRepository.sum("orderAmount", {
+            refundStatus: 1,
+            source: 1,
+        });
+        const memberRefundNum = await this.membershipOrderRepository.count({
+            where: { refundStatus: 1, source: 1 },
+        });
+        const memberNetIncome = Number(
+            subtract(bignumber(memberAmount), bignumber(memberRefundAmount)).toString(),
+        );
+
+        // 经营概况 = 充值 + 会员 汇总
+        const totalIncomeAmount = Number(
+            (Number(rechargeAmount) + Number(memberAmount)).toFixed(2),
+        );
+        const totalIncomeNum = rechargeNum + memberOrderNum;
+        const totalRefundAmount = Number(
+            (Number(rechargeRefundAmount) + Number(memberRefundAmount)).toFixed(2),
+        );
+        const totalRefundNum = rechargeRefundNum + memberRefundNum;
+        const totalNetIncome = Number(
+            subtract(bignumber(totalIncomeAmount), bignumber(totalRefundAmount)).toString(),
+        );
         //用户概况
         //用户总人数
         const totalUserNum = await this.userRepository.count({
             select: ["id"],
             where: { isRoot: 0 },
         });
-        //累计充值人数
-        const totalRecharge = await this.rechargeOrderRepository
+        // 累计充值人数（已支付充值订单的去重用户数）
+        const totalRechargeUser = await this.rechargeOrderRepository
             .createQueryBuilder("recharge-order")
             .where("recharge-order.payStatus = :payStatus", { payStatus: 1 })
-            .select("COUNT(recharge-order.id)", "count")
+            .select("COUNT(DISTINCT recharge-order.userId)", "count")
             .getRawOne();
-        const totalRechargeNum = Number(totalRecharge.count || 0);
+        const totalRechargeNum = Number(totalRechargeUser?.count ?? 0);
+        // 开通会员人数（source=1 已支付会员订单的去重用户数）
+        const totalMemberUser = await this.membershipOrderRepository
+            .createQueryBuilder("membership-order")
+            .where("membership-order.payState = :payState", { payState: 1 })
+            .andWhere("membership-order.source = :source", { source: 1 })
+            .select("COUNT(DISTINCT membership-order.userId)", "count")
+            .getRawOne();
+        const totalMemberUserNum = Number(totalMemberUser?.count ?? 0);
         //累计充值金额
         const userAccount = await this.userRepository
             .createQueryBuilder("user")
@@ -83,6 +114,22 @@ export class FinanceService extends BaseService<AccountLog> {
             .getRawOne();
         const totalRechargeAmount = Number(userAccount.totalRechargeSum || 0);
         const totalPowerSum = Number(userAccount.totalPowerSum || 0);
+        // Points issued / consumed from account_log
+        const pointsAgg = await this.accountLogRepository
+            .createQueryBuilder("log")
+            .select(
+                `COALESCE(SUM(CASE WHEN log.action = :inc THEN log.change_amount ELSE 0 END), 0)`,
+                "issued",
+            )
+            .addSelect(
+                `COALESCE(SUM(CASE WHEN log.action = :dec THEN log.change_amount ELSE 0 END), 0)`,
+                "consumed",
+            )
+            .setParameters({ inc: ACTION.INC, dec: ACTION.DEC })
+            .getRawOne();
+        const totalPointsIssued = Number(pointsAgg?.issued ?? 0);
+        const totalPointsConsumed = Number(pointsAgg?.consumed ?? 0);
+
         //累计对话次数
         const totalChatNum = await this.aiChatRMessageRepository.count({
             where: {
@@ -104,12 +151,22 @@ export class FinanceService extends BaseService<AccountLog> {
                 rechargeRefundNum,
                 rechargeNetIncome,
             },
+            member: {
+                memberAmount,
+                memberOrderNum,
+                memberRefundAmount,
+                memberRefundNum,
+                memberNetIncome,
+            },
             user: {
                 totalUserNum,
                 totalRechargeNum,
+                totalMemberUserNum,
                 totalChatNum,
                 totalRechargeAmount,
                 totalPowerSum,
+                totalPointsIssued,
+                totalPointsConsumed,
             },
         };
     }

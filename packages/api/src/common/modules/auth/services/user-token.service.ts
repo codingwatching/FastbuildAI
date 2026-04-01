@@ -436,14 +436,14 @@ export class UserTokenService extends BaseService<UserToken> {
                 allowMultipleLogin: boolean;
             }>(
                 "login_settings",
-                { allowMultipleLogin: false }, // 默认不允许多处登录
+                { allowMultipleLogin: true }, // 默认不允许多处登录
                 "auth",
             );
 
             return config;
         } catch (error) {
             this.logger.warn(`获取登录设置配置失败，使用默认配置: ${error.message}`);
-            return { allowMultipleLogin: false }; // 默认不允许多处登录
+            return { allowMultipleLogin: true }; // 默认不允许多处登录
         }
     }
 

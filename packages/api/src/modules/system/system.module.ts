@@ -1,7 +1,7 @@
 import { CacheService } from "@buildingai/cache";
 import { CloudStorageModule } from "@buildingai/core";
 import { TypeOrmModule } from "@buildingai/db/@nestjs/typeorm";
-import { User } from "@buildingai/db/entities";
+import { Department, DepartmentUserIndex, User } from "@buildingai/db/entities";
 import { Payconfig } from "@buildingai/db/entities";
 import { Dict } from "@buildingai/db/entities";
 import { AccountLog, MembershipLevels, UserSubscription } from "@buildingai/db/entities";
@@ -43,6 +43,8 @@ import { WebsiteService } from "./services/website.service";
             UserSubscription,
             MembershipLevels,
             StorageConfig,
+            Department,
+            DepartmentUserIndex,
         ]),
         forwardRef(() => PayModule),
     ],

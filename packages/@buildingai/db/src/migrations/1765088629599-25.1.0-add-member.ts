@@ -49,9 +49,6 @@ export class Migration1765088629599 implements MigrationInterface {
         );
         await queryRunner.query(`COMMENT ON TABLE "membership_order" IS '会员订单'`);
         await queryRunner.query(
-            `CREATE TABLE IF NOT EXISTS "user_subscription" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "user_id" uuid NOT NULL, "level_id" uuid, "order_id" uuid, "start_time" TIMESTAMP WITH TIME ZONE NOT NULL, "end_time" TIMESTAMP WITH TIME ZONE NOT NULL, "source" integer NOT NULL, CONSTRAINT "PK_ec4e57f4138e339fb111948a16f" PRIMARY KEY ("id")); COMMENT ON COLUMN "user_subscription"."user_id" IS '用户ID'; COMMENT ON COLUMN "user_subscription"."level_id" IS '会员等级ID'; COMMENT ON COLUMN "user_subscription"."start_time" IS '开始时间'; COMMENT ON COLUMN "user_subscription"."end_time" IS '到期时间'; COMMENT ON COLUMN "user_subscription"."source" IS '来源'`,
-        );
-        await queryRunner.query(
             `CREATE INDEX IF NOT EXISTS "IDX_ec4e57f4138e339fb111948a16" ON "user_subscription" ("id") `,
         );
         await queryRunner.query(

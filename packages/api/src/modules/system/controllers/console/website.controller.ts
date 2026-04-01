@@ -14,7 +14,7 @@ export class WebsiteConsoleController extends BaseController {
     }
 
     @Get()
-    @BuildFileUrl(["**.logo", "**.icon", "***.iconUrl", "**.spaLoadingIcon"])
+    @BuildFileUrl(["**.logo", "**.icon", "***.iconUrl"])
     @Permissions({
         code: "getConfig",
         name: "获取网站配置",
@@ -25,7 +25,7 @@ export class WebsiteConsoleController extends BaseController {
     }
 
     @Post()
-    @BuildFileUrl(["**.logo", "**.icon", "***.iconUrl", "**.spaLoadingIcon"])
+    @BuildFileUrl(["**.logo", "**.icon", "***.iconUrl"])
     @Permissions({
         code: "setConfig",
         name: "设置网站配置",

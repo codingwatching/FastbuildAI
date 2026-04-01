@@ -3,8 +3,10 @@ import { type BooleanNumberType } from "@buildingai/constants";
 import { LOGIN_TYPE } from "@buildingai/constants";
 import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { MembershipLevels, UserSubscription } from "@buildingai/db/entities";
-import { In, MoreThan, Repository } from "@buildingai/db/typeorm";
+import { Role } from "@buildingai/db/entities";
+import { Department } from "@buildingai/db/entities";
+import { DepartmentUserIndex, MembershipLevels, UserSubscription } from "@buildingai/db/entities";
+import { In, Repository } from "@buildingai/db/typeorm";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { DictService } from "@buildingai/dict";
@@ -25,6 +27,7 @@ import { QueryUserDto } from "@modules/user/dto/query-user.dto";
 import { UpdateUserBalanceDto, UpdateUserDto } from "@modules/user/dto/update-user.dto";
 import { UserService } from "@modules/user/services/user.service";
 import { Body, Delete, Get, Inject, Param, Patch, Post, Query } from "@nestjs/common";
+import { Like } from "typeorm";
 
 /**
  * 用户管理控制器
@@ -53,6 +56,12 @@ export class UserConsoleController extends BaseController {
         private readonly userSubscriptionRepository: Repository<UserSubscription>,
         @InjectRepository(MembershipLevels)
         private readonly membershipLevelsRepository: Repository<MembershipLevels>,
+        @InjectRepository(DepartmentUserIndex)
+        private readonly departmentUserIndexRepository: Repository<DepartmentUserIndex>,
+        @InjectRepository(Department)
+        private readonly departmentRepository: Repository<Department>,
+        @InjectRepository(Role)
+        private readonly roleRepository: Repository<Role>,
     ) {
         super();
     }
@@ -85,51 +94,17 @@ export class UserConsoleController extends BaseController {
         );
 
         // 获取用户当前最高会员等级ID
-        const membershipLevelId = await this.getUserHighestMembershipLevelId(user.id);
+        const membershipLevel = await this.userService.getUserHighestMembershipLevel(user.id);
 
         return {
             user: {
                 ...userInfo,
                 permissions: userInfo.isRoot || permissionCodes.length > 0 ? 1 : 0,
-                membershipLevelId,
+                membershipLevel,
             },
             permissions: permissionCodes,
             menus: menuTree,
         };
-    }
-
-    /**
-     * 获取用户当前最高会员等级ID
-     *
-     * @param userId 用户ID
-     * @returns 最高会员等级ID，无有效会员则返回 null
-     */
-    private async getUserHighestMembershipLevelId(userId: string): Promise<string | null> {
-        const now = new Date();
-
-        // 查询用户所有有效订阅的等级ID
-        const subscriptions = await this.userSubscriptionRepository.find({
-            where: {
-                userId,
-                endTime: MoreThan(now),
-            },
-            select: ["levelId"],
-        });
-
-        const levelIds = subscriptions.filter((sub) => sub.levelId).map((sub) => sub.levelId!);
-
-        if (levelIds.length === 0) {
-            return null;
-        }
-
-        // 查询这些等级中 level 值最高的
-        const highestLevel = await this.membershipLevelsRepository.findOne({
-            where: { id: In(levelIds) },
-            order: { level: "DESC" },
-            select: ["id"],
-        });
-
-        return highestLevel?.id ?? null;
     }
 
     /**
@@ -264,6 +239,7 @@ export class UserConsoleController extends BaseController {
         code: "batch-delete",
         name: "删除用户",
         description: "批量删除用户",
+        hidden: true,
     })
     async batchRemove(@Body() dto: BatchDeleteUserDto) {
         // 查询所有要删除的用户
@@ -446,6 +422,93 @@ export class UserConsoleController extends BaseController {
         return await this.userService.createUser(createUserDto);
     }
 
+    @Get("searchUser")
+    @Permissions({
+        code: "searchUser",
+        name: "搜索获取用户",
+        description: "搜索获取用户",
+    })
+    @BuildFileUrl(["**.avatar"])
+    async searchUserByQuery(@Query("keyword") keyword: string) {
+        return await this.searchUsersByKeyword(keyword);
+    }
+
+    @Get("searchUser/:keyword")
+    @Permissions({
+        code: "searchUser",
+        name: "搜索获取用户",
+        description: "搜索获取用户",
+    })
+    @BuildFileUrl(["**.avatar"])
+    async searchUserByPath(@Param("keyword") keyword: string) {
+        return await this.searchUsersByKeyword(keyword);
+    }
+
+    private async searchUsersByKeyword(keyword: string) {
+        if (!keyword) {
+            throw HttpErrorFactory.badRequest("请输入搜索关键词");
+        }
+        const users = await this.userService.findAll({
+            where: [
+                { userNo: Like(`%${keyword}%`) },
+                { phone: Like(`%${keyword}%`) },
+                { username: Like(`%${keyword}%`) },
+                { nickname: Like(`%${keyword}%`) },
+            ],
+            relations: ["role"],
+            take: 20,
+            select: {
+                id: true,
+                userNo: true,
+                avatar: true,
+                username: true,
+                nickname: true,
+                phone: true,
+                role: {
+                    id: true,
+                    name: true,
+                },
+            },
+        });
+        if (!users.length) {
+            return [];
+        }
+        const userIds = users.map((item) => item.id);
+        const departmentRows = await this.departmentUserIndexRepository.find({
+            where: {
+                userId: In(userIds),
+            },
+            select: ["departmentId", "userId"],
+        });
+        const departmentIdsArray = Array.from(
+            new Set(departmentRows.map((item) => item.departmentId).filter(Boolean)),
+        );
+        let departments = [];
+        if (departmentIdsArray.length > 0) {
+            departments = await this.departmentRepository.find({
+                where: {
+                    id: In(departmentIdsArray),
+                },
+                select: ["id", "name"],
+            });
+        }
+        const departmentById = new Map(departments.map((item) => [item.id, item]));
+        const departmentIdsByUserId = new Map<string, string[]>();
+        for (const row of departmentRows) {
+            const list = departmentIdsByUserId.get(row.userId) ?? [];
+            if (row.departmentId && !list.includes(row.departmentId)) {
+                list.push(row.departmentId);
+            }
+            departmentIdsByUserId.set(row.userId, list);
+        }
+        return users.map((user) => ({
+            ...user,
+            departments: (departmentIdsByUserId.get(user.id) ?? [])
+                .map((id) => departmentById.get(id))
+                .filter(Boolean),
+        }));
+    }
+
     /**
      * 查询单个用户
      *
@@ -478,8 +541,20 @@ export class UserConsoleController extends BaseController {
             order: { createdAt: "DESC" },
         });
 
+        let membershipLevel = null;
+        if (systemSubscription?.level) {
+            membershipLevel = {
+                id: systemSubscription.level.id,
+                name: systemSubscription.level.name,
+                endTime: systemSubscription.endTime
+                    ? systemSubscription.endTime.toISOString()
+                    : null,
+            };
+        }
+
         return {
             ...result,
+            membershipLevel,
             level: systemSubscription?.levelId || null,
             levelEndTime: systemSubscription?.endTime
                 ? systemSubscription.endTime.toISOString()
@@ -517,8 +592,7 @@ export class UserConsoleController extends BaseController {
         return {
             allowedLoginMethods: [LOGIN_TYPE.ACCOUNT, LOGIN_TYPE.WECHAT],
             allowedRegisterMethods: [LOGIN_TYPE.ACCOUNT, LOGIN_TYPE.WECHAT],
-            defaultLoginMethod: LOGIN_TYPE.ACCOUNT,
-            allowMultipleLogin: false,
+            allowMultipleLogin: true,
             showPolicyAgreement: true,
         };
     }
@@ -532,11 +606,6 @@ export class UserConsoleController extends BaseController {
         // 检查允许的登录方式不能为空
         if (!config.allowedLoginMethods || config.allowedLoginMethods.length === 0) {
             throw HttpErrorFactory.paramError("至少需要启用一种登录方式");
-        }
-
-        // 检查默认登录方式必须在允许的登录方式中
-        if (!config.allowedLoginMethods.includes(config.defaultLoginMethod)) {
-            throw HttpErrorFactory.paramError("默认登录方式必须在允许的登录方式列表中");
         }
 
         // 检查登录方式和注册方式的值是否有效

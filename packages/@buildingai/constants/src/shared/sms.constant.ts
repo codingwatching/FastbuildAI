@@ -13,10 +13,26 @@ export const SmsProvider = {
 } as const;
 export type SmsProviderType = (typeof SmsProvider)[keyof typeof SmsProvider];
 
+/**
+ * 场景级短信模板配置
+ */
+export interface SmsSceneTemplateConfig {
+    enable?: boolean;
+    templateId?: string;
+    content?: string;
+}
+
 export interface AliyunSmsConfig {
     signName: string;
     appKey: string;
     secretKey: string;
+    templateCode?: string;
+    loginTemplateCode?: string;
+    registerTemplateCode?: string;
+    bindMobileTemplateCode?: string;
+    changeMobileTemplateCode?: string;
+    findPasswordTemplateCode?: string;
+    sceneTemplates?: Partial<Record<SmsSceneType, SmsSceneTemplateConfig>>;
 }
 
 export interface TencentSmsConfig {
@@ -24,14 +40,8 @@ export interface TencentSmsConfig {
     appId: string;
     secretId: string;
     secretKey: string;
+    templateCode?: string;
+    sceneTemplates?: Partial<Record<SmsSceneType, SmsSceneTemplateConfig>>;
 }
 
 export type SmsProviderData = AliyunSmsConfig | TencentSmsConfig;
-
-export interface SmsConfig {
-    id: string;
-    provider: SmsProviderType;
-    providerConfig: SmsProviderData;
-    enable: boolean;
-    sort: number;
-}

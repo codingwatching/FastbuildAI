@@ -34,7 +34,7 @@ export class SecretWebController extends BaseController {
     @Get()
     @Permissions({
         code: "list",
-        name: "查看密钥配置",
+        name: "查看密钥配置列表",
     })
     async list(@Query() query: QuerySecretDto) {
         return await this.SecretService.list(query);
@@ -46,7 +46,7 @@ export class SecretWebController extends BaseController {
     @Get("by-template/:templateId")
     @Permissions({
         code: "list-by-template",
-        name: "查看密钥配置",
+        name: "根据模板ID获取配置列表",
     })
     async getConfigsByTemplate(
         @Param("templateId") templateId: string,
@@ -62,7 +62,8 @@ export class SecretWebController extends BaseController {
     @Get("stats")
     @Permissions({
         code: "stats",
-        name: "查看密钥配置",
+        name: "获取配置统计信息",
+        hidden: true,
     })
     async getStats(@Query("templateId") templateId?: string) {
         return await this.SecretService.getConfigStats(templateId);
@@ -74,7 +75,8 @@ export class SecretWebController extends BaseController {
     @Get(":id")
     @Permissions({
         code: "detail",
-        name: "查看密钥配置",
+        name: "查看密钥配置详情",
+        hidden: true,
     })
     async findOne(@Param("id") id: string) {
         return await this.SecretService.getConfigDetail(id);
@@ -87,6 +89,7 @@ export class SecretWebController extends BaseController {
     @Permissions({
         code: "detail-full",
         name: "管理密钥配置",
+        hidden: true,
     })
     async findOneFull(@Param("id") id: string) {
         return await this.SecretService.getConfigDetail(id);
@@ -136,6 +139,7 @@ export class SecretWebController extends BaseController {
     @Permissions({
         code: "batch-delete",
         name: "批量删除密钥配置",
+        hidden: true,
     })
     async removeMany(@Body("ids") ids: string[]) {
         if (!Array.isArray(ids) || ids.length === 0) {

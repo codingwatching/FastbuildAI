@@ -3,43 +3,50 @@ import { PayConfigPayType, PayConfigType } from "@buildingai/constants";
 import {
     ACCOUNT_LOG_SOURCE,
     ACCOUNT_LOG_TYPE,
+    ACTION,
 } from "@buildingai/constants/shared/account-log.constants";
 import { type UserTerminalType } from "@buildingai/constants/shared/status-codes.constant";
 import { AppBillingService } from "@buildingai/core/modules";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { MembershipLevels, MembershipOrder, MembershipPlans } from "@buildingai/db/entities";
+import {
+    AccountLog,
+    MembershipLevels,
+    MembershipOrder,
+    MembershipPlans,
+} from "@buildingai/db/entities";
 import { Payconfig } from "@buildingai/db/entities";
 import { RefundLog } from "@buildingai/db/entities";
 import { UserSubscription } from "@buildingai/db/entities";
+import { User } from "@buildingai/db/entities";
 import { DictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { generateNo } from "@buildingai/utils";
 import { REFUND_ORDER_FROM } from "@common/modules/refund/constants/refund.constants";
 import { RefundService } from "@common/modules/refund/services/refund.service";
 import { Injectable } from "@nestjs/common";
-import { In, Repository } from "typeorm";
+import { In, MoreThan, Repository } from "typeorm";
 
 import { QueryMembershipOrderDto } from "../dto/query-membership-order.dto";
 
 /**
- * 订阅来源枚举
+ * 订单来源枚举（仅用于 membership_order 表）
  */
-const SUBSCRIPTION_SOURCE = {
-    /** 系统赠送/系统调整 */
+const ORDER_SOURCE = {
+    /** 系统调整 */
     SYSTEM: 0,
     /** 订单购买 */
     ORDER: 1,
-    /** 系统调整 */
-    SYSTEM_ADJUSTMENT: 2,
+    /** 卡密兑换 */
+    CARD_KEY: 2,
 } as const;
 
 /**
- * 订阅来源描述映射
+ * 订单来源描述映射
  */
-const SUBSCRIPTION_SOURCE_DESC: Record<number, string> = {
-    [SUBSCRIPTION_SOURCE.SYSTEM]: "系统赠送",
-    [SUBSCRIPTION_SOURCE.ORDER]: "订单购买",
-    [SUBSCRIPTION_SOURCE.SYSTEM_ADJUSTMENT]: "系统调整",
+const ORDER_SOURCE_DESC: Record<number, string> = {
+    [ORDER_SOURCE.SYSTEM]: "系统调整",
+    [ORDER_SOURCE.ORDER]: "订单购买",
+    [ORDER_SOURCE.CARD_KEY]: "卡密兑换",
 };
 
 /**
@@ -63,10 +70,21 @@ export interface UserOrderListItem {
     payType: PayConfigType;
     /** 支付方式描述 */
     payTypeDesc: string;
+    /** 订单来源 */
+    source: number;
+    /** 订单来源描述 */
+    sourceDesc: string;
     /** 退款状态 */
     refundStatus: number;
     /** 创建时间 */
     createdAt: Date;
+    /** 等级快照 */
+    levelSnap?: {
+        id: string;
+        name: string;
+        icon?: string | null;
+        level: number;
+    };
 }
 
 @Injectable()
@@ -112,7 +130,7 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
         }
         if (userKeyword) {
             queryBuilder.andWhere(
-                "(user.username ILIKE :userKeyword OR user.phone ILIKE :userKeyword)",
+                "(user.nickname ILIKE :userKeyword OR user.phone ILIKE :userKeyword OR user.user_no ILIKE :userKeyword)",
                 {
                     userKeyword: `%${userKeyword}%`,
                 },
@@ -322,10 +340,6 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
                 throw new Error("订单已退款");
             }
 
-            // 从订单快照中获取赠送的积分数量
-            const levelSnap = order.levelSnap as any;
-            const givePower = levelSnap?.givePower || 0;
-
             await this.membershipOrderRepository.manager.transaction(async (entityManager) => {
                 // 发起退款
                 await this.refundService.initiateRefund({
@@ -345,27 +359,84 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
                     refundStatus: 1,
                 });
 
-                // 删除用户订阅记录
-                await entityManager.delete(UserSubscription, {
-                    orderId: order.id,
+                // 查找该订单对应的订阅记录
+                // 新模型下不再按 orderId 删除订阅，而是将有效订阅的 endTime 截断到当前时间
+                const now = new Date();
+                const subscription = await entityManager.findOne(UserSubscription, {
+                    where: {
+                        userId: order.userId,
+                        levelId: order.levelId,
+                    },
                 });
 
-                // 扣除购买会员时赠送的积分
-                if (givePower > 0) {
-                    await this.appBillingService.deductUserPower(
-                        {
+                // 如果订阅仍有效，截断到当前时间
+                if (subscription && subscription.endTime > now) {
+                    subscription.endTime = now;
+                    await entityManager.save(UserSubscription, subscription);
+                }
+
+                // 获取订阅ID用于后续积分处理
+                const subscriptionIds = subscription ? [subscription.id] : [];
+
+                if (subscriptionIds.length > 0) {
+                    const giftLogs = await entityManager.find(AccountLog, {
+                        where: {
                             userId: order.userId,
-                            amount: givePower,
+                            subscriptionId: In(subscriptionIds),
+                            accountType: ACCOUNT_LOG_TYPE.MEMBERSHIP_GIFT_INC,
+                            availableAmount: MoreThan(0),
+                        } as any,
+                    });
+                    const refundableGiftAmount = giftLogs.reduce(
+                        (sum, log) => sum + log.availableAmount,
+                        0,
+                    );
+
+                    if (refundableGiftAmount > 0) {
+                        const user = await entityManager.findOne(User, {
+                            where: { id: order.userId },
+                            lock: { mode: "pessimistic_write" },
+                        });
+
+                        if (!user) {
+                            throw new Error("用户不存在");
+                        }
+
+                        if (user.power < refundableGiftAmount) {
+                            throw new Error("用户当前积分不足，无法完成会员退款扣减");
+                        }
+
+                        await entityManager.update(
+                            AccountLog,
+                            { id: In(giftLogs.map((log) => log.id)) },
+                            { availableAmount: 0 } as any,
+                        );
+
+                        await entityManager.decrement(
+                            User,
+                            { id: order.userId },
+                            "power",
+                            refundableGiftAmount,
+                        );
+
+                        await entityManager.insert(AccountLog, {
+                            userId: order.userId,
+                            accountNo: await generateNo(
+                                entityManager.getRepository(AccountLog),
+                                "accountNo",
+                            ),
                             accountType: ACCOUNT_LOG_TYPE.MEMBERSHIP_GIFT_DEC,
-                            source: {
+                            action: ACTION.DEC,
+                            changeAmount: refundableGiftAmount,
+                            leftAmount: user.power - refundableGiftAmount,
+                            associationNo: order.orderNo,
+                            remark: `会员退款扣除赠送积分：${refundableGiftAmount}`,
+                            sourceInfo: {
                                 type: ACCOUNT_LOG_SOURCE.MEMBERSHIP_GIFT,
                                 source: "会员退款扣除",
                             },
-                            remark: `会员退款扣除赠送积分：${givePower}`,
-                            associationNo: order.orderNo,
-                        },
-                        entityManager,
-                    );
+                        } as any);
+                    }
                 }
             });
         } catch (error) {
@@ -561,10 +632,18 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
      * @param paginationDto 分页参数
      * @returns 订阅记录列表
      */
-    async userOrderLists(userId: string, paginationDto: { page?: number; pageSize?: number }) {
+    async userOrderLists(
+        userId: string,
+        paginationDto: { page?: number; pageSize?: number; levelId?: string },
+    ) {
         const queryBuilder = this.membershipOrderRepository.createQueryBuilder("membership-order");
         queryBuilder.where("membership-order.userId = :userId", { userId });
         queryBuilder.andWhere("membership-order.payState = :payState", { payState: 1 });
+        if (paginationDto.levelId) {
+            queryBuilder.andWhere("membership-order.levelId = :levelId", {
+                levelId: paginationDto.levelId,
+            });
+        }
         queryBuilder.select([
             "membership-order.id",
             "membership-order.orderNo",
@@ -575,6 +654,7 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
             "membership-order.duration",
             "membership-order.orderAmount",
             "membership-order.createdAt",
+            "membership-order.source",
         ]);
         queryBuilder.orderBy("membership-order.createdAt", "DESC");
 
@@ -584,7 +664,11 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
 
         const orderLists = await this.paginateQueryBuilder(queryBuilder, paginationDto);
         const items: UserOrderListItem[] = orderLists.items.map((order) => {
-            const payTypeDesc = payWayList.find((item) => item.payType == order.payType)?.name;
+            const source = Number(order.source);
+            const isOrderPurchase = source === ORDER_SOURCE.ORDER;
+            const payTypeDesc = isOrderPurchase
+                ? (payWayList.find((item) => item.payType == order.payType)?.name ?? "")
+                : "";
             const planSnap = order.planSnap as any;
             const levelSnap = order.levelSnap as any;
             return {
@@ -596,8 +680,18 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
                 orderAmount: order.orderAmount,
                 payType: order.payType,
                 payTypeDesc,
+                source,
+                sourceDesc: ORDER_SOURCE_DESC[source] || "未知来源",
                 refundStatus: order.refundStatus,
                 createdAt: order.createdAt,
+                levelSnap: levelSnap
+                    ? {
+                          id: levelSnap.id,
+                          name: levelSnap.name,
+                          icon: levelSnap.icon,
+                          level: levelSnap.level,
+                      }
+                    : undefined,
             };
         });
 
@@ -609,10 +703,10 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
 
     /**
      * 获取用户订阅列表
-     * @description 获取当前用户的所有订阅记录（包含会员等级、有效期等信息）
+     * @description 新模型下每个等级只有一条唯一记录，直接查询即可
      * @param userId 用户ID
      * @param paginationDto 分页参数
-     * @returns 用户订阅列表
+     * @returns 订阅列表，无订阅时返回空列表
      */
     async userSubscriptionLists(
         userId: string,
@@ -621,120 +715,69 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
         const page = paginationDto.page || 1;
         const pageSize = paginationDto.pageSize || 10;
 
-        const queryBuilder = this.userSubscriptionRepository.createQueryBuilder("subscription");
-        queryBuilder.where("subscription.userId = :userId", { userId });
-        queryBuilder.leftJoinAndSelect("subscription.level", "level");
-        queryBuilder.select([
-            "subscription.id",
-            "subscription.startTime",
-            "subscription.endTime",
-            "subscription.source",
-            "subscription.orderId",
-            "subscription.createdAt",
-            "level.id",
-            "level.name",
-            "level.icon",
-            "level.level",
-        ]);
-        // 添加计算字段用于排序：未过期的在前面
-        queryBuilder.addSelect(
-            `CASE WHEN subscription.end_time > NOW() THEN 0 ELSE 1 END`,
-            "is_expired_sort",
-        );
-        // 排序：未过期的在前面，同状态下按创建时间倒序
-        queryBuilder.orderBy("is_expired_sort", "ASC");
-        queryBuilder.addOrderBy("subscription.createdAt", "DESC");
-        queryBuilder.skip((page - 1) * pageSize);
-        queryBuilder.take(pageSize);
+        const subscriptions = await this.userSubscriptionRepository.find({
+            where: { userId },
+            relations: ["level"],
+            order: { endTime: "DESC" },
+        });
 
-        const [subscriptions, total] = await queryBuilder.getManyAndCount();
+        if (subscriptions.length === 0) {
+            return {
+                items: [],
+                total: 0,
+                page,
+                pageSize,
+            };
+        }
 
-        // 收集所有订单ID用于批量查询
-        const orderIds = subscriptions
-            .filter((item) => item.orderId)
-            .map((item) => item.orderId) as string[];
+        const now = new Date();
 
-        // 批量查询订单信息获取订阅时长和退款状态
+        // 批量查询关联订单信息
+        const orderIds = subscriptions.filter((s) => s.orderId).map((s) => s.orderId) as string[];
         const orderMap = new Map<string, { duration: string; refundStatus: number }>();
         if (orderIds.length > 0) {
             const orders = await this.membershipOrderRepository.find({
                 where: { id: In(orderIds) },
                 select: ["id", "duration", "refundStatus"],
             });
-            orders.forEach((order) => {
-                orderMap.set(order.id, {
-                    duration: order.duration,
-                    refundStatus: order.refundStatus,
-                });
-            });
-        }
-
-        const now = new Date();
-
-        // 找出所有未过期的订阅
-        const validSubscriptions = subscriptions.filter((sub) => sub.endTime > now);
-
-        // 确定生效中的订阅ID
-        let activeSubscriptionId: string | null = null;
-
-        if (validSubscriptions.length > 0) {
-            // 找出最高等级
-            const maxLevel = Math.max(...validSubscriptions.map((sub) => sub.level?.level ?? 0));
-
-            // 筛选出最高等级的未过期订阅
-            const highestLevelSubscriptions = validSubscriptions.filter(
-                (sub) => (sub.level?.level ?? 0) === maxLevel,
+            orders.forEach((o) =>
+                orderMap.set(o.id, { duration: o.duration, refundStatus: o.refundStatus ?? 0 }),
             );
-
-            // 在最高等级中，取最早订阅的那条（按 startTime 升序）
-            const activeSubscription = highestLevelSubscriptions.sort(
-                (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-            )[0];
-
-            activeSubscriptionId = activeSubscription?.id ?? null;
         }
 
-        const items = subscriptions
-            .map((subscription) => {
-                const isExpired = subscription.endTime < now;
-                const isActive = subscription.id === activeSubscriptionId;
-                // 如果 level 为 null，显示为"系统调整"，否则根据 source 显示
-                let sourceDesc: string;
-                if (!subscription.level) {
-                    sourceDesc = "系统调整";
-                } else {
-                    sourceDesc = SUBSCRIPTION_SOURCE_DESC[subscription.source] || "未知来源";
-                }
-                const orderInfo = subscription.orderId ? orderMap.get(subscription.orderId) : null;
-                const duration = orderInfo?.duration || null;
-                const refundStatus = orderInfo?.refundStatus ?? 0;
+        // 构建返回数据
+        const items = subscriptions.map((sub) => {
+            const orderInfo = sub.orderId ? orderMap.get(sub.orderId) : null;
+            const isExpired = new Date(sub.endTime) < now;
 
-                return {
-                    id: subscription.id,
-                    level: subscription.level,
-                    startTime: subscription.startTime,
-                    endTime: subscription.endTime,
-                    source: subscription.source,
-                    sourceDesc,
-                    duration,
-                    refundStatus,
-                    isExpired,
-                    isActive,
-                    createdAt: subscription.createdAt,
-                };
-            })
-            // 排序：生效中 > 未过期 > 已过期，同状态下按创建时间倒序
-            .sort((a, b) => {
-                // 生效中的最先
-                if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
-                // 未过期的在已过期前面
-                if (a.isExpired !== b.isExpired) return a.isExpired ? 1 : -1;
-                // 同状态按创建时间倒序
-                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-            });
+            return {
+                id: sub.id,
+                level: sub.level,
+                startTime: sub.startTime,
+                endTime: sub.endTime,
+                duration: orderInfo?.duration ?? null,
+                refundStatus: orderInfo?.refundStatus ?? 0,
+                isExpired,
+                isActive: !isExpired,
+                createdAt: sub.createdAt,
+            };
+        });
+
+        // 排序：未过期在前，同状态按等级降序，再按创建时间倒序
+        items.sort((a, b) => {
+            if (a.isExpired !== b.isExpired) return a.isExpired ? 1 : -1;
+            const levelA = a.level?.level ?? 0;
+            const levelB = b.level?.level ?? 0;
+            if (levelA !== levelB) return levelB - levelA;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+
+        const total = items.length;
+        const start = (page - 1) * pageSize;
+        const pagedItems = items.slice(start, start + pageSize);
 
         return {
-            items,
+            items: pagedItems,
             total,
             page,
             pageSize,
@@ -773,12 +816,8 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
             const subscription = order.subscriptions?.[0]; // 获取订单对应的订阅记录
 
             // 根据订单的 source 字段确定来源
-            // 注意：source 字段已添加到实体，如果 TypeScript 报错，需要重新编译
-            const orderSource = (order as MembershipOrder & { source?: number }).source ?? 1; // 默认为订单购买
-            const sourceDesc =
-                orderSource === 0
-                    ? SUBSCRIPTION_SOURCE_DESC[SUBSCRIPTION_SOURCE.SYSTEM]
-                    : SUBSCRIPTION_SOURCE_DESC[SUBSCRIPTION_SOURCE.ORDER];
+            const orderSource = order.source ?? 1; // 默认为订单购买
+            const sourceDesc = ORDER_SOURCE_DESC[orderSource] ?? "未知来源";
 
             // 计算订单的有效期（从订单支付时间开始，加上订单时长）
             const orderStartTime = order.payTime || order.createdAt;
@@ -802,7 +841,7 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
 
             return {
                 id: subscription?.id || order.id,
-                level,
+                level: order.duration === "取消会员" ? undefined : level,
                 startTime: subscription?.startTime || orderStartTime,
                 endTime: finalEndTime,
                 source: orderSource,
@@ -847,20 +886,30 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
 
             // 如果设置为普通用户（levelId为null），创建取消会员的订单记录
             if (!levelId) {
-                // 查询用户当前的会员等级（用于订单快照）
-                const currentSubscription = await entityManager.findOne(UserSubscription, {
-                    where: { userId },
+                // 查询用户当前有效的会员等级（用于订单快照）
+                const activeSubscriptions = await entityManager.find(UserSubscription, {
+                    where: {
+                        userId,
+                        endTime: MoreThan(now),
+                    },
                     relations: ["level"],
-                    order: { createdAt: "DESC" },
+                    order: { endTime: "DESC", createdAt: "DESC" },
                 });
+                const latestSubscription =
+                    activeSubscriptions[0] ||
+                    (await entityManager.findOne(UserSubscription, {
+                        where: { userId },
+                        relations: ["level"],
+                        order: { createdAt: "DESC" },
+                    }));
 
-                const levelSnap = currentSubscription?.level
+                const levelSnap = latestSubscription?.level
                     ? JSON.parse(
                           JSON.stringify({
-                              id: currentSubscription.level.id,
-                              name: currentSubscription.level.name,
-                              level: currentSubscription.level.level,
-                              icon: currentSubscription.level.icon,
+                              id: latestSubscription.level.id,
+                              name: latestSubscription.level.name,
+                              level: latestSubscription.level.level,
+                              icon: latestSubscription.level.icon,
                           }),
                       )
                     : {};
@@ -871,7 +920,7 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
                 // 创建取消会员的订单记录（系统调整，金额为0）
                 // 注意：levelId 字段在实体中不允许为空，但取消会员时我们需要记录这个操作
                 // 使用一个特殊值或者查询用户之前的等级ID
-                const previousLevelId = currentSubscription?.levelId || "";
+                const previousLevelId = latestSubscription?.levelId || "";
 
                 const cancelOrder = await entityManager.save(MembershipOrder, {
                     userId,
@@ -891,8 +940,13 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
                     source: 0, // 系统调整
                 });
 
-                // 删除所有订阅记录
-                await entityManager.delete(UserSubscription, { userId });
+                if (activeSubscriptions.length > 0) {
+                    const expiredSubscriptions = activeSubscriptions.map((subscription) => ({
+                        ...subscription,
+                        endTime: now,
+                    }));
+                    await entityManager.save(UserSubscription, expiredSubscriptions);
+                }
 
                 return {
                     orderId: cancelOrder.id,
@@ -987,39 +1041,35 @@ export class MembershipOrderService extends BaseService<MembershipOrder> {
                 source: 0, // 系统调整
             });
 
-            // 查询用户的所有系统订阅记录（source = 0），确保每个用户只有一条系统订阅记录
-            const existingSubscriptions = await entityManager.find(UserSubscription, {
-                where: {
-                    userId,
-                    source: SUBSCRIPTION_SOURCE.SYSTEM,
-                },
+            // 按 (userId, levelId) 查找唯一订阅记录
+            const existingSubscription = await entityManager.findOne(UserSubscription, {
+                where: { userId, levelId },
             });
 
-            // 更新或创建订阅记录
-            if (existingSubscriptions.length > 0) {
-                // 如果存在多条系统订阅记录，删除多余的，只保留一条
-                if (existingSubscriptions.length > 1) {
-                    // 保留第一条，删除其他的
-                    const subscriptionsToDelete = existingSubscriptions.slice(1);
-                    await entityManager.remove(UserSubscription, subscriptionsToDelete);
+            if (existingSubscription) {
+                // 存在同等级订阅记录，判断是否需要顺延
+                if (existingSubscription.endTime > now) {
+                    // 当前订阅仍有效，从现有结束时间开始顺延
+                    const newEndTime = new Date(existingSubscription.endTime);
+                    // 计算增量时长
+                    const durationMs = endTime.getTime() - now.getTime();
+                    newEndTime.setTime(newEndTime.getTime() + durationMs);
+                    existingSubscription.endTime = newEndTime;
+                } else {
+                    // 已过期，重新设置开始和结束时间
+                    existingSubscription.startTime = now;
+                    existingSubscription.endTime = endTime;
                 }
-
-                // 更新保留的订阅记录
-                const subscriptionToUpdate = existingSubscriptions[0];
-                subscriptionToUpdate.levelId = levelId;
-                subscriptionToUpdate.startTime = now;
-                subscriptionToUpdate.endTime = endTime;
-                subscriptionToUpdate.orderId = order.id;
-                await entityManager.save(UserSubscription, subscriptionToUpdate);
+                existingSubscription.orderId = order.id;
+                await entityManager.save(UserSubscription, existingSubscription);
             } else {
-                // 创建新的订阅记录
+                // 不存在该等级订阅，创建新记录
                 await entityManager.save(UserSubscription, {
                     userId,
                     levelId,
                     orderId: order.id,
                     startTime: now,
                     endTime,
-                    source: SUBSCRIPTION_SOURCE.SYSTEM,
                 });
             }
 

@@ -6,11 +6,17 @@
     "eslint.validate": [
         "javascript",
         "typescript",
-        "vue"
+        "vue",
+        "typescript",
+        "typescriptreact",
+        "javascriptreact"
     ],
     "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.quickSuggestions": {
+        "strings": "on"
+    },
     "[javascript]": {
-        "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "[typescript]": {
         "editor.defaultFormatter": "dbaeumer.vscode-eslint"
@@ -106,12 +112,11 @@
         "editor.defaultFormatter": "vscode.json-language-features"
     },
     "i18n-ally.localesPaths": [
-        "packages/web/buildingai-ui/app/i18n",
-        "packages/web/@buildingai/i18n-config/src/i18n",
-        "extensions/*/src/web/i18n",
+        "packages/client/src/locales",
+        "extensions/*/src/web/locales",
     ],
     "i18n-ally.enabledParsers": [
-        "json"
+        "ts"
     ],
     "i18n-ally.sourceLanguage": "zh",
     "i18n-ally.langs": [
@@ -126,4 +131,15 @@
     "i18n-ally.enabledFrameworks": [
         "vue"
     ],
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    },
+    "tailwindCSS.experimental.configFile": {
+        "packages/@buildingai/web/ui/src/styles/index.css": [
+            "packages/@buildingai/web/ui/src/**",
+            "extensions/*/src/web/**"
+        ],
+        "packages/client/src/styles/index.css": "packages/client/src/**",
+    },
 }

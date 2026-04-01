@@ -65,6 +65,13 @@ export class MembershipLevels extends BaseEntity {
     })
     benefits: Benefits[];
 
+    @Column({
+        type: "bigint",
+        default: 0,
+        comment: "存储容量（字节）",
+    })
+    storageCapacity: number;
+
     @ManyToMany(() => AiModel, (model) => model.membershipLevels)
     aiModels: AiModel[];
 }

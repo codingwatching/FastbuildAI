@@ -144,6 +144,8 @@ export async function startApi(skipExistCheck = false) {
             path.join(rootDir, "logs/pm2/api-error.log"),
             "--time",
             "--merge-logs",
+            "--node-args",
+            "--max-old-space-size=2048",
         ];
 
         // Add --no-daemon flag if present

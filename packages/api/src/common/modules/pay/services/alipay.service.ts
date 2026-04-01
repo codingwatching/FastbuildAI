@@ -16,7 +16,7 @@ export class AlipayService {
 
     async createWebPayOrder(payOrder: PayOrder) {
         try {
-            const { orderSn, amount, from } = payOrder;
+            const { orderSn, amount, from, returnUrl } = payOrder;
 
             if (amount <= 0) {
                 throw new Error("The payment must be greater than 0");
@@ -33,6 +33,8 @@ export class AlipayService {
             }
 
             const notifyUrl = `${domain}${process.env.VITE_APP_WEB_API_PREFIX}/pay/notifyAlipay`;
+            const finalReturnUrl =
+                returnUrl || `${domain}${process.env.VITE_APP_WEB_API_PREFIX}/pay/returnAlipay`;
 
             return await alipayService.createWebPay({
                 outTradeNo: orderSn,
@@ -43,6 +45,7 @@ export class AlipayService {
                 passbackParams: from,
                 timeoutExpress: "10m",
                 notifyUrl,
+                returnUrl: finalReturnUrl,
             });
         } catch (error) {
             throw HttpErrorFactory.internal(`Payment order creation failed: ${error.message}`);
@@ -116,6 +119,4 @@ export class AlipayService {
             throw HttpErrorFactory.internal(`Refund status query failed: ${error.message}`);
         }
     }
-
-
 }

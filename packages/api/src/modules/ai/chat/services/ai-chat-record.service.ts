@@ -1,7 +1,7 @@
 import { BaseService } from "@buildingai/base";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { AiChatMessage, AiChatRecord } from "@buildingai/db/entities";
-import { Like, Repository } from "@buildingai/db/typeorm";
+import { AiChatFeedback, AiChatMessage, AiChatRecord } from "@buildingai/db/entities";
+import { In, Repository } from "@buildingai/db/typeorm";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { buildWhere } from "@buildingai/utils";
@@ -17,25 +17,18 @@ import {
 } from "../dto/ai-chat-record.dto";
 import { AiChatsMessageService } from "./ai-chat-message.service";
 
-/**
- * AI对话记录服务
- * 提供对话和消息的完整CRUD操作，继承BaseService获得通用CRUD功能
- */
 @Injectable()
 export class AiChatRecordService extends BaseService<AiChatRecord> {
     constructor(
         @InjectRepository(AiChatRecord)
         conversationRepository: Repository<AiChatRecord>,
+        @InjectRepository(AiChatFeedback)
+        private readonly feedbackRepository: Repository<AiChatFeedback>,
         private readonly aiChatsMessageService: AiChatsMessageService,
     ) {
         super(conversationRepository);
     }
 
-    /**
-     * 创建新对话
-     * @param userId 用户ID
-     * @param dto 创建对话DTO
-     */
     async createConversation(userId: string, dto: CreateAIChatRecordDto): Promise<AiChatRecord> {
         const conversationData = {
             ...dto,
@@ -54,65 +47,113 @@ export class AiChatRecordService extends BaseService<AiChatRecord> {
         }
     }
 
-    /**
-     * 分页查询用户对话
-     * @param userId 用户ID，空字符串表示查询所有用户
-     * @param queryDto 查询条件
-     * @param includeUserInfo 是否包含用户信息
-     */
     async findUserConversations(
         userId: string,
         queryDto?: QueryAIChatRecordDto,
         includeUserInfo: boolean = false,
     ) {
         try {
-            // 构建基础查询条件
-            const where = buildWhere<AiChatRecord>({
-                isDeleted: userId && userId.trim() !== "" ? false : undefined,
-                userId: userId && userId.trim() !== "" ? userId : undefined,
-                status: queryDto?.status,
-                isPinned: queryDto?.isPinned,
-            });
+            const queryBuilder = this.repository.createQueryBuilder("conversation");
 
-            // 处理关键词搜索（需要使用数组形式实现OR查询）
-            let whereConditions: any = where;
-            if (queryDto?.keyword) {
-                whereConditions = [
-                    { ...where, title: Like(`%${queryDto.keyword}%`) },
-                    { ...where, summary: Like(`%${queryDto.keyword}%`) },
-                ];
+            if (includeUserInfo) {
+                queryBuilder.leftJoinAndSelect("conversation.user", "user");
             }
 
-            // 设置关联和排除字段
-            const relations = includeUserInfo ? ["user"] : [];
+            queryBuilder.where("conversation.isDeleted = :isDeleted", { isDeleted: false });
+
+            if (userId && userId.trim() !== "") {
+                queryBuilder.andWhere("conversation.userId = :userId", { userId });
+            }
+
+            if (queryDto?.isPinned !== undefined) {
+                queryBuilder.andWhere("conversation.isPinned = :isPinned", {
+                    isPinned: queryDto.isPinned,
+                });
+            }
+
+            if (queryDto?.keyword) {
+                queryBuilder.andWhere(
+                    "(conversation.title LIKE :keyword OR conversation.summary LIKE :keyword)",
+                    { keyword: `%${queryDto.keyword}%` },
+                );
+            }
+
+            if (queryDto?.feedbackFilter) {
+                if (queryDto.feedbackFilter === "high-like") {
+                    const likeCountSubQuery = this.repository.manager
+                        .createQueryBuilder()
+                        .subQuery()
+                        .select("COUNT(*)", "count")
+                        .from("ai_chat_feedback", "feedback")
+                        .where("feedback.conversation_id = conversation.id")
+                        .andWhere("feedback.type = 'like'")
+                        .getQuery();
+
+                    const totalCountSubQuery = this.repository.manager
+                        .createQueryBuilder()
+                        .subQuery()
+                        .select("COUNT(*)", "count")
+                        .from("ai_chat_feedback", "feedback")
+                        .where("feedback.conversation_id = conversation.id")
+                        .getQuery();
+
+                    queryBuilder.andWhere(
+                        `((${likeCountSubQuery})::float / NULLIF((${totalCountSubQuery}), 0) * 100) >= 70`,
+                    );
+                } else if (queryDto.feedbackFilter === "high-dislike") {
+                    const dislikeCountSubQuery = this.repository.manager
+                        .createQueryBuilder()
+                        .subQuery()
+                        .select("COUNT(*)", "count")
+                        .from("ai_chat_feedback", "feedback")
+                        .where("feedback.conversation_id = conversation.id")
+                        .andWhere("feedback.type = 'dislike'")
+                        .getQuery();
+
+                    const totalCountSubQuery = this.repository.manager
+                        .createQueryBuilder()
+                        .subQuery()
+                        .select("COUNT(*)", "count")
+                        .from("ai_chat_feedback", "feedback")
+                        .where("feedback.conversation_id = conversation.id")
+                        .getQuery();
+
+                    queryBuilder.andWhere(
+                        `((${dislikeCountSubQuery})::float / NULLIF((${totalCountSubQuery}), 0) * 100) >= 50`,
+                    );
+                } else if (queryDto.feedbackFilter === "has-feedback") {
+                    const hasFeedbackSubQuery = this.repository.manager
+                        .createQueryBuilder()
+                        .subQuery()
+                        .select("COUNT(*)", "count")
+                        .from("ai_chat_feedback", "feedback")
+                        .where("feedback.conversation_id = conversation.id")
+                        .getQuery();
+
+                    queryBuilder.andWhere(`(${hasFeedbackSubQuery}) > 0`);
+                }
+            }
+
+            queryBuilder.orderBy("conversation.isPinned", "DESC");
+            queryBuilder.addOrderBy("conversation.updatedAt", "DESC");
+
             const excludeFields = includeUserInfo ? ["user.password", "user.openid"] : [];
 
-            // 构建查询选项
-            // 前端需要置顶优先；后台不需要置顶优先（仅按更新时间排序）
-            const order = includeUserInfo
-                ? { updatedAt: "DESC" as const }
-                : { isPinned: "DESC" as const, updatedAt: "DESC" as const };
-
-            const queryOptions = {
-                where: whereConditions,
-                relations,
-                order,
+            const result = await this.paginateQueryBuilder(
+                queryBuilder,
+                queryDto || {},
                 excludeFields,
-            };
-
-            return await this.paginate(queryDto, queryOptions);
+            );
+            if (result.items.length > 0) {
+                await this.attachConversationStats(result.items);
+            }
+            return result;
         } catch (error) {
             this.logger.error(`查询用户对话失败: ${error.message}`, error.stack);
             throw HttpErrorFactory.badRequest("Failed to query user conversations.");
         }
     }
 
-    /**
-     * 根据ID获取对话详情
-     * @param conversationId 对话ID
-     * @param userId 用户ID
-     * @param includeUserInfo 是否包含用户信息
-     */
     async getConversationWithMessages(
         conversationId: string,
         userId?: string,
@@ -130,6 +171,22 @@ export class AiChatRecordService extends BaseService<AiChatRecord> {
         } catch (error) {
             this.logger.error(`获取对话详情失败: ${error.message}`, error.stack);
             throw HttpErrorFactory.badRequest("Failed to get conversation detail.");
+        }
+    }
+
+    async getConversationInfo(
+        conversationId: string,
+        userId?: string,
+    ): Promise<Partial<AiChatRecord> | null> {
+        try {
+            const where = buildWhere<AiChatRecord>({
+                isDeleted: false,
+                userId,
+            });
+            return await this.findOneById(conversationId, { where });
+        } catch (error) {
+            this.logger.error(`获取对话信息失败: ${error.message}`, error.stack);
+            throw HttpErrorFactory.badRequest("Failed to get conversation info.");
         }
     }
 
@@ -321,17 +378,9 @@ export class AiChatRecordService extends BaseService<AiChatRecord> {
         }
     }
 
-    // =================== 消息相关方法 ===================
-
-    /**
-     * 创建消息
-     * @param dto 创建消息DTO
-     */
     async createMessage(dto: CreateMessageDto): Promise<AiChatMessage> {
         try {
             const savedMessage = await this.aiChatsMessageService.createMessage(dto);
-
-            // 更新对话统计信息
             await this.updateConversationStats(dto.conversationId);
 
             return savedMessage;
@@ -350,23 +399,78 @@ export class AiChatRecordService extends BaseService<AiChatRecord> {
         return await this.aiChatsMessageService.findMessages(paginationDto, queryDto);
     }
 
-    /**
-     * 获取对话的消息列表
-     * @param conversationId 对话ID
-     * @param paginationDto 分页参数
-     */
-    async getConversationMessages(conversationId: string, paginationDto: PaginationDto) {
-        return await this.aiChatsMessageService.getConversationMessages(
+    async getConversationMessages(
+        conversationId: string,
+        paginationDto: PaginationDto,
+        userId?: string,
+    ) {
+        const result = await this.aiChatsMessageService.getConversationMessages(
             conversationId,
             paginationDto,
         );
+
+        if (!result.items?.length) {
+            return result;
+        }
+
+        const messageIds = result.items.map((item) => item.id);
+
+        if (userId) {
+            const feedbacks = await this.feedbackRepository.find({
+                where: {
+                    conversationId,
+                    userId,
+                    messageId: In(messageIds),
+                },
+            });
+            const feedbackMap = new Map<string, AiChatFeedback>();
+            feedbacks.forEach((fb) => feedbackMap.set(fb.messageId, fb));
+            return {
+                ...result,
+                items: result.items.map((item) => {
+                    const fb = feedbackMap.get(item.id);
+                    return {
+                        ...item,
+                        message: {
+                            ...(item as AiChatMessage).message,
+                            feedback: fb ? { type: fb.type } : null,
+                        },
+                    };
+                }),
+            };
+        }
+
+        const feedbacks = await this.feedbackRepository.find({
+            where: { conversationId, messageId: In(messageIds) },
+            order: { createdAt: "DESC" },
+        });
+        const feedbackMap = new Map<string, AiChatFeedback>();
+        feedbacks.forEach((fb) => {
+            if (!feedbackMap.has(fb.messageId)) {
+                feedbackMap.set(fb.messageId, fb);
+            }
+        });
+        return {
+            ...result,
+            items: result.items.map((item) => {
+                const fb = feedbackMap.get(item.id);
+                return {
+                    ...item,
+                    message: {
+                        ...(item as AiChatMessage).message,
+                        feedback: fb
+                            ? {
+                                  type: fb.type,
+                                  dislikeReason: fb.dislikeReason ?? undefined,
+                                  confidenceScore: Number(fb.confidenceScore),
+                              }
+                            : null,
+                    },
+                };
+            }),
+        };
     }
 
-    /**
-     * 更新消息
-     * @param messageId 消息ID
-     * @param dto 更新数据
-     */
     async updateMessage(messageId: string, dto: UpdateMessageDto): Promise<AiChatMessage> {
         try {
             const updatedMessage = await this.aiChatsMessageService.updateMessage(messageId, dto);
@@ -380,21 +484,14 @@ export class AiChatRecordService extends BaseService<AiChatRecord> {
         }
     }
 
-    /**
-     * 删除消息
-     * @param messageId 消息ID
-     */
     async deleteMessage(messageId: string): Promise<void> {
         try {
-            // 先获取消息信息
             const message = await this.aiChatsMessageService.findOneById(messageId);
             if (!message) {
                 throw HttpErrorFactory.notFound("Message not found.");
             }
 
             await this.aiChatsMessageService.deleteMessage(messageId);
-
-            // 更新对话统计信息
             await this.updateConversationStats(message.conversationId);
         } catch (error) {
             this.logger.error(`删除消息失败: ${error.message}`, error.stack);
@@ -402,15 +499,83 @@ export class AiChatRecordService extends BaseService<AiChatRecord> {
         }
     }
 
-    // =================== 私有辅助方法 ===================
+    private async attachConversationStats(items: AiChatRecord[]): Promise<void> {
+        const ids = items.map((i) => i.id);
+        const [messageRows, feedbackRows] = await Promise.all([
+            this.repository.manager
+                .createQueryBuilder()
+                .select("message.conversation_id", "conversationId")
+                .addSelect("COUNT(message.id)", "messageCount")
+                .addSelect(
+                    "COALESCE(SUM((message.message->'usage'->>'totalTokens')::int), 0)",
+                    "totalTokens",
+                )
+                .addSelect(
+                    "COALESCE(SUM((message.message->>'userConsumedPower')::int), 0)",
+                    "totalPower",
+                )
+                .from("ai_chat_message", "message")
+                .where("message.conversation_id IN (:...ids)", { ids })
+                .groupBy("message.conversation_id")
+                .getRawMany<{
+                    conversationId: string;
+                    messageCount: string;
+                    totalTokens: string;
+                    totalPower: string;
+                }>(),
+            this.feedbackRepository
+                .createQueryBuilder("feedback")
+                .select("feedback.conversationId", "conversationId")
+                .addSelect("COUNT(*)", "total")
+                .addSelect("SUM(CASE WHEN feedback.type = 'like' THEN 1 ELSE 0 END)", "likeCount")
+                .addSelect(
+                    "SUM(CASE WHEN feedback.type = 'dislike' THEN 1 ELSE 0 END)",
+                    "dislikeCount",
+                )
+                .where("feedback.conversationId IN (:...ids)", { ids })
+                .groupBy("feedback.conversationId")
+                .getRawMany<{
+                    conversationId: string;
+                    total: string;
+                    likeCount: string;
+                    dislikeCount: string;
+                }>(),
+        ]);
 
-    /**
-     * 更新对话统计信息
-     */
+        const msgMap = new Map(messageRows.map((r) => [r.conversationId, r]));
+        const emptyFb = { total: 0, likeCount: 0, dislikeCount: 0, likeRate: 0, dislikeRate: 0 };
+        const fbMap = new Map(
+            feedbackRows.map((r) => {
+                const total = parseInt(r.total, 10) || 0;
+                const likeCount = parseInt(r.likeCount, 10) || 0;
+                const dislikeCount = parseInt(r.dislikeCount, 10) || 0;
+                return [
+                    r.conversationId,
+                    {
+                        total,
+                        likeCount,
+                        dislikeCount,
+                        likeRate: total ? (likeCount / total) * 100 : 0,
+                        dislikeRate: total ? (dislikeCount / total) * 100 : 0,
+                    },
+                ];
+            }),
+        );
+
+        for (const item of items) {
+            const m = msgMap.get(item.id);
+            const f = fbMap.get(item.id) ?? emptyFb;
+            const e = item as AiChatRecord & Record<string, unknown>;
+            e.messageCount = m ? parseInt(m.messageCount, 10) || 0 : 0;
+            e.totalTokens = m ? parseInt(m.totalTokens, 10) || 0 : 0;
+            e.totalPower = m ? parseInt(m.totalPower, 10) || 0 : 0;
+            e.feedbackStats = f;
+        }
+    }
+
     private async updateConversationStats(conversationId: string): Promise<void> {
         try {
             const stats = await this.aiChatsMessageService.getMessageStats(conversationId);
-
             await this.updateById(conversationId, {
                 messageCount: stats.messageCount,
                 totalTokens: stats.totalTokens,
@@ -418,7 +583,6 @@ export class AiChatRecordService extends BaseService<AiChatRecord> {
             });
         } catch (error) {
             this.logger.error(`更新对话统计信息失败: ${error.message}`, error.stack);
-            // 统计信息更新失败不应该影响主流程，仅记录日志
         }
     }
 }

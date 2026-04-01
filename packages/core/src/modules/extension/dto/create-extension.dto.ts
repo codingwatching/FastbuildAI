@@ -20,10 +20,7 @@ import {
     ValidateNested,
 } from "class-validator";
 
-import {
-    IsValidNpmPackageName,
-    NormalizeExtensionIdentifier,
-} from "../validators/extension-identifier.validator";
+import { IsValidNpmPackageName } from "../validators/extension-identifier.validator";
 
 /**
  * Extension author information DTO
@@ -68,7 +65,6 @@ export class CreateExtensionDto {
     /**
      * Extension identifier
      */
-    @NormalizeExtensionIdentifier()
     @IsDefined({ message: "Extension identifier parameter is required" })
     @IsString({ message: "Extension identifier must be a string" })
     @IsNotEmpty({ message: "Extension identifier cannot be empty" })

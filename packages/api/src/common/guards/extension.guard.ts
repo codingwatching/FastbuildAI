@@ -1,6 +1,7 @@
 import { getCachedExtensionList } from "@buildingai/core/modules";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { CanActivate, ExecutionContext, Injectable, Logger } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 import type { Request } from "express";
 
 /**
@@ -15,7 +16,7 @@ export class ExtensionGuard implements CanActivate {
     // 静态属性，用于在其他地方访问插件映射关系
     private static instance: ExtensionGuard;
 
-    constructor() {
+    constructor(private readonly reflector: Reflector) {
         // 保存实例引用，用于静态方法访问
         if (!ExtensionGuard.instance) {
             ExtensionGuard.instance = this;
@@ -29,6 +30,15 @@ export class ExtensionGuard implements CanActivate {
      * @returns 是否允许访问
      */
     async canActivate(context: ExecutionContext): Promise<boolean> {
+        // 检查是否跳过扩展守卫
+        const skipExtensionGuard =
+            this.reflector.get<boolean>("SKIP_EXTENSION_GUARD", context.getHandler()) ||
+            this.reflector.get<boolean>("SKIP_EXTENSION_GUARD", context.getClass());
+
+        if (skipExtensionGuard) {
+            return true;
+        }
+
         const request: Request = context.switchToHttp().getRequest();
 
         // 允许访问主应用的 API 路由
@@ -40,6 +50,11 @@ export class ExtensionGuard implements CanActivate {
         }
 
         if (request.path.startsWith("/extensions/")) {
+            return true;
+        }
+
+        // 允许访问 OpenAPI 路由
+        if (request.path.startsWith("/v1")) {
             return true;
         }
 

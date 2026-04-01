@@ -63,6 +63,14 @@ export class AccountLog extends BaseEntity {
     })
     associationNo: string;
 
+    @Column({
+        type: "uuid",
+        nullable: true,
+        comment: "关联订阅ID",
+    })
+    @Index()
+    subscriptionId: string | null;
+
     /**
      * 用户ID
      */

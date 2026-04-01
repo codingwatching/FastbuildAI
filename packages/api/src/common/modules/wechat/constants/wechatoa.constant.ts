@@ -6,4 +6,5 @@ export const WECHAT_SCENE_PREFIX = {
 
 export const WECHAT_EVENTS = {
     REFRESH: "wechat.access_token.refresh",
+    MP_CONFIG_REFRESH: "wechat.mp.config.refresh",
 } as const;

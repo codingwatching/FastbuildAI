@@ -1,5 +1,5 @@
 import { BaseController } from "@buildingai/base";
-import { Role } from "@buildingai/db/entities";
+import { Role, User } from "@buildingai/db/entities";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { UUIDValidationPipe } from "@buildingai/pipe/param-validate.pipe";
 import { ConsoleController } from "@common/decorators";
@@ -68,6 +68,7 @@ export class RoleController extends BaseController {
         code: "all",
         name: "全部角色",
         description: "查询全部角色列表",
+        hidden: true,
     })
     async findAllRoles(): Promise<Role[]> {
         return this.roleService.all();
@@ -136,5 +137,38 @@ export class RoleController extends BaseController {
     })
     async assignPermissions(@Body() assignPermissionsDto: AssignPermissionsDto): Promise<Role> {
         return this.roleService.assignPermissions(assignPermissionsDto);
+    }
+
+    /**
+     * 查询用户角色列表
+     *
+     * @param roleId 角色ID
+     * @returns 用户角色列表
+     */
+    @Get("/user/:id")
+    @Permissions({
+        code: "user-role-list",
+        name: "用户角色列表",
+        description: "查询用户所属角色列表",
+    })
+    @BuildFileUrl(["**.avatar"])
+    async findUserRoles(
+        @Param("id", UUIDValidationPipe) roleId: string,
+    ): Promise<Array<User & { department: string[] }>> {
+        return this.roleService.findUserRoles(roleId);
+    }
+
+    @Get("permissions/:id")
+    @Permissions({
+        code: "permissions",
+        name: "角色权限",
+        description: "获取角色权限勾选列表",
+    })
+    async getRolePermissionsChecklist(
+        @Param("id", UUIDValidationPipe) id: string,
+        @Query("isDeprecated") isDeprecated?: string,
+        @Query("isGrouped") isGrouped?: string,
+    ) {
+        return this.roleService.getRolePermissionsChecklist(id, isDeprecated, isGrouped);
     }
 }

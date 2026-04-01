@@ -62,6 +62,14 @@ export interface PermissionOptions {
      * 权限类型
      */
     type?: PermissionType;
+
+    /**
+     * Whether to hide this permission from the permission list
+     *
+     * When set to true, the permission still takes effect for access control,
+     * but will not appear in the scanned permission list.
+     */
+    hidden?: boolean;
 }
 
 /**

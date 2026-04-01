@@ -1,9 +1,10 @@
 export { MenuSeeder } from "./runtime-seeders/menu.seeder";
 export { PermissionSeeder } from "./runtime-seeders/permission.seeder";
 export { SeedRunner } from "./seed-runner";
-export { AgentSquareSeeder } from "./seeders/agent.square.seeder";
 export { AiModelSeeder } from "./seeders/ai-model.seeder";
 export { AiProviderSeeder } from "./seeders/ai-provider.seeder";
+export { DatasetsConfigSeeder } from "./seeders/datasets-config.seeder";
+export { DepartmentSeeder } from "./seeders/department.seeder";
 export { ExtensionSeeder } from "./seeders/extension.seeder";
 export { MembershipLevelsSeeder } from "./seeders/membership-levels.seeder";
 export { MembershipPlansSeeder } from "./seeders/membership-plans.seeder";

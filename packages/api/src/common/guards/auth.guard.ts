@@ -44,9 +44,15 @@ export class AuthGuard implements CanActivate {
             context,
         );
 
+        const isAgentApiKeyEnabled = getOverrideMetadata<boolean>(
+            this.reflector,
+            DECORATOR_KEYS.AGENT_API_KEY_ENABLED,
+            context,
+        );
+
         const validateTokenRes = await this.AuthService.validateToken(token);
 
-        if (isPublic) {
+        if (isPublic || isAgentApiKeyEnabled) {
             if (validateTokenRes.user) {
                 request["user"] = validateTokenRes.user;
             }
@@ -83,6 +89,11 @@ export class AuthGuard implements CanActivate {
                         null,
                         BusinessCode.TOKEN_INVALID,
                     );
+                case "UserDisabledError":
+                    throw HttpErrorFactory.forbidden(
+                        "The account has been disabled.",
+                        BusinessCode.USER_DISABLED,
+                    );
                 default:
                     throw HttpErrorFactory.unauthorized(
                         validateTokenRes.error || "Invalid authentication token",
@@ -94,7 +105,6 @@ export class AuthGuard implements CanActivate {
 
         request["user"] = validateTokenRes.user;
 
-        // Sliding refresh: check if token needs refresh and set new token in response header
         if (validateTokenRes.tokenRecord && validateTokenRes.user) {
             const response = context.switchToHttp().getResponse<Response>();
             await this.handleTokenRefresh(

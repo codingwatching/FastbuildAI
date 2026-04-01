@@ -1,5 +1,4 @@
-import { Adapter, getProvider } from "@buildingai/ai-sdk";
-import { ClientOptions } from "@buildingai/ai-sdk/openai";
+import { BaseProviderSettings, getProvider } from "@buildingai/ai-sdk";
 import { BaseService } from "@buildingai/base";
 import { SecretService } from "@buildingai/core/modules";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
@@ -62,7 +61,7 @@ export class PublicAiModelService {
      * @param configKeys Config keys
      * @returns Provider
      */
-    async getProviderAdapter(modelId: string, config: ClientOptions = {}): Promise<Adapter> {
+    async getProviderAdapter(modelId: string, config: BaseProviderSettings = {}) {
         const model = await this.getModelInfo(modelId);
         const provider = getProvider(model.provider.provider, config);
         return provider;

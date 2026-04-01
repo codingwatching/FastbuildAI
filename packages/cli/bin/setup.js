@@ -138,6 +138,49 @@ async function printStartupInfo(startTime) {
 }
 
 /**
+ * Wait for the API service to become ready by polling the health check endpoint.
+ * @param {Object} options - Configuration options
+ * @param {number} options.maxAttempts - Maximum number of polling attempts (default: 30)
+ * @param {number} options.interval - Interval between attempts in ms (default: 2000)
+ * @returns {Promise<void>}
+ */
+async function waitForApiReady({ maxAttempts = 30, interval = 2000 } = {}) {
+    const port = process.env.SERVER_PORT || 4090;
+    const healthUrl = `http://localhost:${port}/consoleapi/health`;
+
+    Logger.info("Health Check", `Waiting for API service to be ready (${healthUrl})...`);
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 5000);
+
+            const response = await fetch(healthUrl, { signal: controller.signal });
+            clearTimeout(timeout);
+
+            if (response.ok) {
+                Logger.success(
+                    "Health Check",
+                    `API service is ready (attempt ${attempt}/${maxAttempts}).`,
+                );
+                return;
+            }
+        } catch {
+            // Service not ready yet, continue polling
+        }
+
+        if (attempt < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, interval));
+        }
+    }
+
+    Logger.warning(
+        "Health Check",
+        `API service did not become ready within ${(maxAttempts * interval) / 1000}s. Proceeding anyway.`,
+    );
+}
+
+/**
  * Show completion message after setup
  */
 function showCompletionMessage() {
@@ -163,6 +206,9 @@ async function main() {
 
         // Start API service via PM2 (non-blocking process supervision)
         await startApiWithPm2();
+
+        // Wait for the API service to actually be ready
+        await waitForApiReady();
 
         printBrandLogo();
 

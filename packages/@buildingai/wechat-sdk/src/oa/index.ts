@@ -3,14 +3,15 @@ import * as crypto from "crypto";
 import WXBizMsgCrypt from "wechat-crypto";
 import { parseStringPromise } from "xml2js";
 
-import { ActionNametype } from "../interfaces/os";
-import { MsgType, type MsgtypeKey } from "../interfaces/os";
+import { ActionNametype } from "../interfaces/oa";
+import { MsgType, type MsgtypeKey } from "../interfaces/oa";
 
 /**
  * 微信公众号服务
  *
  * 提供微信公众号相关的API调用功能，包括：
  * - 获取access_token
+ * - 获取jsapi_ticket
  * - 生成二维码
  */
 export class WechatOaClient {
@@ -58,6 +59,45 @@ export class WechatOaClient {
 
         return {
             access_token: data.access_token,
+            expires_in: data.expires_in,
+        };
+    }
+
+    /**
+     * 获取 jsapi_ticket
+     *
+     * jsapi_ticket 是调用微信 JS 接口的临时票据，有效期为 7200 秒
+     * 通过 access_token 来获取
+     *
+     * 文档: https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#62
+     *
+     * @param access_token 微信公众平台 access_token
+     * @returns 包含 jsapi_ticket 和过期时间的对象
+     * @throws WechatApiError 当API调用失败时抛出错误
+     */
+    async getJsapiTicket(access_token: string): Promise<{
+        ticket: string;
+        expires_in: number;
+    }> {
+        const { data } = await axios.get<{
+            ticket: string;
+            expires_in: number;
+            errmsg?: string;
+            errcode?: number;
+        }>("https://api.weixin.qq.com/cgi-bin/ticket/getticket", {
+            params: {
+                type: "jsapi",
+                access_token,
+            },
+            timeout: 10000, // 10秒超时
+        });
+
+        if (!data.ticket || data.errcode) {
+            throw new Error(`获取 jsapi_ticket 失败: ${data.errmsg || `错误码: ${data.errcode}`}`);
+        }
+
+        return {
+            ticket: data.ticket,
             expires_in: data.expires_in,
         };
     }
@@ -217,5 +257,102 @@ export class WechatOaClient {
         }
 
         return xml;
+    }
+    /**
+     * 通过网页授权 code 获取 OAuth access_token 与 openid
+     *
+     * 文档: https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html
+     *
+     * @param appId 公众号 AppID
+     * @param appSecret 公众号 AppSecret
+     * @param code 用户同意授权后回调携带的 code
+     */
+    async getOAuthAccessToken(
+        appId: string,
+        appSecret: string,
+        code: string,
+    ): Promise<{
+        access_token: string;
+        expires_in: number;
+        refresh_token: string;
+        openid: string;
+        scope: string;
+        unionid?: string;
+    }> {
+        const { data } = await axios.get<{
+            access_token: string;
+            expires_in: number;
+            refresh_token: string;
+            openid: string;
+            scope: string;
+            unionid?: string;
+            errcode?: number;
+            errmsg?: string;
+        }>("https://api.weixin.qq.com/sns/oauth2/access_token", {
+            params: {
+                appid: appId,
+                secret: appSecret,
+                code,
+                grant_type: "authorization_code",
+            },
+            timeout: 10000,
+        });
+
+        if (!data.access_token || !data.openid) {
+            throw new Error(`获取OAuth access_token失败: ${data.errmsg || "未知错误"}`);
+        }
+
+        return data;
+    }
+
+    /**
+     * 使用 OAuth access_token 获取用户信息（昵称、头像等）
+     *
+     * 文档: https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html#4
+     * 注意: 需要 scope=snsapi_userinfo
+     *
+     * @param access_token OAuth access_token
+     * @param openid 用户的 openid
+     */
+    async getOAuthUserInfo(
+        access_token: string,
+        openid: string,
+    ): Promise<{
+        openid: string;
+        nickname: string;
+        sex?: number;
+        province?: string;
+        city?: string;
+        country?: string;
+        headimgurl?: string;
+        privilege?: string[];
+        unionid?: string;
+    }> {
+        const { data } = await axios.get<{
+            openid: string;
+            nickname: string;
+            sex?: number;
+            province?: string;
+            city?: string;
+            country?: string;
+            headimgurl?: string;
+            privilege?: string[];
+            unionid?: string;
+            errcode?: number;
+            errmsg?: string;
+        }>("https://api.weixin.qq.com/sns/userinfo", {
+            params: {
+                access_token,
+                openid,
+                lang: "zh_CN",
+            },
+            timeout: 10000,
+        });
+
+        if (!data.openid) {
+            throw new Error(`获取用户信息失败: ${data.errmsg || "未知错误"}`);
+        }
+
+        return data;
     }
 }

@@ -233,6 +233,12 @@ export class PermissionService extends BaseService<Permission> implements OnModu
                     return;
                 }
 
+                // Filter out hidden permissions from the list
+                const visiblePermissions = permissions.filter((p) => !p.hidden);
+                if (visiblePermissions.length === 0) {
+                    return;
+                }
+
                 // 获取方法的路径和HTTP方法
                 const methodPath = Reflect.getMetadata("path", instance[methodName]) || "";
                 const methodHttpMethodEnum =
@@ -255,7 +261,7 @@ export class PermissionService extends BaseService<Permission> implements OnModu
                 // 生成接口名称和描述
                 const methodNameFormatted = this.formatMethodName(methodName);
 
-                // 如果控制器有权限组别元数据，则应用到所有权限上
+                // Apply group prefix to ALL permissions (including hidden) for guard matching
                 if (permissionGroup && permissions) {
                     permissions.forEach((permission) => {
                         // 避免重复拼接前缀：检查是否已经包含分组前缀
@@ -269,7 +275,12 @@ export class PermissionService extends BaseService<Permission> implements OnModu
                         if (!permission.groupName) {
                             permission.groupName = permissionGroup.name;
                         }
+                    });
+                }
 
+                // Only collect visible permissions into maps/groups
+                if (permissionGroup) {
+                    visiblePermissions.forEach((permission) => {
                         // 收集权限到临时Map中，用于去重
                         tempPermissionsMap.set(permission.code, permission);
 
@@ -301,11 +312,11 @@ export class PermissionService extends BaseService<Permission> implements OnModu
                 const item: ApiRouterItem = {
                     path,
                     method: methodHttpMethod,
-                    permissions,
+                    permissions: visiblePermissions,
                     controller: controllerName,
                     handler: methodName,
                     name: methodNameFormatted,
-                    type: permissions[0].type,
+                    type: visiblePermissions[0].type,
                 };
 
                 items.push(item);

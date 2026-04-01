@@ -6,6 +6,5 @@ build
 .output
 .turbo
 .nuxt
-.storybook
 node_modules
-templates/buildingai-extension-starter
+templates/extension-starter

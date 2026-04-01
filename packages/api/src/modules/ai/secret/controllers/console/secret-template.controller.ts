@@ -55,7 +55,8 @@ export class SecretTemplateWebController extends BaseController {
     @BuildFileUrl(["**.icon"])
     @Permissions({
         code: "list",
-        name: "查看密钥模板",
+        name: "查看密钥模板列表",
+        hidden: true,
     })
     async list(@Query() query: QuerySecretTemplateDto) {
         return await this.SecretTemplateService.list(query);
@@ -67,8 +68,8 @@ export class SecretTemplateWebController extends BaseController {
     @Get("enabled/all")
     @BuildFileUrl(["**.icon"])
     @Permissions({
-        code: "enabled-all",
-        name: "查看密钥模板",
+        code: "list",
+        name: "查看密钥模板列表",
     })
     async getEnabledTemplates() {
         return await this.SecretTemplateService.getEnabledTemplates();
@@ -80,8 +81,8 @@ export class SecretTemplateWebController extends BaseController {
     @Get("all")
     @BuildFileUrl(["**.icon"])
     @Permissions({
-        code: "all",
-        name: "查看密钥模板",
+        code: "list",
+        name: "查看密钥模板列表",
     })
     async getAllTemplates() {
         return await this.SecretTemplateService.getAllTemplates();
@@ -94,7 +95,7 @@ export class SecretTemplateWebController extends BaseController {
     @BuildFileUrl(["**.icon"])
     @Permissions({
         code: "detail",
-        name: "查看密钥模板",
+        name: "查看密钥模板详情",
     })
     async findOne(@Param("id") id: string) {
         return await this.SecretTemplateService.findOneById(id);
@@ -145,6 +146,7 @@ export class SecretTemplateWebController extends BaseController {
     @Permissions({
         code: "batch-delete",
         name: "批量删除密钥模板",
+        hidden: true,
     })
     async removeMany(@Body("ids") ids: string[]) {
         if (!Array.isArray(ids) || ids.length === 0) {

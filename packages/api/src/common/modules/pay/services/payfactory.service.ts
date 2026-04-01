@@ -1,31 +1,17 @@
-import { readFile } from "node:fs/promises";
-
 import { AlipayService } from "@buildingai/alipay-sdk";
 import {
     PayConfigPayType,
     type PayConfigType,
 } from "@buildingai/constants/shared/payconfig.constant";
-import { DictCacheService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { WechatPayService } from "@buildingai/wechat-sdk";
 import { PAY_EVENTS } from "@common/modules/pay/constants/pay-events.contant";
+import { WxOaConfigService } from "@modules/channel/services/wxoaconfig.service";
 import { PayconfigService } from "@modules/system/services/payconfig.service";
 import { Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 
 type PayServiceInstance = WechatPayService | AlipayService;
-
-/**
- * 支付服务配置接口
- */
-interface PayServiceConfig {
-    appId: string;
-    mchId: string;
-    publicKey: string;
-    privateKey: string;
-    apiSecret: string;
-    domain: string;
-}
 
 /**
  * 支付工厂服务
@@ -53,7 +39,7 @@ export class PayfactoryService {
 
     constructor(
         private readonly payconfigService: PayconfigService,
-        private readonly dictCacheService: DictCacheService,
+        private readonly wxoaconfigService: WxOaConfigService,
     ) {}
 
     /**
@@ -92,12 +78,13 @@ export class PayfactoryService {
 
             switch (payType) {
                 case PayConfigPayType.WECHAT: {
-                    // 获取配置
-                    const config = await this.payconfigService.getPayconfig(
-                        PayConfigPayType.WECHAT,
-                    );
+                    // 支付配置 + 微信公众号配置（appId 从公众号配置读取）
+                    const [config, oaConfig] = await Promise.all([
+                        this.payconfigService.getPayconfig(PayConfigPayType.WECHAT),
+                        this.wxoaconfigService.getConfig(),
+                    ]);
                     service = new WechatPayService({
-                        appId: config.appId,
+                        appId: oaConfig.appId,
                         mchId: config.mchId,
                         publicKey: config.cert,
                         privateKey: config.paySignKey,
@@ -135,7 +122,6 @@ export class PayfactoryService {
             throw new Error(`支付服务创建失败: ${error.message}`);
         }
     }
-
 
     /**
      * 清除指定支付类型的缓存

@@ -20,10 +20,22 @@ import { Permission } from "./permission.entity";
 @AppEntity({ name: "user", comment: "用户信息" })
 export class User extends SoftDeleteBaseEntity {
     /**
-     * 用户openid
+     * 用户oa_openid
      */
-    @Column({ nullable: true })
+    @Column({ nullable: true, unique: true, comment: "用户oa_openid" })
     openid: string;
+
+    /**
+     * 用户mp_openid
+     */
+    @Column({ nullable: true, unique: true, comment: "用户mp_openid" })
+    mpOpenid: string;
+
+    /**
+     * 用户unionid
+     */
+    @Column({ nullable: true, unique: true, comment: "用户unionid" })
+    unionid: string;
 
     @Column({ nullable: true })
     userNo: string;
@@ -97,6 +109,14 @@ export class User extends SoftDeleteBaseEntity {
      */
     @Column({ default: 1 })
     status: number;
+
+    /**
+     * 管理状态
+     *
+     * 0: 否, 1: 是
+     */
+    @Column({ default: 1 })
+    manageStatus: number;
 
     /**
      * 是否为超级管理员

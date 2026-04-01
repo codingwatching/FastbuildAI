@@ -1,155 +1,256 @@
-<!DOCTYPE html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script type="importmap">{"imports":{"#entry":"/_nuxt/Cgyg1gJC.js"}}</script>
-<link rel="stylesheet" href="/_nuxt/style.DGJ_znLO.css" crossorigin>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#222222">
-<script type="module" src="/_nuxt/Cgyg1gJC.js" crossorigin></script><script>"use strict";(()=>{const t=window,e=document.documentElement,c=["dark","light"],n=getStorageValue("localStorage","nuxt-color-mode")||"system";let i=n==="system"?u():n;const r=e.getAttribute("data-color-mode-forced");r&&(i=r),l(i),t["__NUXT_COLOR_MODE__"]={preference:n,value:i,getColorScheme:u,addColorScheme:l,removeColorScheme:d};function l(o){const s=""+o+"",a="";e.classList?e.classList.add(s):e.className+=" "+s,a&&e.setAttribute("data-"+a,o)}function d(o){const s=""+o+"",a="";e.classList?e.classList.remove(s):e.className=e.className.replace(new RegExp(s,"g"),""),a&&e.removeAttribute("data-"+a)}function f(o){return t.matchMedia("(prefers-color-scheme"+o+")")}function u(){if(t.matchMedia&&f("").media!=="not all"){for(const o of c)if(f(":"+o).matches)return o}return"light"}})();function getStorageValue(t,e){switch(t){case"localStorage":return window.localStorage.getItem(e);case"sessionStorage":return window.sessionStorage.getItem(e);case"cookie":return getCookie(e);default:return null}}function getCookie(t){const c=("; "+window.document.cookie).split("; "+t+"=");if(c.length===2)return c.pop()?.split(";").shift()}</script></head><body><div id="nuxt-app" data-vaul-drawer-wrapper="true" class="isolate"></div><div id="__nuxt-loader"><!doctype html>
-<html lang="zh-CN">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Loading…</title>
-        <script>
-            // Apply theme immediately to prevent flash
-            (function () {
-                try {
-                    // Priority 1: Read from localStorage (vueuse-color-scheme)
-                    const storedTheme = localStorage.getItem("vueuse-color-scheme");
-                    if (storedTheme === "light" || storedTheme === "dark") {
-                        document.documentElement.className = storedTheme;
-                        return;
-                    }
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <script>
+      (function () {
+        const storageKey = "buildingai-client-theme";
+        const colorStorageKey = "buildingai-client-theme-color";
 
-                    // Priority 2: Check html class (if already set)
-                    const htmlClass = document.documentElement.className;
-                    if (htmlClass.includes("light") || htmlClass.includes("dark")) {
-                        return;
-                    }
+        const theme = localStorage.getItem(storageKey) || "system";
+        if (
+          theme === "dark" ||
+          (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.add("light");
+        }
 
-                    // Priority 3: System theme (handled by CSS media query)
-                    // No action needed, CSS will handle it
-                } catch (error) {
-                    console.error("Failed to apply theme:", error);
-                }
-            })();
-        </script>
-        <style>
-            html,
-            body {
-                height: 100%;
-                margin: 0;
-                font-family: "Inter", "Segoe UI", Roboto, sans-serif;
-            }
-
-            #nuxt-spa-loading {
-                position: fixed;
-                inset: 0;
-                width: 100%;
-                height: 100dvh;
-                display: flex;
-                background: #f8f9fa;
-                align-items: center;
-                justify-content: center;
-                z-index: 999999;
-            }
-
-            /* System theme preference (lower priority) */
-            @media (prefers-color-scheme: dark) {
-                html:not(.light) #nuxt-spa-loading {
-                    color: #ddd;
-                    background-color: #121212;
-                }
-                html:not(.light) code {
-                    background-color: #333;
-                }
-            }
-
-            /* Class-based theme (higher priority) */
-            html.dark #nuxt-spa-loading {
-                color: #ddd;
-                background-color: #121212;
-            }
-
-            html.dark code {
-                background-color: #333;
-            }
-
-            html.light #nuxt-spa-loading {
-                background: #f8f9fa;
-                color: inherit;
-            }
-
-            .loader-box {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 24px;
-            }
-
-            .logo {
-                width: 240px;
-                height: 240px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                animation: pulse 1.5s infinite ease-in-out;
-                will-change: opacity;
-            }
-
-            @keyframes pulse {
-                0% {
-                    opacity: 0.3;
-                }
-                50% {
-                    opacity: 1;
-                }
-                100% {
-                    opacity: 0.3;
-                }
-            }
-
-            /* Glow effect animation */
-            .logo svg {
-                filter: drop-shadow(0 0 12px rgba(81, 10, 252, 0.2));
-                transition: filter 0.3s ease;
-            }
-
-            /* System theme preference (lower priority) */
-            @media (prefers-color-scheme: dark) {
-                html:not(.light) .logo svg {
-                    filter: drop-shadow(0 0 12px rgba(81, 10, 252, 0.35));
-                }
-            }
-
-            /* Class-based theme (higher priority) */
-            html.dark .logo svg {
-                filter: drop-shadow(0 0 12px rgba(81, 10, 252, 0.35));
-            }
-
-            html.light .logo svg {
-                filter: drop-shadow(0 0 12px rgba(81, 10, 252, 0.2));
-            }
-
-            @media (prefers-reduced-motion: reduce) {
-                .logo {
-                    animation: none;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div id="nuxt-spa-loading">
-            <div class="loader-box">
-                <div class="logo">
-                    <img
-                        style="height: 48px"
-                        src="/spa-loading.png"
-                        onerror="this.onerror=null;this.src='/spa-loading-source.png';"
-                    />
-                </div>
-            </div>
-        </div>
-    </body>
-</html></div><div id="teleports"></div><script>window.__NUXT__=(function(a,b,c,d){return {prerenderedAt:1769399745586,serverRendered:b,config:{public:{isPlugin:b,EXTENSION_API_URL:"https:\u002F\u002Fcloud.buildingai.cc\u002Fapi",i18n:{baseUrl:a,defaultLocale:d,rootRedirect:a,redirectStatusCode:302,skipSettingLocaleOnNavigate:b,locales:[{code:"zh",language:a},{code:d,language:a},{code:"jp",language:a}],detectBrowserLanguage:{alwaysRedirect:b,cookieCrossOrigin:b,cookieDomain:a,cookieKey:"nuxt-ui-language",cookieSecure:b,fallbackLocale:a,redirectOn:"root",useCookie:c},experimental:{localeDetector:a,typedPages:c,typedOptionsAndMessages:b,alternateLinkCanonicalQueries:c,devCache:b,cacheLifetime:a,stripMessagesPayload:b,preload:b,strictSeo:b,nitroContextDetection:c,httpCacheDuration:10},domainLocales:{zh:{domain:a},en:{domain:a},jp:{domain:a}}}},app:{baseURL:"\u002F",buildId:"7caf1748-90f9-4a57-ac55-8c7f86f62c9d",buildAssetsDir:"\u002F_nuxt\u002F",cdnURL:a}}}}("",false,true,"en"))</script></body></html>
+        const themeColor = localStorage.getItem(colorStorageKey) || "indigo";
+        document.documentElement.classList.add("theme-" + themeColor);
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-ICyRoMNn.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-C5c2KzVm.js">
+    <link rel="modulepreload" crossorigin href="/assets/lucide-BKPdbCzQ.js">
+    <link rel="modulepreload" crossorigin href="/assets/bundle-mjs-C4g7ASB5.js">
+    <link rel="modulepreload" crossorigin href="/assets/utils-Fun9zTZb.js">
+    <link rel="modulepreload" crossorigin href="/assets/schemas-DQQutaZ2.js">
+    <link rel="modulepreload" crossorigin href="/assets/use-feature-flags-CDBfBYhZ.js">
+    <link rel="modulepreload" crossorigin href="/assets/zh-CN-1C50nlOa.js">
+    <link rel="modulepreload" crossorigin href="/assets/format-B08R7HCA.js">
+    <link rel="modulepreload" crossorigin href="/assets/src-BIFNyGne.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-dom-Dk5JFqk_.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-BDJpwdCt.js">
+    <link rel="modulepreload" crossorigin href="/assets/button-rrwdwCgn.js">
+    <link rel="modulepreload" crossorigin href="/assets/calendar-BOnmqeom.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-DoVj4A05.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-D8uOmkp_.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-TbIoxRe1.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-CrzoC-tl.js">
+    <link rel="modulepreload" crossorigin href="/assets/es2015-CHWs0K77.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-KlVi-QXw.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-DhkVw_IW.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-CpzcdaEb.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist--UZrY7Zk.js">
+    <link rel="modulepreload" crossorigin href="/assets/alert-dialog-DSwPX3-P.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-BPs5_XCO.js">
+    <link rel="modulepreload" crossorigin href="/assets/checkbox-DJSwxh5h.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-DrSosLfJ.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-ChhrkI0k.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-DldcROjv.js">
+    <link rel="modulepreload" crossorigin href="/assets/dropdown-menu-B0e5jqvL.js">
+    <link rel="modulepreload" crossorigin href="/assets/popover-WsKBvbl4.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-CTBKr_wa.js">
+    <link rel="modulepreload" crossorigin href="/assets/dialog-BesagKvK.js">
+    <link rel="modulepreload" crossorigin href="/assets/textarea-AjBMsdEs.js">
+    <link rel="modulepreload" crossorigin href="/assets/input-Dcd21yxV.js">
+    <link rel="modulepreload" crossorigin href="/assets/command-B0i_RyT5.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-DPNohi_t2.js">
+    <link rel="modulepreload" crossorigin href="/assets/scroll-area-BWgdYJVa.js">
+    <link rel="modulepreload" crossorigin href="/assets/separator-DlkdxUXk.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-DoWg8QB8.js">
+    <link rel="modulepreload" crossorigin href="/assets/tooltip-7zR129lc.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-DkPqgDdY.js">
+    <link rel="modulepreload" crossorigin href="/assets/useMutation-BB7zxB7R.js">
+    <link rel="modulepreload" crossorigin href="/assets/shared-DhPg5eze.js">
+    <link rel="modulepreload" crossorigin href="/assets/index.dom-CA9TUBRA.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-DDw_pnNq.js">
+    <link rel="modulepreload" crossorigin href="/assets/lib-BsWqXK4d.js">
+    <link rel="modulepreload" crossorigin href="/assets/shim-BW9-DxAe.js">
+    <link rel="modulepreload" crossorigin href="/assets/index-D55d5vyX.js">
+    <link rel="modulepreload" crossorigin href="/assets/_baseSlice-Cw6bxh-n.js">
+    <link rel="modulepreload" crossorigin href="/assets/index.browser-n_A9MoPf.js">
+    <link rel="modulepreload" crossorigin href="/assets/index.esm-CcKIN0gm.js">
+    <link rel="modulepreload" crossorigin href="/assets/editor-VyZXofZI.js">
+    <link rel="modulepreload" crossorigin href="/assets/combobox-DWZlPLG1.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-Bhozx5LE.js">
+    <link rel="modulepreload" crossorigin href="/assets/sortable.esm-B-QtcqGV.js">
+    <link rel="modulepreload" crossorigin href="/assets/label-CExHcAT9.js">
+    <link rel="modulepreload" crossorigin href="/assets/form-CIDq_GeW.js">
+    <link rel="modulepreload" crossorigin href="/assets/zod-DWPfTDWW.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-BSrbuhE1.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-LFPYN7LY-DShjw3uV.js">
+    <link rel="modulepreload" crossorigin href="/assets/svg-icons-C-UC8sjI.js">
+    <link rel="modulepreload" crossorigin href="/assets/theme-toggle-DFOYVDwZ.js">
+    <link rel="modulepreload" crossorigin href="/assets/upload-E9DX0W1r.js">
+    <link rel="modulepreload" crossorigin href="/assets/image-upload-BJt5LSV2.js">
+    <link rel="modulepreload" crossorigin href="/assets/use-alert-dialog-DUHlRdlP.js">
+    <link rel="modulepreload" crossorigin href="/assets/install-Dk4CfPho.js">
+    <link rel="modulepreload" crossorigin href="/assets/string-CY64ZvdE.js">
+    <link rel="modulepreload" crossorigin href="/assets/src-3DhdDq-H.js">
+    <link rel="modulepreload" crossorigin href="/assets/purify.es-ReQNRTYI.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-AGHRB4JF-BR82bxw-.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-ABZYJK2D-Co1Huh--.js">
+    <link rel="modulepreload" crossorigin href="/assets/step-CD2yVxXe.js">
+    <link rel="modulepreload" crossorigin href="/assets/math-Do_O0BlC.js">
+    <link rel="modulepreload" crossorigin href="/assets/_createAssigner-B1flWBKH.js">
+    <link rel="modulepreload" crossorigin href="/assets/merge-BfZVSga5.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-S3R3BYOJ-hjO1vjDk.js">
+    <link rel="modulepreload" crossorigin href="/assets/esm-DRx5k19C.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-JA3XYJ7Z-Og70-Iy4.js">
+    <link rel="modulepreload" crossorigin href="/assets/aspect-ratio-BZzW3LCT.js">
+    <link rel="modulepreload" crossorigin href="/assets/avatar-BUdKT2fW.js">
+    <link rel="modulepreload" crossorigin href="/assets/attachments-BnBXa67z.js">
+    <link rel="modulepreload" crossorigin href="/assets/useInfiniteQuery-qk-RyygE.js">
+    <link rel="modulepreload" crossorigin href="/assets/web-Bk5_E4LH.js">
+    <link rel="modulepreload" crossorigin href="/assets/dataset-edit-dialog-BGBb3fB_.js">
+    <link rel="modulepreload" crossorigin href="/assets/radio-group-DTKLDAsO.js">
+    <link rel="modulepreload" crossorigin href="/assets/select-DQnjzMwQ.js">
+    <link rel="modulepreload" crossorigin href="/assets/slider-B-qe7R0i.js">
+    <link rel="modulepreload" crossorigin href="/assets/switch-Bpgbvysj.js">
+    <link rel="modulepreload" crossorigin href="/assets/tabs-q3s_YKhy.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-RLXIAIE6-BFBgu5i0.js">
+    <link rel="modulepreload" crossorigin href="/assets/carousel-DuUC1Kgk.js">
+    <link rel="modulepreload" crossorigin href="/assets/MotionConfigContext-D3liJ4yC.js">
+    <link rel="modulepreload" crossorigin href="/assets/katex-DrHugDnG.js">
+    <link rel="modulepreload" crossorigin href="/assets/isEmpty-tVoOKTOg.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-DR5Q36YT-DJfxcZpR.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-EXTU4WIE-Dp23PLiQ.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-MI3HLSF2-DHzFlEg_.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-ATLVNIR6-B-LAZRgZ.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-CVBHYZKI-CBlcm6GU.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-JZLCHNYA-DLdBzyEw.js">
+    <link rel="modulepreload" crossorigin href="/assets/path-CYIDNlM0.js">
+    <link rel="modulepreload" crossorigin href="/assets/array-CQEsLmf1.js">
+    <link rel="modulepreload" crossorigin href="/assets/line-Dw32mKZk.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-HN2XXSSU-CC8okJVN.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-QXUST7PY-Ct60BOll.js">
+    <link rel="modulepreload" crossorigin href="/assets/chunk-N4CR4FBY-B2Icw1_z.js">
+    <link rel="modulepreload" crossorigin href="/assets/Serializer-BShgYJu7.js">
+    <link rel="modulepreload" crossorigin href="/assets/alert-bN_CBPlD.js">
+    <link rel="modulepreload" crossorigin href="/assets/badge-DYjoKXCg.js">
+    <link rel="modulepreload" crossorigin href="/assets/card-Dr6frJi9.js">
+    <link rel="modulepreload" crossorigin href="/assets/collapsible-TZJD7TOR.js">
+    <link rel="modulepreload" crossorigin href="/assets/skeleton-DKdqEyay.js">
+    <link rel="modulepreload" crossorigin href="/assets/provider-icons-BfWK5ObD.js">
+    <link rel="modulepreload" crossorigin href="/assets/message-item-XEuFQi-y.js">
+    <link rel="modulepreload" crossorigin href="/assets/datasets.constants-r3ggWeKU.js">
+    <link rel="modulepreload" crossorigin href="/assets/esm-CVqr0zDj.js">
+    <link rel="modulepreload" crossorigin href="/assets/interfaces-DJYq-VYf.js">
+    <link rel="modulepreload" crossorigin href="/assets/provider-converter-CIwqxzs4.js">
+    <link rel="modulepreload" crossorigin href="/assets/model-selector-D2ZFYYGh.js">
+    <link rel="modulepreload" crossorigin href="/assets/field-CdxoAYKL.js">
+    <link rel="modulepreload" crossorigin href="/assets/function-Bz14dL4t.js">
+    <link rel="modulepreload" crossorigin href="/assets/defaultLocale-B_2C5lc0.js">
+    <link rel="modulepreload" crossorigin href="/assets/init-BjHc8Y0x.js">
+    <link rel="modulepreload" crossorigin href="/assets/linear-BcAHBmwP.js">
+    <link rel="modulepreload" crossorigin href="/assets/time-CeDEnjXz.js">
+    <link rel="modulepreload" crossorigin href="/assets/ordinal-B7XUXvZo.js">
+    <link rel="modulepreload" crossorigin href="/assets/band-CauWVV_l.js">
+    <link rel="modulepreload" crossorigin href="/assets/chart-B-9ovCP-.js">
+    <link rel="modulepreload" crossorigin href="/assets/embla-carousel-autoplay.esm-ABenLuD9.js">
+    <link rel="modulepreload" crossorigin href="/assets/payconfig.constant-DWaejGty.js">
+    <link rel="modulepreload" crossorigin href="/assets/console-BjEOa7q8.js">
+    <link rel="modulepreload" crossorigin href="/assets/provider-avatar-CXr65oEO.js">
+    <link rel="modulepreload" crossorigin href="/assets/page-container-_zijdqRs.js">
+    <link rel="modulepreload" crossorigin href="/assets/dashboard-nbIFrcLh.js">
+    <link rel="modulepreload" crossorigin href="/assets/dist-Cr7tZCmf.js">
+    <link rel="modulepreload" crossorigin href="/assets/use-message-repository-BIMcyvs-.js">
+    <link rel="modulepreload" crossorigin href="/assets/_layouts-ovlgRYY1.js">
+    <link rel="modulepreload" crossorigin href="/assets/status-codes.constant-DUNS7cVf.js">
+    <link rel="modulepreload" crossorigin href="/assets/permission-guard-BHC-YXqM.js">
+    <link rel="modulepreload" crossorigin href="/assets/sheet-DcAnOPb5.js">
+    <link rel="modulepreload" crossorigin href="/assets/status-badge-sCTPgX7-.js">
+    <link rel="modulepreload" crossorigin href="/assets/extension-DyPjFQ6p.js">
+    <link rel="modulepreload" crossorigin href="/assets/drawer-DFkGpbVH.js">
+    <link rel="modulepreload" crossorigin href="/assets/menu-8SXT-sYJ.js">
+    <link rel="modulepreload" crossorigin href="/assets/model-CaC_cRTc.js">
+    <link rel="modulepreload" crossorigin href="/assets/opening-statement-Cb9Nku8n.js">
+    <link rel="modulepreload" crossorigin href="/assets/empty-Cz7H9t3Q.js">
+    <link rel="modulepreload" crossorigin href="/assets/src-D9Knk2bs.js">
+    <link rel="modulepreload" crossorigin href="/assets/sidebar-DefDyoK3.js">
+    <link rel="modulepreload" crossorigin href="/assets/ask-assistant-ui-D-tJEuYz.js">
+    <link rel="modulepreload" crossorigin href="/assets/site-chat-CHVmPedO.js">
+    <link rel="modulepreload" crossorigin href="/assets/mcp-DkTCfgyK.js">
+    <link rel="modulepreload" crossorigin href="/assets/auth-BaKxtoos.js">
+    <link rel="modulepreload" crossorigin href="/assets/login-DWvZ9fm1.js">
+    <link rel="modulepreload" crossorigin href="/assets/infinite-scroll-B36TyHuu.js">
+    <link rel="modulepreload" crossorigin href="/assets/alipay-return-BBjBBdEn.js">
+    <link rel="modulepreload" crossorigin href="/assets/data-table-faceted-filter-BB8_d_FI.js">
+    <link rel="modulepreload" crossorigin href="/assets/item-Besf_3zs.js">
+    <link rel="modulepreload" crossorigin href="/assets/use-pagination-BjI7bf0O.js">
+    <link rel="modulepreload" crossorigin href="/assets/table-BcK-JXkW.js">
+    <link rel="modulepreload" crossorigin href="/assets/formatDistanceToNow-ucqcmK2F.js">
+    <link rel="modulepreload" crossorigin href="/assets/time-text-CKuGl0rz.js">
+    <link rel="modulepreload" crossorigin href="/assets/_layouts-an525q-N.js">
+    <link rel="modulepreload" crossorigin href="/assets/file-fomat-icons-B1iLH-rP.js">
+    <link rel="modulepreload" crossorigin href="/assets/right-floating-panel-Iq13koWN.js">
+    <link rel="modulepreload" crossorigin href="/assets/tags-Dvx015tb.js">
+    <link rel="modulepreload" crossorigin href="/assets/_layouts-TD6J1Eiu.js">
+    <link rel="modulepreload" crossorigin href="/assets/use-assistant-for-agent-CkeRon3Q.js">
+    <link rel="modulepreload" crossorigin href="/assets/debugging-DRDlzfOV.js">
+    <link rel="modulepreload" crossorigin href="/assets/interface-DrnZhESl.js">
+    <link rel="modulepreload" crossorigin href="/assets/configuration-C2hJ1Lsu.js">
+    <link rel="modulepreload" crossorigin href="/assets/logs-BCH2cATO.js">
+    <link rel="modulepreload" crossorigin href="/assets/subDays-BbJTn_sM.js">
+    <link rel="modulepreload" crossorigin href="/assets/monitoring-BuOk9Vxc.js">
+    <link rel="modulepreload" crossorigin href="/assets/publish-Bhq_b54g.js">
+    <link rel="modulepreload" crossorigin href="/assets/chat-CHq5TJ1c.js">
+    <link rel="modulepreload" crossorigin href="/assets/configuration-Cdf5AvpU.js">
+    <link rel="modulepreload" crossorigin href="/assets/detail-CuSKrbJX.js">
+    <link rel="modulepreload" crossorigin href="/assets/logs-Da8u-2Us.js">
+    <link rel="modulepreload" crossorigin href="/assets/monitoring-CswoRYiq.js">
+    <link rel="modulepreload" crossorigin href="/assets/publish-jIksLQ_L.js">
+    <link rel="modulepreload" crossorigin href="/assets/agents-CNdZ4pAX.js">
+    <link rel="modulepreload" crossorigin href="/assets/apps-BGj2nzmn.js">
+    <link rel="modulepreload" crossorigin href="/assets/chat-NQcyLR-Q.js">
+    <link rel="modulepreload" crossorigin href="/assets/permission-DG36wtN9.js">
+    <link rel="modulepreload" crossorigin href="/assets/role-CWcQRl2L.js">
+    <link rel="modulepreload" crossorigin href="/assets/config-DpdRkmpi.js">
+    <link rel="modulepreload" crossorigin href="/assets/list-nSmfn0YT.js">
+    <link rel="modulepreload" crossorigin href="/assets/retrieval-config-C_MuScoh.js">
+    <link rel="modulepreload" crossorigin href="/assets/config-Blq1uLR6.js">
+    <link rel="modulepreload" crossorigin href="/assets/format-B428_G-I.js">
+    <link rel="modulepreload" crossorigin href="/assets/list-CdUDNTVj.js">
+    <link rel="modulepreload" crossorigin href="/assets/secret-template-manage-41iWSdc2.js">
+    <link rel="modulepreload" crossorigin href="/assets/provider-Cv2n2N77.js">
+    <link rel="modulepreload" crossorigin href="/assets/secret-DvgDcUF9.js">
+    <link rel="modulepreload" crossorigin href="/assets/wechat-oa-Bm-xpMmi.js">
+    <link rel="modulepreload" crossorigin href="/assets/config-BgndkUlr.js">
+    <link rel="modulepreload" crossorigin href="/assets/record-BCu1xJG4.js">
+    <link rel="modulepreload" crossorigin href="/assets/analysis-CPb4mnIE.js">
+    <link rel="modulepreload" crossorigin href="/assets/balance-details-B9mRjAS3.js">
+    <link rel="modulepreload" crossorigin href="/assets/notification-settings-CnnePlVf.js">
+    <link rel="modulepreload" crossorigin href="/assets/sms-BWDm1uXo.js">
+    <link rel="modulepreload" crossorigin href="/assets/sidebar-config-CGcvlXgf.js">
+    <link rel="modulepreload" crossorigin href="/assets/_layouts-XQg19WI6.js">
+    <link rel="modulepreload" crossorigin href="/assets/management-CNIaVWu7.js">
+    <link rel="modulepreload" crossorigin href="/assets/records-DUDnvhpV.js">
+    <link rel="modulepreload" crossorigin href="/assets/settings-B1ICHtvi.js">
+    <link rel="modulepreload" crossorigin href="/assets/operation-BPlZo2WK.js">
+    <link rel="modulepreload" crossorigin href="/assets/level-C467BSoV.js">
+    <link rel="modulepreload" crossorigin href="/assets/plan-BxPoMLfn.js">
+    <link rel="modulepreload" crossorigin href="/assets/recharge-C9vkDwb8.js">
+    <link rel="modulepreload" crossorigin href="/assets/membership-CPMlmgvp.js">
+    <link rel="modulepreload" crossorigin href="/assets/recharge-C2YKNjP1.js">
+    <link rel="modulepreload" crossorigin href="/assets/agreement-BtQa7Szl.js">
+    <link rel="modulepreload" crossorigin href="/assets/login-config-DevYw3T1.js">
+    <link rel="modulepreload" crossorigin href="/assets/pay-config-Bn99yVMj.js">
+    <link rel="modulepreload" crossorigin href="/assets/storage-config-D-4vQItj.js">
+    <link rel="modulepreload" crossorigin href="/assets/website-config-DLUzEcGC.js">
+    <link rel="modulepreload" crossorigin href="/assets/list-1REnx8QT.js">
+    <link rel="modulepreload" crossorigin href="/assets/detail-CtNKoVVe.js">
+    <link rel="modulepreload" crossorigin href="/assets/datasets-8IHh6kd1.js">
+    <link rel="stylesheet" crossorigin href="/assets/editor-Cj6wDIx1.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-CeuUq1Gn.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

@@ -23,7 +23,6 @@ export const PayVersion = {
 export type PayVersionType = (typeof PayVersion)[keyof typeof PayVersion];
 
 export interface WeChatPayConfig {
-    appId: string;
     mchId: string;
     apiKey: string;
     paySignKey: string;

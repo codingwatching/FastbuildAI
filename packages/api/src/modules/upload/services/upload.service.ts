@@ -7,6 +7,7 @@ import { File } from "@buildingai/db/entities";
 import { Repository } from "@buildingai/db/typeorm";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { StorageConfigService } from "@modules/system/services/storage-config.service";
+import { UserCapacityService } from "@modules/user/services/user-capacity.service";
 import { Injectable } from "@nestjs/common";
 import { Request } from "express";
 
@@ -34,6 +35,7 @@ export class UploadService extends BaseService<File> {
         private readonly fileUploadService: FileUploadService,
         private readonly storageConfigService: StorageConfigService,
         private readonly cloudStorageService: CloudStorageService,
+        private readonly userCapacityService: UserCapacityService,
     ) {
         super(fileRepository);
     }
@@ -53,6 +55,7 @@ export class UploadService extends BaseService<File> {
         description?: string,
         extensionId?: string,
     ): Promise<UploadFileResult> {
+        // 普通文件上传不检查容量限制，容量限制只在知识库文档上传时检查
         return this.fileUploadService.uploadFileToDisk(
             file,
             request,
@@ -110,6 +113,7 @@ export class UploadService extends BaseService<File> {
         description?: string,
         extensionId?: string,
     ): Promise<UploadFileResult[]> {
+        // 普通文件上传不检查容量限制，容量限制只在知识库文档上传时检查
         return this.fileUploadService.uploadFilesToDisk(
             files,
             request,
@@ -135,7 +139,13 @@ export class UploadService extends BaseService<File> {
      * @returns Success status
      */
     async deleteFile(id: string): Promise<boolean> {
+        const file = await this.fileUploadService.findOneById(id);
         await this.fileUploadService.deleteFileById(id);
+
+        if (file?.uploaderId) {
+            await this.userCapacityService.clearUserStorageCache(String(file.uploaderId));
+        }
+
         return true;
     }
 
@@ -162,7 +172,7 @@ export class UploadService extends BaseService<File> {
     ): Promise<UploadFileResult> {
         const { url, description, extensionId } = remoteUploadDto;
 
-        return this.fileUploadService.uploadRemoteFileToDisk(
+        return this.fileUploadService.uploadRemoteFile(
             url,
             request,
             description,
@@ -180,23 +190,24 @@ export class UploadService extends BaseService<File> {
     /**
      * Save OSS file record to database
      *
-     * @param dto OSS file information
+     * @param saveOSSFileDto OSS file information
      * @param request Express request object
      * @returns Upload result with file ID
      */
-    async saveOSSFileRecord(dto: any, request: Request): Promise<UploadFileResult> {
+    async saveOSSFileRecord(saveOSSFileDto: any, request: Request): Promise<UploadFileResult> {
+        // 普通文件上传不检查容量限制，容量限制只在知识库文档上传时检查
         return this.fileUploadService.saveOSSFileRecord(
-            {
-                url: dto.url,
-                originalName: dto.originalName,
-                size: dto.size,
-                extension: dto.extension,
-                type: dto.type,
-                description: dto.description,
-                path: dto.path,
-            },
+            saveOSSFileDto,
             request,
-            dto.extensionId,
+            saveOSSFileDto.extensionId,
         );
+    }
+
+    private formatBytes(bytes: number): string {
+        if (bytes === 0) return "0 B";
+        const k = 1024;
+        const sizes = ["B", "KB", "MB", "GB", "TB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
     }
 }

@@ -12,6 +12,7 @@ export interface PayOrder {
     amount: number;
     payType: PayConfigType;
     from: PayFromValue;
+    returnUrl?: string;
 }
 export interface PayParams {
     payType: PayConfigType;

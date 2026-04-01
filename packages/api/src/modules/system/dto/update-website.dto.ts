@@ -14,11 +14,14 @@ class WebInfoDto {
     @IsOptional()
     logo?: string;
 
+    @IsOptional()
+    theme?: string;
+
     /**
-     * SPA加载图标
+     * 客服二维码图片地址
      */
     @IsOptional()
-    spaLoadingIcon?: string;
+    customerServiceQrcode?: string;
 }
 
 class AgreementDto {

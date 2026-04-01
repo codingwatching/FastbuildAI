@@ -1,5 +1,4 @@
-import { McpServerHttp } from "@buildingai/ai-sdk";
-import { McpServerSSE } from "@buildingai/ai-sdk";
+import { createMcpClient, type McpClient } from "@buildingai/ai-sdk";
 import { BaseService, PaginationResult } from "@buildingai/base";
 import { AI_MCP_IS_QUICK_MENU } from "@buildingai/constants";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
@@ -129,14 +128,16 @@ export class AiMcpServerService extends BaseService<AiMcpServer> {
         // 使用基础服务的分页方法
         const result = (await this.paginate(queryDto, {
             where,
+            relations: ["tools", "creator"],
             order: {
                 sortOrder: "ASC",
                 createdAt: "DESC",
             },
-        })) as PaginationResult<AiMcpServer & { isQuickMenu: boolean }>;
+        })) as PaginationResult<AiMcpServer & { isQuickMenu: boolean; toolsCount: number }>;
 
         result.items.forEach((item) => {
             item.isQuickMenu = item.id === quickMenuId;
+            item.toolsCount = item.tools?.length || 0;
         });
 
         return result;
@@ -160,8 +161,8 @@ export class AiMcpServerService extends BaseService<AiMcpServer> {
                 // Use the full URL directly
                 const url = config.url;
 
-                // Communication type
-                const communicationType = config.type;
+                // Communication type (default to SSE if not specified)
+                const communicationType = config.type || McpCommunicationType.SSE;
 
                 // Check if a server with the same name already exists
                 const existServer = await this.findOne({
@@ -182,7 +183,7 @@ export class AiMcpServerService extends BaseService<AiMcpServer> {
                         type: McpServerType.SYSTEM,
                         url,
                         creatorId,
-                        customHeaders: config.customHeaders,
+                        headers: config.headers,
                         description: `MCP server imported from JSON: ${name}`,
                         icon: "",
                         sortOrder: 0,
@@ -261,36 +262,26 @@ export class AiMcpServerService extends BaseService<AiMcpServer> {
             throw HttpErrorFactory.notFound(`ID为 ${id} 的MCP服务不存在`);
         }
 
-        let mcpClient: McpServerSSE | McpServerHttp | null = null;
+        let mcpClient: McpClient | null = null;
 
         let connectable = false;
         let toolsInfo = undefined;
         let errorMessage = "";
 
         try {
-            // 创建MCP客户端实例
-            if (mcpServer.communicationType == McpCommunicationType.SSE) {
-                mcpClient = new McpServerSSE({
+            mcpClient = await createMcpClient({
+                transport: {
+                    type: mcpServer.communicationType === McpCommunicationType.SSE ? "sse" : "http",
                     url: mcpServer.url,
-                    name: mcpServer.name,
-                    description: mcpServer.description,
-                    customHeaders: mcpServer.customHeaders,
-                });
-            } else {
-                mcpClient = new McpServerHttp({
-                    url: mcpServer.url,
-                    name: mcpServer.name,
-                    description: mcpServer.description,
-                    customHeaders: mcpServer.customHeaders,
-                });
-            }
+                    ...(mcpServer.headers && { headers: mcpServer.headers }),
+                },
+                name: mcpServer.name,
+            });
 
-            // 尝试连接
-            await mcpClient.connect();
             connectable = true;
 
-            // 连接成功，获取工具列表
-            const tools = await mcpClient.getToolsList();
+            // 获取原始工具列表
+            const tools = await mcpClient.listTools();
 
             // 更新工具列表
             toolsInfo = await this.aiMcpToolService.updateToolsForMcpServer(id, tools);
@@ -307,10 +298,9 @@ export class AiMcpServerService extends BaseService<AiMcpServer> {
                 console.log(`🗑️  已清空 ${deletedCount} 个失效的工具`);
             }
         } finally {
-            // 确保断开连接
             if (mcpClient) {
                 try {
-                    await mcpClient.disconnect();
+                    await mcpClient.close();
                 } catch (disconnectError) {
                     console.warn("断开MCP连接时出现警告:", disconnectError);
                 }

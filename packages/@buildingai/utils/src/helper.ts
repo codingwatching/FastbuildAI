@@ -494,7 +494,7 @@ export const getProviderSecret = (
 ): string => {
     // 检查键是否存在
     if (!(key in config)) {
-        throw new Error(`${key} 字段不存在`);
+        return "";
     }
 
     const configValue = config[key];

@@ -765,7 +765,7 @@ export async function getExtensionEnabledStatus(
  *
  * @example
  * ```ts
- * const name = await getExtensionName('buildingai-simple-blog');
+ * const name = await getExtensionName('simple-blog');
  * // Returns: 'Simple Blog'
  *
  * const name = await getExtensionName('my-plugin', '/custom/path/extensions');

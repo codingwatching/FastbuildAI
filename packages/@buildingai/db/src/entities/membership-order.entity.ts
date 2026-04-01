@@ -182,12 +182,12 @@ export class MembershipOrder extends BaseEntity {
     refundTime?: Date;
 
     /**
-     * 订单来源: 0-系统调整, 1-订单购买
+     * 订单来源: 0-系统调整, 1-订单购买, 2-卡密兑换
      */
     @Column({
         type: "int",
         default: 1,
-        comment: "订单来源: 0-系统调整, 1-订单购买",
+        comment: "订单来源: 0-系统调整, 1-订单购买, 2-卡密兑换",
     })
     source: number;
 

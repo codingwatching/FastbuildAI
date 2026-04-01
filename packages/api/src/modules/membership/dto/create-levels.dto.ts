@@ -21,6 +21,10 @@ export class CreateLevelsDto {
     @IsOptional()
     givePower?: number;
 
+    @IsNumber({}, { message: "赠送知识库空间必须是数字" })
+    @IsOptional()
+    storageCapacity?: number;
+
     @IsString({ message: "等级描述必须是字符串" })
     @IsOptional()
     description?: string;

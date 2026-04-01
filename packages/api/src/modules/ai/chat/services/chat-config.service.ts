@@ -56,10 +56,21 @@ export class ChatConfigService extends BaseService<Dict> {
             "chat_config",
         );
 
-        // 获取附件大小限制配置
         const attachmentSizeLimit = await this.dictService.get(
             "chat_attachment_size_limit",
             10,
+            "chat_config",
+        );
+
+        const memoryModelId = await this.dictService.get<string | null>(
+            "chat_memory_model_id",
+            null,
+            "chat_config",
+        );
+
+        const titleModelId = await this.dictService.get<string | null>(
+            "chat_title_model_id",
+            null,
             "chat_config",
         );
 
@@ -68,6 +79,8 @@ export class ChatConfigService extends BaseService<Dict> {
             suggestionsEnabled,
             welcomeInfo,
             attachmentSizeLimit,
+            memoryModelId: memoryModelId ?? undefined,
+            titleModelId: titleModelId ?? undefined,
         };
     }
 
@@ -77,8 +90,14 @@ export class ChatConfigService extends BaseService<Dict> {
      * @returns 更新结果
      */
     async setChatConfig(updateChatConfigDto: UpdateChatConfigDto) {
-        const { suggestions, suggestionsEnabled, welcomeInfo, attachmentSizeLimit } =
-            updateChatConfigDto;
+        const {
+            suggestions,
+            suggestionsEnabled,
+            welcomeInfo,
+            attachmentSizeLimit,
+            memoryModelId,
+            titleModelId,
+        } = updateChatConfigDto;
 
         try {
             // 更新建议选项配置
@@ -110,6 +129,20 @@ export class ChatConfigService extends BaseService<Dict> {
                 await this.dictService.set("chat_attachment_size_limit", attachmentSizeLimit, {
                     group: "chat_config",
                     description: "聊天附件大小限制配置",
+                });
+            }
+
+            if (memoryModelId !== undefined) {
+                await this.dictService.set("chat_memory_model_id", memoryModelId || null, {
+                    group: "chat_config",
+                    description: "记忆提取模型ID",
+                });
+            }
+
+            if (titleModelId !== undefined) {
+                await this.dictService.set("chat_title_model_id", titleModelId || null, {
+                    group: "chat_config",
+                    description: "标题生成模型ID",
                 });
             }
 

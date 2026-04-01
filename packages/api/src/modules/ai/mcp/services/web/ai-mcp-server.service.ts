@@ -1,4 +1,4 @@
-import { McpServerHttp, McpServerSSE } from "@buildingai/ai-sdk";
+import { createMcpClient, type McpClient } from "@buildingai/ai-sdk";
 import { BaseService } from "@buildingai/base";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { AiMcpServer, McpCommunicationType, McpServerType } from "@buildingai/db/entities";
@@ -110,23 +110,37 @@ export class WebAiMcpServerWebService extends BaseService<AiMcpServer> {
      * @returns 更新后的MCP服务
      */
     async toggleMcpServerStatus(id: string, status: boolean, userId: string) {
-        // 查找用户与MCP服务的关联记录
-        const userMcpServer = await this.aiUserMcpServerRepository.findOne({
-            where: {
-                userId,
-                id,
-            },
-        });
+        const mcpServer = await this.findOneById(id);
+        if (!mcpServer) {
+            throw HttpErrorFactory.notFound("MCP服务不存在");
+        }
 
-        if (userMcpServer) {
-            return await this.aiUserMcpServerRepository.update(id, {
-                isDisabled: status,
+        if (mcpServer.type === McpServerType.SYSTEM) {
+            const userMcpServer = await this.aiUserMcpServerRepository.findOne({
+                where: {
+                    userId,
+                    mcpServerId: id,
+                },
             });
+
+            if (userMcpServer) {
+                await this.aiUserMcpServerRepository.update(userMcpServer.id, {
+                    isDisabled: status,
+                });
+            } else {
+                await this.aiUserMcpServerRepository.save({
+                    userId,
+                    mcpServerId: id,
+                    isDisabled: status,
+                });
+            }
         } else {
-            return await this.updateById(id, {
+            await this.updateById(id, {
                 isDisabled: status,
             });
         }
+
+        return await this.findOneById(id);
     }
 
     /**
@@ -169,7 +183,7 @@ export class WebAiMcpServerWebService extends BaseService<AiMcpServer> {
                         type: McpServerType.USER,
                         url,
                         creatorId,
-                        customHeaders: config.customHeaders,
+                        headers: config.headers || {},
                         description: `MCP server imported from JSON: ${name}`,
                         icon: "",
                         sortOrder: 0,
@@ -230,34 +244,25 @@ export class WebAiMcpServerWebService extends BaseService<AiMcpServer> {
             throw HttpErrorFactory.forbidden("您没有权限操作该MCP服务");
         }
 
-        let mcpClient: McpServerSSE | McpServerHttp | null = null;
+        let mcpClient: McpClient | null = null;
         let connectable = false;
         let toolsInfo = undefined;
         let errorMessage = "";
 
         try {
-            if (mcpServer.communicationType == McpCommunicationType.SSE) {
-                mcpClient = new McpServerSSE({
+            mcpClient = await createMcpClient({
+                transport: {
+                    type: mcpServer.communicationType === McpCommunicationType.SSE ? "sse" : "http",
                     url: mcpServer.url,
-                    name: mcpServer.name,
-                    description: mcpServer.description,
-                    customHeaders: mcpServer.customHeaders,
-                });
-            } else {
-                mcpClient = new McpServerHttp({
-                    url: mcpServer.url,
-                    name: mcpServer.name,
-                    description: mcpServer.description,
-                    customHeaders: mcpServer.customHeaders,
-                });
-            }
+                    ...(mcpServer.headers && { headers: mcpServer.headers }),
+                },
+                name: mcpServer.name,
+            });
 
-            // 尝试连接
-            await mcpClient.connect();
             connectable = true;
 
-            // 连接成功，获取工具列表
-            const tools = await mcpClient.getToolsList();
+            // 获取原始工具列表
+            const tools = await mcpClient.listTools();
 
             // 更新工具列表
             toolsInfo = await this.aiMcpToolService.updateToolsForMcpServer(id, tools);
@@ -274,10 +279,9 @@ export class WebAiMcpServerWebService extends BaseService<AiMcpServer> {
                 console.log(`🗑️  已清空 ${deletedCount} 个失效的工具`);
             }
         } finally {
-            // 确保断开连接
             if (mcpClient) {
                 try {
-                    await mcpClient.disconnect();
+                    await mcpClient.close();
                 } catch (disconnectError) {
                     console.warn("断开MCP连接时出现警告:", disconnectError);
                 }

@@ -1,5 +1,17 @@
+import { PaginationDto } from "@buildingai/dto";
 import { Type } from "class-transformer";
-import { IsBoolean, IsObject, IsOptional, IsString, ValidateNested } from "class-validator";
+import {
+    ArrayMinSize,
+    IsArray,
+    IsBoolean,
+    IsNumber,
+    IsObject,
+    IsOptional,
+    IsString,
+    IsUUID,
+    ValidateIf,
+    ValidateNested,
+} from "class-validator";
 
 export class AgentDecorateLinkItemDto {
     @IsOptional()
@@ -19,29 +31,94 @@ export class AgentDecorateLinkItemDto {
     query?: Record<string, unknown>;
 }
 
+/**
+ * 智能体广场 Banner 项 DTO
+ */
+export class AgentDecorateBannerItemDto {
+    @IsString()
+    imageUrl!: string;
+
+    @IsOptional()
+    @IsString()
+    linkUrl?: string;
+
+    @IsOptional()
+    @IsString()
+    linkType?: "system" | "custom";
+}
+
 export class AgentDecorateDto {
+    @IsOptional()
     @IsBoolean()
-    enabled!: boolean;
+    enabled?: boolean;
 
+    @IsOptional()
     @IsString()
-    title!: string;
+    title?: string;
 
+    @IsOptional()
     @IsString()
-    description!: string;
+    description?: string;
 
+    /**
+     * Banner 列表（优先使用此字段）
+     */
+    @IsOptional()
+    @ValidateIf((o) => o.banners !== undefined)
+    @IsArray({ message: "banners 必须是数组" })
+    @ArrayMinSize(1, { message: "至少需要一个 Banner" })
+    @ValidateNested({ each: true })
+    @Type(() => AgentDecorateBannerItemDto)
+    banners?: AgentDecorateBannerItemDto[];
+
+    @IsOptional()
     @ValidateNested()
     @Type(() => AgentDecorateLinkItemDto)
-    link!: AgentDecorateLinkItemDto;
+    link?: AgentDecorateLinkItemDto;
 
+    @IsOptional()
     @IsString()
-    heroImageUrl!: string;
+    heroImageUrl?: string;
 
+    @IsOptional()
     @IsString()
-    overlayTitle!: string;
+    overlayTitle?: string;
 
+    @IsOptional()
     @IsString()
-    overlayDescription!: string;
+    overlayDescription?: string;
 
+    @IsOptional()
     @IsString()
-    overlayIconUrl!: string;
+    overlayIconUrl?: string;
+
+    @IsOptional()
+    @IsArray()
+    @IsUUID("4", { each: true })
+    sortAgentIds?: string[];
+}
+
+export class QueryAgentDecorateItemsDto extends PaginationDto {
+    @IsOptional()
+    @IsString()
+    keyword?: string;
+
+    @IsOptional()
+    @IsUUID("4")
+    tagId?: string;
+}
+
+export class AgentDecorateSortItemDto {
+    @IsString()
+    id!: string;
+
+    @IsNumber()
+    sort!: number;
+}
+
+export class BatchUpdateAgentDecorateSortDto {
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => AgentDecorateSortItemDto)
+    items!: AgentDecorateSortItemDto[];
 }

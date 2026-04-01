@@ -1,5 +1,5 @@
 import { BooleanNumber, type BooleanNumberType } from "@buildingai/constants";
-import { FieldType, TemplateField } from "@buildingai/db/entities";
+import { TemplateField } from "@buildingai/db/entities";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import { PartialType } from "@nestjs/mapped-types";
 import { Transform, Type } from "class-transformer";
@@ -7,7 +7,6 @@ import {
     IsArray,
     IsBoolean,
     IsDefined,
-    IsEnum,
     IsInt,
     IsJSON,
     IsNotEmpty,
@@ -29,12 +28,6 @@ export class TemplateFieldDto implements TemplateField {
     @IsNotEmpty({ message: "字段名称不能为空" })
     @MaxLength(50, { message: "字段名称长度不能超过50个字符" })
     name: string;
-
-    /**
-     * 字段类型
-     */
-    @IsEnum(FieldType, { message: "字段类型必须是有效的枚举值" })
-    type: FieldType;
 
     /**
      * 是否必填

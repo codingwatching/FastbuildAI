@@ -3,7 +3,7 @@ import {
     type PayConfigType,
 } from "@buildingai/constants/shared/payconfig.constant";
 import { PayFrom, type PayFromValue } from "@common/interfaces/pay.interface";
-import { IsEnum, IsString } from "class-validator";
+import { IsEnum, IsOptional, IsString } from "class-validator";
 
 /**
  * 预支付DTO
@@ -26,4 +26,8 @@ export class PrepayDto {
      */
     @IsEnum(PayFrom, { message: "订单来源错误" })
     from: PayFromValue;
+
+    @IsOptional()
+    @IsString({ message: "回跳地址格式错误" })
+    returnUrl?: string;
 }

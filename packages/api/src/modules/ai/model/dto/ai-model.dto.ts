@@ -122,6 +122,22 @@ export class CreateAiModelDto {
     isActive?: boolean;
 
     /**
+     * 是否允许开关深度思考
+     */
+    @IsBoolean({ message: "深度思考开关必须是布尔值" })
+    @IsOptional()
+    @Transform(({ value }) => (value !== undefined ? value : false))
+    thinking?: boolean;
+
+    /**
+     * 是否传递thinking参数到AI模型
+     */
+    @IsBoolean({ message: "传递thinking参数标识必须是布尔值" })
+    @IsOptional()
+    @Transform(({ value }) => (value !== undefined ? value : false))
+    enableThinkingParam?: boolean;
+
+    /**
      * 是否为默认模型
      */
     @IsBoolean({ message: "默认模型标识必须是布尔值" })

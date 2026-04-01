@@ -42,6 +42,7 @@ export class LevelsConsoleController extends BaseController {
         code: "all",
         name: "查询会员等级列表全部",
         description: "查询会员等级列表全部",
+        hidden: true,
     })
     @BuildFileUrl(["***.icon"])
     async listAll() {

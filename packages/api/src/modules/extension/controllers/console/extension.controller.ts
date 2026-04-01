@@ -10,6 +10,8 @@ import {
     CreateExtensionDto,
     ExtensionConfigService,
     ExtensionsService,
+    getExtensionEnabledStatus,
+    isExtensionCompatible,
     PlatformInfo,
     QueryExtensionDto,
     UpdateExtensionDto,
@@ -55,6 +57,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "get-platform-secret",
         name: "获取平台密钥",
+        hidden: true,
     })
     async getPlatformSecret() {
         const result: {
@@ -92,6 +95,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "set-platform-secret",
         name: "设置平台密钥",
+        hidden: true,
     })
     async setPlatformSecret(@Body() dto: SetPlatformSecretDto) {
         const platformSecret = dto.platformSecret || "";
@@ -118,6 +122,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "install",
         name: "安装应用",
+        hidden: true,
     })
     @BuildFileUrl(["**.icon"])
     async install(@Param("identifier") identifier: string, @Body() dto: DownloadExtensionDto) {
@@ -154,7 +159,7 @@ export class ExtensionConsoleController extends BaseController {
     @Get("upgrade-content/:identifier")
     @Permissions({
         code: "upgrade-content",
-        name: "更新应用内容",
+        name: "升级应用",
     })
     async upgradeContent(@Param("identifier") identifier: string) {
         return await this.extensionOperationService.upgradeContent(
@@ -168,8 +173,8 @@ export class ExtensionConsoleController extends BaseController {
      */
     @Get("get-by-activation-code/:activationCode")
     @Permissions({
-        code: "get-by-activation-code",
-        name: "通过兑换码获取应用信息",
+        code: "install-by-activation-code",
+        name: "通过兑换码安装应用",
     })
     @BuildFileUrl(["**.icon"])
     async getApplicationByActivationCode(@Param("activationCode") activationCode: string) {
@@ -183,6 +188,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "upgrade",
         name: "更新应用",
+        hidden: true,
     })
     @BuildFileUrl(["**.icon"])
     async upgrade(@Param("identifier") identifier: string) {
@@ -254,10 +260,12 @@ export class ExtensionConsoleController extends BaseController {
         };
 
         // Extension filter conditions
-        let extensionsList = allExtensionsList;
-        if (query.name) {
+        let extensionsList = allExtensionsList.map((item) =>
+            item.status === ExtensionStatus.ENABLED ? item : { ...item, aliasShow: false },
+        );
+        if (query.keyword) {
             extensionsList = extensionsList.filter((ext) =>
-                ext.name.toLowerCase().includes(query.name.toLowerCase()),
+                ext.name.toLowerCase().includes(query.keyword.toLowerCase()),
             );
         }
 
@@ -303,6 +311,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "versions-list",
         name: "查看应用版本列表",
+        hidden: true,
     })
     async versions(@Param("identifier") identifier: string) {
         let versions = await this.extensionMarketService.getApplicationVersions(identifier);
@@ -319,6 +328,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "enabled-all",
         name: "查看启用应用",
+        hidden: true,
     })
     @BuildFileUrl(["**.icon"])
     async getAllEnabled() {
@@ -334,6 +344,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "local-all",
         name: "查看本地应用",
+        hidden: true,
     })
     @BuildFileUrl(["**.icon"])
     async getAllLocal() {
@@ -352,6 +363,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "list-by-type",
         name: "按类型查看应用",
+        hidden: true,
     })
     async getByType(
         @Param("type") type: ExtensionTypeType,
@@ -378,7 +390,24 @@ export class ExtensionConsoleController extends BaseController {
         if (!extension) {
             throw HttpErrorFactory.notFound("Extension does not exist");
         }
-        return extension;
+
+        const compatible = await isExtensionCompatible(identifier);
+        const enabledStatus = await getExtensionEnabledStatus(identifier);
+        const status =
+            enabledStatus === null
+                ? extension.status
+                : enabledStatus
+                  ? ExtensionStatus.ENABLED
+                  : ExtensionStatus.DISABLED;
+
+        return {
+            ...extension,
+            status,
+            isInstalled: true,
+            isCompatible: compatible,
+            latestVersion: null,
+            hasUpdate: false,
+        };
     }
 
     /**
@@ -394,11 +423,42 @@ export class ExtensionConsoleController extends BaseController {
         name: "查看应用详情",
     })
     async getByIdentifier(@Param("identifier") identifier: string) {
-        const extension = await this.extensionMarketService.getApplicationDetail(identifier);
-        if (!extension) {
+        const marketDetail = await this.extensionMarketService.getApplicationDetail(identifier);
+        if (!marketDetail) {
             throw HttpErrorFactory.notFound("Extension does not exist");
         }
-        return extension;
+
+        const localExtension = await this.extensionsService.findByIdentifier(identifier);
+        const compatible = await isExtensionCompatible(identifier);
+
+        if (localExtension) {
+            const enabledStatus = await getExtensionEnabledStatus(identifier);
+            const status =
+                enabledStatus === null
+                    ? localExtension.status
+                    : enabledStatus
+                      ? ExtensionStatus.ENABLED
+                      : ExtensionStatus.DISABLED;
+
+            return {
+                ...marketDetail,
+                ...localExtension,
+                status,
+                isInstalled: true,
+                isCompatible: compatible,
+                latestVersion:
+                    marketDetail.version !== localExtension.version ? marketDetail.version : null,
+                hasUpdate: marketDetail.version !== localExtension.version,
+            };
+        }
+
+        return {
+            ...marketDetail,
+            isInstalled: false,
+            isCompatible: compatible,
+            latestVersion: null,
+            hasUpdate: false,
+        };
     }
 
     /**
@@ -412,6 +472,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "check-identifier",
         name: "检查应用标识符",
+        hidden: true,
     })
     async checkIdentifier(
         @Param("identifier") identifier: string,
@@ -493,6 +554,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "batch-status",
         name: "批量更新应用状态",
+        hidden: true,
     })
     async batchUpdateStatus(@Body() dto: BatchUpdateExtensionStatusDto) {
         const count = await this.extensionsService.batchUpdateStatus(dto.ids, dto.status);
@@ -555,8 +617,8 @@ export class ExtensionConsoleController extends BaseController {
     @Patch(":id/enable")
     @BuildFileUrl(["**.icon"])
     @Permissions({
-        code: "enable",
-        name: "启用应用",
+        code: "set-status",
+        name: "设置应用状态",
     })
     async enable(@Param("id") id: string) {
         return await this.extensionOperationService.enable(id);
@@ -571,8 +633,8 @@ export class ExtensionConsoleController extends BaseController {
     @Patch(":id/disable")
     @BuildFileUrl(["**.icon"])
     @Permissions({
-        code: "disable",
-        name: "禁用应用",
+        code: "set-status",
+        name: "设置应用状态",
     })
     async disable(@Param("id") id: string) {
         return await this.extensionOperationService.disable(id);
@@ -590,6 +652,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "set-status",
         name: "设置应用状态",
+        hidden: true,
     })
     async setStatus(@Param("id") id: string, @Body("status") status: ExtensionStatusType) {
         if (!Object.values(ExtensionStatus).includes(status)) {
@@ -624,6 +687,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "batch-delete",
         name: "批量删除应用",
+        hidden: true,
     })
     async removeMany(@Body("ids") ids: string[]) {
         if (!Array.isArray(ids) || ids.length === 0) {
@@ -676,6 +740,7 @@ export class ExtensionConsoleController extends BaseController {
     @Permissions({
         code: "get-plugin-layout",
         name: "获取插件布局配置",
+        hidden: true,
     })
     async getPluginLayout(@Param("identifier") identifier: string) {
         const extension = await this.extensionsService.findByIdentifier(identifier);

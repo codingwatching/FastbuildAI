@@ -28,7 +28,6 @@ export class Upgrade extends BaseUpgradeScript {
         this.log("Start upgrading to version 25.0.4");
 
         await this.updateSystemMenu(context);
-        await this.createSpaLoadingIcon();
     }
 
     async updateSystemMenu(context: UpgradeContext) {
@@ -76,39 +75,6 @@ export class Upgrade extends BaseUpgradeScript {
         } catch (error) {
             this.error("Upgrade failed", error);
             throw error;
-        }
-    }
-
-    async createSpaLoadingIcon() {
-        try {
-            const fs = await import("fs-extra");
-            const path = await import("path");
-
-            const rootDir = path.resolve(process.cwd());
-            // The path is relative to the runtime directory (usually the api package directory)
-            // Need to go back to the monorepo root directory
-            const projectRoot = path.join(rootDir, "..", "..");
-
-            const sourcePath = path.join(projectRoot, "public", "web", "spa-loading-source.png");
-            const targetPath = path.join(projectRoot, "public", "web", "spa-loading.png");
-
-            // Check whether target file exists
-            const exists = await fs.pathExists(targetPath);
-
-            if (!exists) {
-                // Check whether source file exists
-                if (await fs.pathExists(sourcePath)) {
-                    await fs.copy(sourcePath, targetPath);
-                    this.log("spa-loading.png created successfully");
-                } else {
-                    this.log("spa-loading-source.png not found, skip creation");
-                }
-            } else {
-                this.log("spa-loading.png already exists, skip creation");
-            }
-        } catch (error) {
-            this.error("Failed to create spa-loading.png:", error);
-            // Do not throw error so that it does not affect main upgrade flow
         }
     }
 }

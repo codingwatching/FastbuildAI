@@ -35,7 +35,7 @@ export class AiChatRecordConsoleController extends BaseController {
     @BuildFileUrl(["**.avatar"])
     @Permissions({
         code: "list",
-        name: "查询AI对话记录",
+        name: "查询AI对话记录列表",
     })
     async findAll(@Query() queryDto: QueryAIChatRecordDto) {
         return await this.AiChatRecordService.findUserConversations(
@@ -76,6 +76,7 @@ export class AiChatRecordConsoleController extends BaseController {
     @Permissions({
         code: "batch-delete",
         name: "批量删除AI对话",
+        hidden: true,
     })
     async batchRemove(@Body() batchDeleteDto: BatchDeleteConversationDto) {
         await this.AiChatRecordService.batchDeleteConversations(batchDeleteDto.ids, "");
@@ -92,6 +93,7 @@ export class AiChatRecordConsoleController extends BaseController {
     @Permissions({
         code: "detail",
         name: "查看AI对话详情",
+        hidden: true,
     })
     async findOne(@Param("id") id: string) {
         // 管理员查看对话时不受用户限制
@@ -105,6 +107,7 @@ export class AiChatRecordConsoleController extends BaseController {
     @Permissions({
         code: "create",
         name: "创建AI对话",
+        hidden: true,
     })
     async create(@Body() createDto: CreateAIChatRecordDto & { userId: string }) {
         const { userId, ...conversationDto } = createDto;
@@ -118,6 +121,7 @@ export class AiChatRecordConsoleController extends BaseController {
     @Permissions({
         code: "update",
         name: "更新AI对话",
+        hidden: true,
     })
     async update(@Param("id") id: string, @Body() updateDto: UpdateAIChatRecordDto) {
         // 管理员更新时不受用户限制
@@ -148,6 +152,7 @@ export class AiChatRecordConsoleController extends BaseController {
     @Permissions({
         code: "pin",
         name: "置顶AI对话",
+        hidden: true,
     })
     async pinConversation(@Param("id") id: string, @Body() body: { isPinned: boolean }) {
         await this.AiChatRecordService.pinConversation(id, "", body.isPinned);
@@ -160,7 +165,7 @@ export class AiChatRecordConsoleController extends BaseController {
     @Get(":id/messages")
     @Permissions({
         code: "get-messages",
-        name: "查看对话消息",
+        name: "查看对话消息详情",
     })
     async getMessages(@Param("id") conversationId: string, @Query() paginationDto: PaginationDto) {
         return await this.AiChatRecordService.getConversationMessages(

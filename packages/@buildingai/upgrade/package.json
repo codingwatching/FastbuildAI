@@ -36,6 +36,7 @@
         "test:dev": "jest --watch"
     },
     "dependencies": {
+        "@buildingai/ai-sdk": "workspace:*",
         "@buildingai/db": "workspace:*",
         "@buildingai/logger": "workspace:*",
         "@buildingai/constants": "workspace:*",

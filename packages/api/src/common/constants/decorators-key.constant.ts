@@ -66,6 +66,18 @@ export const DECORATOR_KEYS = {
      * 会员专属功能元数据键
      */
     MEMBER_ONLY_KEY: "decorator:member-only",
+
+    /**
+     * 开放 API 控制器元数据键
+     * 用于标记外部发布的 API 控制器，通过 apiKey 鉴权
+     */
+    OPENAPI_CONTROLLER_KEY: "decorator:openapi-controller",
+
+    /**
+     * 智能体 API Key 鉴权元数据键
+     * 标记路由支持通过 publishConfig.apiKey（enableApiKey）或 publishConfig.accessToken（enableSite）鉴权，鉴权通过后以创建人身份执行
+     */
+    AGENT_API_KEY_ENABLED: "decorator:agent-api-key-enabled",
 } as const;
 
 /**

@@ -1,10 +1,11 @@
 import { BaseService } from "@buildingai/base";
 import { BaseController } from "@buildingai/base";
-import { ACCOUNT_LOG_TYPE, LOGIN_TYPE } from "@buildingai/constants";
+import { ACCOUNT_LOG_TYPE } from "@buildingai/constants";
 import {
     ACCOUNT_LOG_SOURCE,
     ACCOUNT_LOG_TYPE_DESCRIPTION,
 } from "@buildingai/constants/shared/account-log.constants";
+import { SmsScene } from "@buildingai/constants/shared/sms.constant";
 import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { Agent, MembershipLevels, UserSubscription } from "@buildingai/db/entities";
@@ -20,16 +21,19 @@ import {
 } from "@buildingai/db/typeorm";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Playground } from "@buildingai/decorators/playground.decorator";
-import { Public } from "@buildingai/decorators/public.decorator";
-import { DictService } from "@buildingai/dict";
+import { DictService, UserDictService } from "@buildingai/dict";
 import { HttpErrorFactory } from "@buildingai/errors";
 import { WebController } from "@common/decorators/controller.decorator";
 import { RolePermissionService } from "@common/modules/auth/services/role-permission.service";
-import { Body, Get, Inject, Patch, Query } from "@nestjs/common";
+import { SmsService } from "@common/modules/sms/services/sms.service";
+import { MenuService } from "@modules/menu/services/menu.service";
+import { Body, Get, Inject, Param, Patch, Post, Query } from "@nestjs/common";
 
 import { DatasetMemberService } from "../../../ai/datasets/services/datasets-member.service";
 import { UserService } from "../../services/user.service";
+import { UserCapacityService } from "../../services/user-capacity.service";
 import { AccountLogDto } from "./../../dto/account-log-dto";
+import { BindPhoneDto, SendBindPhoneCodeDto } from "./../../dto/bind-phone.dto";
 import { ALLOWED_USER_FIELDS, UpdateUserFieldDto } from "./../../dto/update-user-field.dto";
 
 /**
@@ -54,7 +58,11 @@ export class UserWebController extends BaseController {
         @Inject(RolePermissionService)
         private readonly rolePermissionService: RolePermissionService,
         private readonly datasetMemberService: DatasetMemberService,
+        private readonly smsService: SmsService,
         private readonly dictService: DictService,
+        private readonly userDictService: UserDictService,
+        @Inject(MenuService)
+        private readonly menuService: MenuService,
         @InjectRepository(Agent)
         private readonly agentRepository: Repository<Agent>,
         @InjectRepository(AccountLog)
@@ -63,6 +71,7 @@ export class UserWebController extends BaseController {
         private readonly userSubscriptionRepository: Repository<UserSubscription>,
         @InjectRepository(MembershipLevels)
         private readonly membershipLevelsRepository: Repository<MembershipLevels>,
+        private readonly userCapacityService: UserCapacityService,
     ) {
         super();
         this.accountLogService = new BaseService(accountLogRepository);
@@ -79,7 +88,6 @@ export class UserWebController extends BaseController {
     async getUserInfo(@Playground() user: UserPlayground) {
         // 获取用户信息（排除敏感字段）
         const userInfo = await this.userService.findOneById(user.id, {
-            excludeFields: ["password"],
             relations: ["role"],
         });
 
@@ -90,51 +98,34 @@ export class UserWebController extends BaseController {
         // 获取用户的所有权限码
         const permissionCodes = await this.rolePermissionService.getUserPermissions(user.id);
 
+        const menuTree = await this.menuService.getMenuTreeByPermissions(
+            userInfo.isRoot ? [] : permissionCodes,
+        );
+
         // 判断用户是否有权限：有权限就是1，没有权限就是0
         const hasPermissions = user.isRoot === 1 || permissionCodes.length > 0 ? 1 : 0;
 
         // 获取用户当前最高会员等级ID
-        const membershipLevelId = await this.getUserHighestMembershipLevelId(user.id);
+        const membershipLevel = await this.userService.getUserHighestMembershipLevel(user.id);
+
+        const {
+            mpOpenid,
+            openid,
+            unionid: _unionid,
+            password: _password,
+            ...userInfoResult
+        } = userInfo;
 
         return {
-            ...userInfo,
+            ...userInfoResult,
             permissions: hasPermissions,
-            membershipLevelId,
+            bindWechat: !!mpOpenid,
+            bindWechatOa: !!openid,
+            membershipLevel,
+            permissionsCodes: permissionCodes,
+            menus: menuTree,
+            hasPassword: !!userInfo.password,
         };
-    }
-
-    /**
-     * 获取用户当前最高会员等级ID
-     *
-     * @param userId 用户ID
-     * @returns 最高会员等级ID，无有效会员则返回 null
-     */
-    private async getUserHighestMembershipLevelId(userId: string): Promise<string | null> {
-        const now = new Date();
-
-        // 查询用户所有有效订阅的等级ID
-        const subscriptions = await this.userSubscriptionRepository.find({
-            where: {
-                userId,
-                endTime: MoreThan(now),
-            },
-            select: ["levelId"],
-        });
-
-        const levelIds = subscriptions.filter((sub) => sub.levelId).map((sub) => sub.levelId!);
-
-        if (levelIds.length === 0) {
-            return null;
-        }
-
-        // 查询这些等级中 level 值最高的
-        const highestLevel = await this.membershipLevelsRepository.findOne({
-            where: { id: In(levelIds) },
-            order: { level: "DESC" },
-            select: ["id"],
-        });
-
-        return highestLevel?.id ?? null;
     }
 
     /**
@@ -272,6 +263,58 @@ export class UserWebController extends BaseController {
     }
 
     /**
+     * 发送绑定手机号验证码
+     */
+    @Post("phone/send-code")
+    async sendBindPhoneCode(
+        @Body() dto: SendBindPhoneCodeDto,
+        @Playground() currentUser: UserPlayground,
+    ) {
+        const areaCode = dto.areaCode || "86";
+        const existingUser = await this.userService.findOne({
+            where: { phone: dto.mobile, phoneAreaCode: areaCode },
+        });
+        if (existingUser && existingUser.id !== currentUser.id) {
+            throw HttpErrorFactory.badRequest("该手机号已被其他用户绑定");
+        }
+
+        await this.smsService.sendCode(dto.mobile, areaCode, SmsScene.BIND_MOBILE);
+        return "The verification code has been sent and is valid for 5 minutes";
+    }
+
+    /**
+     * 短信验证码绑定手机号
+     */
+    @Post("phone/bind")
+    @BuildFileUrl(["**.avatar"])
+    async bindPhone(@Body() dto: BindPhoneDto, @Playground() currentUser: UserPlayground) {
+        const areaCode = dto.areaCode || "86";
+        const existingUser = await this.userService.findOne({
+            where: { phone: dto.mobile, phoneAreaCode: areaCode },
+        });
+        if (existingUser && existingUser.id !== currentUser.id) {
+            throw HttpErrorFactory.badRequest("该手机号已被其他用户绑定");
+        }
+
+        await this.smsService.verifyCode(dto.mobile, areaCode, dto.code, SmsScene.BIND_MOBILE);
+        const updatedUser = await this.userService.updateUserById(
+            currentUser.id,
+            {
+                phone: dto.mobile,
+                phoneAreaCode: areaCode,
+            },
+            {
+                excludeFields: ["password"],
+            },
+        );
+
+        return {
+            user: updatedUser,
+            message: "手机号绑定成功",
+        };
+    }
+
+    /**
      * 账户记录
      * @param accountLogDto
      * @param user
@@ -386,35 +429,61 @@ export class UserWebController extends BaseController {
     }
 
     /**
-     * 获取登录设置
+     * Get all public user configurations (excludes private groups)
+     * Used for frontend localStorage cache
      *
-     * @returns 当前的登录设置配置
+     * @param user Current user
+     * @returns All public configurations grouped by group name
      */
-    @Public()
-    @Get("login-settings")
-    async getLoginSettings() {
-        // 从字典服务获取登录设置配置
-        const config = await this.dictService.get(
-            "login_settings",
-            this.getDefaultLoginSettings(),
-            "auth",
-        );
-
-        return config;
+    @Get("config")
+    async getAllPublicConfigs(@Playground() user: UserPlayground) {
+        return this.userDictService.getAllPublicConfigs(user.id);
     }
 
     /**
-     * 获取默认登录设置
+     * Get user configurations by specific group
+     * Can access any group including private ones
      *
-     * @returns 默认的登录设置配置
+     * @param user Current user
+     * @param group Group name
+     * @returns User configurations as key-value pairs
      */
-    private getDefaultLoginSettings() {
-        return {
-            allowedLoginMethods: [LOGIN_TYPE.ACCOUNT, LOGIN_TYPE.WECHAT, LOGIN_TYPE.PHONE],
-            allowedRegisterMethods: [LOGIN_TYPE.ACCOUNT, LOGIN_TYPE.WECHAT, LOGIN_TYPE.PHONE],
-            defaultLoginMethod: LOGIN_TYPE.ACCOUNT,
-            allowMultipleLogin: false,
-            showPolicyAgreement: true,
-        };
+    @Get("config/:group")
+    async getConfigByGroup(@Playground() user: UserPlayground, @Param("group") group: string) {
+        return this.userDictService.getGroupValues(user.id, group);
+    }
+
+    /**
+     * Set user configuration (single or batch)
+     *
+     * @param user Current user
+     * @param body Configuration data
+     * @returns Success status
+     */
+    @Post("config")
+    async setUserConfig(
+        @Playground() user: UserPlayground,
+        @Body()
+        body:
+            | { key: string; value: any; group?: string }
+            | { items: Array<{ key: string; value: any; group?: string }> },
+    ) {
+        if ("items" in body && Array.isArray(body.items)) {
+            await this.userDictService.mset(user.id, body.items);
+        } else if ("key" in body) {
+            await this.userDictService.set(user.id, body.key, body.value, { group: body.group });
+        }
+        return { success: true };
+    }
+
+    /**
+     * 获取用户存储容量信息
+     *
+     * @param user 当前登录用户
+     * @returns 用户存储容量信息
+     */
+    @Get("storage")
+    async getUserStorage(@Playground() user: UserPlayground) {
+        return this.userCapacityService.getUserCapacityInfo(user.id);
     }
 }

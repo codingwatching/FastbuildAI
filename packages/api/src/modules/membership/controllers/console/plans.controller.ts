@@ -21,8 +21,8 @@ export class PlansConsoleController extends BaseController {
     @Get()
     @Permissions({
         code: "list",
-        name: "查询订阅计划配置",
-        description: "查询订阅计划配置",
+        name: "查询订阅计划列表",
+        description: "查询订阅计划列表",
     })
     async getConfig() {
         return this.plansService.getConfig();

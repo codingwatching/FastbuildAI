@@ -8,6 +8,7 @@ export const ACCOUNT_LOG_SOURCE = {
     AGENT_CHAT: 4,
     PLUGIN: 5,
     MEMBERSHIP_GIFT: 6,
+    CARD_KEY_REDEEM: 7,
 } as const;
 
 /**
@@ -55,6 +56,10 @@ export const ACCOUNT_LOG_TYPE = {
      * 会员赠送积分到期清零
      */
     MEMBERSHIP_GIFT_EXPIRED: Number(`${ACCOUNT_LOG_SOURCE.MEMBERSHIP_GIFT}02`),
+    /**
+     * 卡密兑换积分
+     */
+    CARD_KEY_REDEEM_INC: Number(`${ACCOUNT_LOG_SOURCE.CARD_KEY_REDEEM}00`),
 } as const;
 export type ACCOUNT_LOG_TYPE_VALUE = (typeof ACCOUNT_LOG_TYPE)[keyof typeof ACCOUNT_LOG_TYPE];
 export const ACTION = {
@@ -79,4 +84,5 @@ export const ACCOUNT_LOG_TYPE_DESCRIPTION = {
     [ACCOUNT_LOG_TYPE.MEMBERSHIP_GIFT_INC]: "订阅会员",
     [ACCOUNT_LOG_TYPE.MEMBERSHIP_GIFT_DEC]: "会员退款",
     [ACCOUNT_LOG_TYPE.MEMBERSHIP_GIFT_EXPIRED]: "订阅积分到期",
+    [ACCOUNT_LOG_TYPE.CARD_KEY_REDEEM_INC]: "卡密兑换",
 } as const;

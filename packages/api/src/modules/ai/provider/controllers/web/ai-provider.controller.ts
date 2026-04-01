@@ -72,25 +72,30 @@ export class AiProviderWebController extends BaseController {
                                 queryDto.supportedModelTypes.includes(model.modelType) &&
                                 model.isActive,
                         );
-
-                        provider.models = provider.models.map((modelItem) => {
-                            let newConfig = {};
+                        const modelsWithFlatConfig = filteredModels.map((modelItem) => {
                             if (!modelItem.modelConfig) {
-                                return modelItem;
+                                return { ...modelItem };
                             }
-
-                            if (modelItem.modelConfig instanceof Array) {
-                                modelItem.modelConfig.forEach((config) => {
-                                    newConfig[config.field as string] = config.value;
-                                });
-                            }
-                            modelItem.modelConfig = newConfig as any;
-                            return modelItem;
+                            const newConfig =
+                                modelItem.modelConfig instanceof Array
+                                    ? (
+                                          modelItem.modelConfig as Array<{
+                                              field: string;
+                                              value: unknown;
+                                          }>
+                                      ).reduce(
+                                          (acc, config) => {
+                                              acc[config.field] = config.value;
+                                              return acc;
+                                          },
+                                          {} as Record<string, unknown>,
+                                      )
+                                    : modelItem.modelConfig;
+                            return { ...modelItem, modelConfig: newConfig };
                         });
-
                         return {
                             ...provider,
-                            models: filteredModels,
+                            models: modelsWithFlatConfig,
                         };
                     })
                     .filter((provider) => provider.models.length > 0);

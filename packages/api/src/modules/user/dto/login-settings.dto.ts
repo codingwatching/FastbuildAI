@@ -9,8 +9,6 @@ export interface LoginSettingsConfig {
     allowedLoginMethods: LoginType[];
     /** 允许的注册方式列表 */
     allowedRegisterMethods: LoginType[];
-    /** 默认登录方式 */
-    defaultLoginMethod: LoginType;
     /** 是否允许多处登录 */
     allowMultipleLogin: boolean;
     /** 是否显示政策协议勾选栏 */
@@ -38,14 +36,6 @@ export class UpdateLoginSettingsDto {
     @IsArray()
     @IsEnum(LOGIN_TYPE, { each: true, message: "注册方式必须是有效的类型" })
     allowedRegisterMethods?: LoginType[];
-
-    /**
-     * 默认登录方式
-     * @description 登录页面默认选中的登录方式
-     */
-    @IsOptional()
-    @IsEnum(LOGIN_TYPE, { message: "默认登录方式必须是有效的类型" })
-    defaultLoginMethod?: LoginType;
 
     /**
      * 是否允许多处登录

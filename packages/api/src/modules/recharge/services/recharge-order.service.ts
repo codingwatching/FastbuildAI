@@ -15,6 +15,7 @@ import { REFUND_ORDER_FROM } from "@common/modules/refund/constants/refund.const
 import { RefundService } from "@common/modules/refund/services/refund.service";
 import { QueryRechargeOrderDto } from "@modules/recharge/dto/query-recharge-order.dto";
 import { Injectable } from "@nestjs/common";
+import { bignumber, subtract } from "mathjs";
 
 @Injectable()
 export class RechargeOrderService extends BaseService<RechargeOrder> {
@@ -47,9 +48,12 @@ export class RechargeOrderService extends BaseService<RechargeOrder> {
             });
         }
         if (keyword) {
-            queryBuilder.andWhere("(user.username ILIKE :keyword OR user.phone ILIKE :keyword)", {
-                keyword: `%${keyword}%`,
-            });
+            queryBuilder.andWhere(
+                "(user.nickname ILIKE :keyword OR user.phone ILIKE :keyword OR user.user_no ILIKE :keyword)",
+                {
+                    keyword: `%${keyword}%`,
+                },
+            );
         }
         if (payType) {
             queryBuilder.andWhere("recharge-order.payType = :payType", {
@@ -105,7 +109,11 @@ export class RechargeOrderService extends BaseService<RechargeOrder> {
             (await this.RechargeOrderRepository.sum("orderAmount", {
                 refundStatus: 1,
             })) || 0;
-        const totalIncome = totalAmount - totalRefundAmount;
+        // Use BigNumber to avoid floating-point precision
+        const totalIncome = Number(
+            subtract(bignumber(totalAmount), bignumber(totalRefundAmount)).toString(),
+        );
+        console.log(totalAmount, totalRefundAmount, totalIncome);
         const statistics = {
             totalOrder,
             totalAmount,

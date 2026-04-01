@@ -75,4 +75,12 @@ export class UpdateChatConfigDto {
     @ValidateNested()
     @Type(() => WelcomeInfoDto)
     welcomeInfo?: WelcomeInfoDto;
+
+    @IsOptional()
+    @IsString()
+    memoryModelId?: string;
+
+    @IsOptional()
+    @IsString()
+    titleModelId?: string;
 }

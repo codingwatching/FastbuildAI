@@ -150,6 +150,8 @@ export interface TokenUsageByModelItem {
     modelId: string;
     /** 模型名称 */
     modelName: string;
+    /** 供应商标识 */
+    provider: string;
     /** 供应商名称 */
     providerName: string;
     /** 供应商图标URL */

@@ -1,13 +1,14 @@
 import { BaseController } from "@buildingai/base";
 import { type PayConfigType } from "@buildingai/constants/shared/payconfig.constant";
 import { type UserPlayground } from "@buildingai/db";
+import { Public } from "@buildingai/decorators";
 import { BuildFileUrl } from "@buildingai/decorators/file-url.decorator";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { PaginationDto } from "@buildingai/dto/pagination.dto";
 import { UUIDValidationPipe } from "@buildingai/pipe/param-validate.pipe";
 import { WebController } from "@common/decorators/controller.decorator";
 import { RechargeService } from "@modules/recharge/services/recharge.service";
-import { Body, Get, Post, Query } from "@nestjs/common";
+import { Body, Get, Post, Query, Req } from "@nestjs/common";
 
 @WebController("recharge")
 export class RechargeWebController extends BaseController {
@@ -33,8 +34,10 @@ export class RechargeWebController extends BaseController {
      */
     @BuildFileUrl(["**.avatar", "**.logo"])
     @Get("center")
-    async center(@Playground() user: UserPlayground) {
-        return await this.rechargeService.center(user.id);
+    @Public()
+    async center(@Req() request: Request & { user?: UserPlayground }) {
+        const user = request.user;
+        return await this.rechargeService.center(user?.id ?? null);
     }
 
     /**

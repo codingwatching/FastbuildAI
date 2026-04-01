@@ -68,6 +68,8 @@ export class LevelsService extends BaseService<MembershipLevels> {
             items: levels.items.map((level) => ({
                 ...level,
                 accountCount: accountCountMap.get(level.id) ?? 0,
+                // 返回给前端时，将字节转换为 MB
+                storageCapacity: Math.floor((level.storageCapacity || 0) / 1024 ** 2),
             })),
         };
     }
@@ -89,7 +91,16 @@ export class LevelsService extends BaseService<MembershipLevels> {
             throw HttpErrorFactory.badRequest("会员等级已存在");
         }
 
-        return this.create(createLevelsDto);
+        // 前端传入的是 MB，需要转换为字节存储
+        const dataToCreate = {
+            ...createLevelsDto,
+            storageCapacity:
+                createLevelsDto.storageCapacity !== undefined
+                    ? createLevelsDto.storageCapacity * 1024 ** 2
+                    : 0,
+        };
+
+        return this.create(dataToCreate);
     }
 
     /**
@@ -106,7 +117,16 @@ export class LevelsService extends BaseService<MembershipLevels> {
             throw HttpErrorFactory.notFound("会员等级不存在");
         }
 
-        return this.updateById(id, updateLevelsDto);
+        // 前端传入的是 MB，需要转换为字节存储
+        const dataToUpdate = {
+            ...updateLevelsDto,
+            storageCapacity:
+                updateLevelsDto.storageCapacity !== undefined
+                    ? updateLevelsDto.storageCapacity * 1024 ** 2
+                    : undefined,
+        };
+
+        return this.updateById(id, dataToUpdate);
     }
 
     /**
@@ -150,6 +170,10 @@ export class LevelsService extends BaseService<MembershipLevels> {
             throw HttpErrorFactory.notFound("会员等级不存在");
         }
 
-        return existLevels;
+        // 返回给前端时，将字节转换为 MB
+        return {
+            ...existLevels,
+            storageCapacity: Math.floor((existLevels.storageCapacity || 0) / 1024 ** 2),
+        };
     }
 }

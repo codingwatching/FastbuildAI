@@ -214,3 +214,70 @@ export function WebController(optionsOrPath: WebControllerOptions | string): Cla
 
     return applyDecorators(...decorators);
 }
+
+/**
+ * 开放 API 控制器装饰器选项
+ */
+export interface OpenApiControllerOptions {
+    /**
+     * 路由路径（不含前缀）
+     */
+    path?: string;
+}
+
+/**
+ * 开放 API 控制器装饰器
+ *
+ * 用于标记控制器为外部开放 API 控制器，路由前缀为 v1，通过 apiKey 进行鉴权
+ * 跳过系统登录态认证，由 ApiKeyGuard 负责校验 apiKey
+ *
+ * @param optionsOrPath 控制器选项或路径
+ * @returns 装饰器
+ *
+ * @example
+ * ```typescript
+ * // 基本用法 - 使用路径字符串
+ * @OpenApiController('chat-messages')
+ * export class ChatController {
+ *   // 生成路由: /v1/chat-messages
+ *   @Post()
+ *   chat() {
+ *     return this.chatService.chat();
+ *   }
+ * }
+ *
+ * // 使用选项对象
+ * @OpenApiController({
+ *   path: 'conversations'
+ * })
+ * export class ConversationController {
+ *   // 生成路由: /v1/conversations
+ *   @Get()
+ *   list() {
+ *     return this.conversationService.list();
+ *   }
+ * }
+ * ```
+ */
+export function OpenApiController(
+    optionsOrPath?: OpenApiControllerOptions | string,
+): ClassDecorator {
+    const options: OpenApiControllerOptions =
+        typeof optionsOrPath === "string" ? { path: optionsOrPath } : optionsOrPath || {};
+
+    const path = options.path || "";
+
+    // 构建完整的路由路径，前缀固定为 v1
+    const routePath = path ? `v1/${path}` : "v1";
+
+    const decorators = [
+        Controller(routePath),
+        SetMetadata(DECORATOR_KEYS.OPENAPI_CONTROLLER_KEY, true),
+        // 跳过系统登录态认证，由 ApiKeyGuard 负责校验
+        SetMetadata(DECORATOR_KEYS.IS_PUBLIC_KEY, true),
+        // 跳过扩展守卫检查
+        SetMetadata("SKIP_EXTENSION_GUARD", true),
+    ];
+
+    return applyDecorators(...decorators);
+}

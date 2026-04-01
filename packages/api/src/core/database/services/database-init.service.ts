@@ -2,9 +2,10 @@ import { AppConfig } from "@buildingai/config/app.config";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
 import { Menu } from "@buildingai/db/entities";
 import {
-    AgentSquareSeeder,
     AiModelSeeder,
     AiProviderSeeder,
+    DatasetsConfigSeeder,
+    DepartmentSeeder,
     ExtensionSeeder,
     MembershipLevelsSeeder,
     MembershipPlansSeeder,
@@ -26,7 +27,6 @@ import { SYSTEM_CONFIG } from "@common/constants";
 import { PermissionService } from "@modules/permission/services/permission.service";
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import fse from "fs-extra";
-import { machineId } from "node-machine-id";
 import * as path from "path";
 
 import { ExtensionUpgradeOrchestratorService } from "../extension-upgrade/extension-upgrade-orchestrator.service";
@@ -76,6 +76,17 @@ export class DatabaseInitService implements OnModuleInit {
 
                 // Delegate extension upgrade logic to ExtensionUpgradeOrchestratorService
                 await this.extensionUpgradeOrchestrator.checkAndUpgradeAll();
+
+                // TODO: Temporary - Re-init menus if table is empty (remove after sync)
+                const menuCount = await this.menuRepository.count();
+                if (menuCount === 0) {
+                    this.logger.warn("⚠️ Menu table is empty, re-initializing menus...");
+                    this.permissionService.scanControllers();
+                    const permissionSeeder = new PermissionSeeder(this.permissionService);
+                    await permissionSeeder.run();
+                    const menuSeeder = new MenuSeeder(this.menuRepository, this.permissionService);
+                    await menuSeeder.run();
+                }
                 return;
             }
 
@@ -102,8 +113,6 @@ export class DatabaseInitService implements OnModuleInit {
 
         // 2. Run runtime seeders (NestJS dependencies)
         await this.runRuntimeSeeds();
-
-        await this.initializeSpaLoadingIcon();
 
         // 3. Mark system as installed
         await this.markSystemAsInstalled();
@@ -132,9 +141,10 @@ export class DatabaseInitService implements OnModuleInit {
             new MembershipLevelsSeeder(), // Membership levels
             new MembershipPlansSeeder(), // Membership plans
             new RechargeCenterSeeder(), // Recharge center configuration
-            new AgentSquareSeeder(), // Agent square configuration
+            new DatasetsConfigSeeder(), // 知识库配置（初始空间、向量模型、检索设置）
             new StorageConfigSeeder(), // OSS storage
             new WebsiteSeeder(), // Website default configuration
+            new DepartmentSeeder(), // Department initialization
         ]);
     }
 
@@ -149,25 +159,12 @@ export class DatabaseInitService implements OnModuleInit {
         // 2. Initialize menus (depends on permission data)
         const menuSeeder = new MenuSeeder(this.menuRepository, this.permissionService);
         await menuSeeder.run();
-    }
 
-    /**
-     * Initialize SPA loading icon from source
-     */
-    private async initializeSpaLoadingIcon(): Promise<void> {
-        try {
-            const rootDir = path.join(process.cwd(), "..", "..");
-            const sourcePath = path.join(rootDir, "public/web/spa-loading-source.png");
-            const targetPath = path.join(rootDir, "public/web/spa-loading.png");
-
-            if (await fse.pathExists(sourcePath)) {
-                await fse.copy(sourcePath, targetPath, { overwrite: true });
-                this.logger.log("✅ Initialized SPA loading icon");
-            } else {
-                this.logger.warn("⚠️ SPA loading source icon not found, skipping initialization");
-            }
-        } catch (e) {
-            this.logger.error(`❌ Failed to initialize SPA loading icon: ${e.message}`);
+        // TODO: Temporary - Re-init menus if table is empty (remove after sync)
+        const menuCount = await this.menuRepository.count();
+        if (menuCount === 0) {
+            this.logger.warn("⚠️ Menu table is empty, re-initializing menus...");
+            await menuSeeder.run();
         }
     }
 

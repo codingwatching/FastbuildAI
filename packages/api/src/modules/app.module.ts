@@ -12,9 +12,11 @@ import { FileUrlModule } from "@buildingai/db";
 import { DataSource } from "@buildingai/db/typeorm";
 import { DictModule } from "@buildingai/dict";
 import { TerminalLogger } from "@buildingai/logger";
+import { AgentGuard } from "@common/guards/agent.guard";
 import { AuthGuard } from "@common/guards/auth.guard";
 import { DemoGuard } from "@common/guards/demo.guard";
 import { ExtensionGuard } from "@common/guards/extension.guard";
+import { GuardsModule } from "@common/guards/guards.module";
 import { MemberOnlyGuard } from "@common/guards/member-only.guard";
 import { PermissionsGuard } from "@common/guards/permissions.guard";
 import { SuperAdminGuard } from "@common/guards/super-admin.guard";
@@ -22,6 +24,7 @@ import { SmsModule } from "@common/modules/sms/sms.module";
 import { DatabaseModule } from "@core/database/database.module";
 import { AnalyseModule } from "@modules/analyse/analyse.module";
 import { AuthModule } from "@modules/auth/auth.module";
+import { CDKModule } from "@modules/cdk/cdk.module";
 import { ChannelModule } from "@modules/channel/channel.module";
 import { ExtensionCoreModule } from "@modules/extension/extension.module";
 import { HealthModule } from "@modules/health/health.module";
@@ -39,6 +42,7 @@ import { ConfigModule as AppConfigModule } from "./config/config.module";
 import { DecorateModule } from "./decorate/decorate.module";
 import { FinanceModule } from "./finance/finance.module";
 import { MenuModule } from "./menu/menu.module";
+import { NoticeModule } from "./notice/notice.module";
 import { PayModule } from "./pay/pay.module";
 import { PermissionModule } from "./permission/permission.module";
 import { Pm2Module } from "./pm2/pm2.module";
@@ -49,7 +53,6 @@ import { SystemModule } from "./system/system.module";
 import { TagModule } from "./tag/tag.module";
 import { UploadModule } from "./upload/upload.module";
 import { UserModule } from "./user/user.module";
-
 @Module({})
 export class AppModule {
     static async register(): Promise<DynamicModule> {
@@ -67,6 +70,7 @@ export class AppModule {
         const webIndexPath = join(webPath, "index.html");
 
         const shouldUseWebPath = existsSync(webPath) && existsSync(webIndexPath);
+
         const rootPath = shouldUseWebPath ? webPath : publicPath;
 
         return {
@@ -75,7 +79,7 @@ export class AppModule {
                 ServeStaticModule.forRoot({
                     rootPath,
                     exclude: [
-                        ...extensionsList.map((extension) => `/extensions/${extension.identifier}`),
+                        ...extensionsList.map((extension) => `/extension/${extension.identifier}`),
                         ...extensionsList.map((extension) => `/${extension.name}`),
                         process.env.VITE_APP_WEB_API_PREFIX,
                         process.env.VITE_APP_CONSOLE_API_PREFIX,
@@ -85,13 +89,16 @@ export class AppModule {
                     isGlobal: true,
                     envFilePath: `../../.env`,
                 }),
+                ConfigModule.forRoot(), //
                 FileUrlModule,
                 RedisModule,
                 CacheModule,
                 DictModule,
                 DatabaseModule,
+                GuardsModule,
                 BillingModule,
                 AuthModule,
+                CDKModule, //
                 ChannelModule,
                 AiModule,
                 AppConfigModule,
@@ -115,6 +122,7 @@ export class AppModule {
                 CloudStorageModule,
                 ScheduleModule,
                 SmsModule,
+                NoticeModule,
                 NotificationModule,
                 await ExtensionCoreModule.register(),
             ],
@@ -127,6 +135,10 @@ export class AppModule {
                 {
                     provide: APP_GUARD,
                     useClass: AuthGuard,
+                },
+                {
+                    provide: APP_GUARD,
+                    useClass: AgentGuard,
                 },
                 {
                     provide: APP_GUARD,

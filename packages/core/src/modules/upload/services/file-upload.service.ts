@@ -523,6 +523,7 @@ export class FileUploadService extends BaseService<File> {
      *
      * @param params OSS file information
      * @param request Express request object
+     * @param extensionId
      * @returns Upload result with file ID
      */
     async saveOSSFileRecord(

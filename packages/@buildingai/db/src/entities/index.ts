@@ -1,22 +1,36 @@
 export { AccountLog } from "./account-log.entity";
 export { Agent } from "./ai-agent.entity";
-export { AgentAnnotation, AnnotationReviewStatus } from "./ai-agent-annotation.entity";
+export { AgentAnnotation } from "./ai-agent-annotation.entity";
 export { AgentChatMessage } from "./ai-agent-chat-message.entity";
+export { AgentChatMessageFeedback } from "./ai-agent-chat-message-feedback.entity";
 export { AgentChatRecord } from "./ai-agent-chat-record.entity";
-export { AiChatMessage, type McpToolCall } from "./ai-chat-message.entity";
+export { AgentMemory } from "./ai-agent-memory.entity";
+export { AiChatFeedback } from "./ai-chat-feedback.entity";
+export { AiChatMessage } from "./ai-chat-message.entity";
 export { AiChatRecord } from "./ai-chat-record.entity";
+export { AiChatToolCall } from "./ai-chat-tool-call.entity";
 export { AiMcpServer, McpCommunicationType, McpServerType } from "./ai-mcp-server.entity";
 export { AiMcpTool } from "./ai-mcp-tool.entity";
 export { AiModel } from "./ai-model.entity";
 export { AiProvider } from "./ai-provider.entity";
 export { AiUserMcpServer } from "./ai-user-mcp-server.entity";
+export { UserMemory } from "./ai-user-memory.entity";
 export { Analyse, AnalyseActionType } from "./analyse.entity";
-export { Datasets } from "./datasets.entity";
+export { CardBatch, CardRedeemType } from "./card-batch.entity";
+export { CardKeyStatus, CDK } from "./cdk.entity";
+export { Datasets, SquarePublishStatus } from "./datasets.entity";
+export { DatasetsChatMessage } from "./datasets-chat-message.entity";
+export { DatasetsChatRecord } from "./datasets-chat-record.entity";
 export { DatasetsDocument } from "./datasets-document.entity";
 export { DatasetMember } from "./datasets-member.entity";
+export {
+    DatasetMemberApplication,
+    MemberApplicationStatus,
+} from "./datasets-member-application.entity";
 export { DatasetsSegments } from "./datasets-segments.entity";
-export { DecorateMicropageEntity } from "./decorate-micropage.entity";
-export { DecoratePageEntity } from "./decorate-page.entity";
+export { Department } from "./department.entity";
+export { DepartmentPrincipal } from "./department-principal.entity";
+export { DepartmentUserIndex } from "./department-user-index.entity";
 export { Dict } from "./dict.entity";
 export { Extension } from "./extension.entity";
 export { ExtensionFeature } from "./extension-feature.entity";
@@ -26,6 +40,7 @@ export { MembershipOrder } from "./membership-order.entity";
 export type { Billing, Duration } from "./membership-plans.entity";
 export { MembershipPlanDuration, MembershipPlans } from "./membership-plans.entity";
 export { Menu, MenuSourceType, MenuType } from "./menu.entity";
+export { NoticeSetting } from "./notice-setting.entity";
 export { Payconfig } from "./payconfig.entity";
 export { Permission, PermissionType } from "./permission.entity";
 export { Recharge } from "./recharge.entity";
@@ -42,5 +57,6 @@ export {
 export { StorageConfig } from "./storage-config.entity";
 export { Tag } from "./tag.entity";
 export { User } from "./user.entity";
+export { UserDict } from "./user-dict.entity";
 export { UserSubscription } from "./user-subscription.entity";
 export { UserToken } from "./user-token.entity";

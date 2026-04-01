@@ -206,6 +206,7 @@ export class BaseBillingService {
             associationNo = "",
             associationUserId,
             expireAt,
+            subscriptionId,
         } = options;
 
         if (amount <= 0) {
@@ -244,6 +245,7 @@ export class BaseBillingService {
                     remark: remark || `增加 ${amount} 积分`,
                     sourceInfo: source,
                     expireAt: expireAt || null,
+                    subscriptionId: subscriptionId || null,
                     availableAmount: expireAt ? amount : 0,
                 } as any);
 

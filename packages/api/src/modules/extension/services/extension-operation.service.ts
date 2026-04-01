@@ -598,11 +598,87 @@ export class ExtensionOperationService {
                 await fs.copy(sourceDir, targetDir);
             }
 
+            await this.patchLegacyDependencies(targetDir);
             await this.ensurePluginStructure(targetDir);
 
             return targetDir;
         } finally {
             await fs.remove(tempExtractDir).catch(() => undefined);
+        }
+    }
+
+    /**
+     * Patch legacy extension dependencies to ensure compatibility with current platform.
+     * Handles removed, renamed, and newly added packages.
+     * @param pluginDir Extension directory containing package.json
+     */
+    private async patchLegacyDependencies(pluginDir: string): Promise<void> {
+        const packageJsonPath = path.join(pluginDir, "package.json");
+
+        if (!(await fs.pathExists(packageJsonPath))) {
+            return;
+        }
+
+        const patchRules = {
+            remove: [
+                "@buildingai/i18n-config",
+                "@buildingai/nuxt",
+                "@buildingai/upload",
+                "@buildingai/layouts",
+                "@buildingai/api",
+            ],
+            update: [{ from: "@buildingai/service", to: "@buildingai/services" }],
+        };
+
+        const packageJson = await fs.readJson(packageJsonPath);
+        const depFields = ["dependencies", "devDependencies"] as const;
+        let modified = false;
+
+        for (const field of depFields) {
+            if (!packageJson[field]) continue;
+
+            // Remove deprecated packages
+            for (const pkg of patchRules.remove) {
+                if (packageJson[field][pkg]) {
+                    delete packageJson[field][pkg];
+                    this.logger.log(`Removed legacy dependency: ${pkg} from ${field}`);
+                    modified = true;
+                }
+            }
+
+            // Rename updated packages
+            for (const { from, to } of patchRules.update) {
+                if (packageJson[field][from]) {
+                    packageJson[field][to] = packageJson[field][from];
+                    delete packageJson[field][from];
+                    this.logger.log(`Renamed dependency: ${from} -> ${to} in ${field}`);
+                    modified = true;
+                }
+            }
+        }
+
+        if (modified) {
+            await fs.writeJson(packageJsonPath, packageJson, { spaces: 4 });
+            this.logger.log(`Patched legacy dependencies in: ${packageJsonPath}`);
+        }
+
+        // Delete nuxt.config.ts if exists
+        const nuxtConfigPath = path.join(pluginDir, "nuxt.config.ts");
+        if (await fs.pathExists(nuxtConfigPath)) {
+            await fs.remove(nuxtConfigPath);
+            this.logger.log(`Removed legacy file: nuxt.config.ts`);
+        }
+
+        // Replace tsconfig.web.json with fixed template
+        const tsconfigWebPath = path.join(pluginDir, "tsconfig.web.json");
+        if (await fs.pathExists(tsconfigWebPath)) {
+            const tsconfigWebContent = {
+                compilerOptions: {
+                    tsBuildInfoFile: "./.temp/tsconfig.web.tsbuildinfo",
+                },
+            };
+            await fs.writeJson(tsconfigWebPath, tsconfigWebContent, { spaces: 4 });
+            this.logger.log(`Replaced tsconfig.web.json with fixed template`);
         }
     }
 
@@ -750,11 +826,7 @@ export class ExtensionOperationService {
                 );
             }
 
-            const { url } = await extensionMarketService.downloadApplication(
-                identifier,
-                targetVersion,
-                ExtensionDownload.INSTALL,
-            );
+            const { url } = await extensionMarketService.downloadApplication(identifier);
             await this.download(url, identifier, ExtensionDownload.INSTALL, targetVersion);
 
             const extension = await this.extensionsService.create({
@@ -950,11 +1022,7 @@ export class ExtensionOperationService {
             }
 
             // 2. Download latest version with UPGRADE type
-            const { url } = await extensionMarketService.downloadApplication(
-                identifier,
-                latestVersion,
-                ExtensionDownload.UPGRADE,
-            );
+            const { url } = await extensionMarketService.downloadApplication(identifier);
             await this.download(url, identifier, ExtensionDownload.UPGRADE, latestVersion);
 
             // 3. Update extension in database
@@ -1116,6 +1184,17 @@ export class ExtensionOperationService {
      */
     private async deleteExtensionMigrationHistory(identifier: string): Promise<void> {
         try {
+            const tableExists = await this.dataSource.query(
+                `SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'extensions_migrations_history')`,
+            );
+
+            if (!tableExists[0]?.exists) {
+                this.logger.log(
+                    `Migration history table does not exist, skipping cleanup for: ${identifier}`,
+                );
+                return;
+            }
+
             this.logger.log(`Deleting migration history for extension: ${identifier}`);
 
             const result = await this.dataSource.query(
@@ -1129,17 +1208,9 @@ export class ExtensionOperationService {
             );
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            // Table might not exist if no migrations were ever run
-            if (errorMessage.includes("does not exist")) {
-                this.logger.log(
-                    `Migration history table does not exist, skipping cleanup for: ${identifier}`,
-                );
-                return;
-            }
             this.logger.error(
                 `Failed to delete migration history: ${errorMessage}. Manual cleanup may be required.`,
             );
-            // Don't throw error - continue with uninstall
         }
     }
 
@@ -1331,7 +1402,7 @@ export class ExtensionOperationService {
      * @private
      */
     private async extractTemplateToExtensions(identifier: string): Promise<string> {
-        const templatePath = path.join(this.templatesDir, "buildingai-extension-starter");
+        const templatePath = path.join(this.templatesDir, "extension-starter");
 
         if (!(await fs.pathExists(templatePath))) {
             throw HttpErrorFactory.badRequest(`Template directory not found: ${templatePath}`);
