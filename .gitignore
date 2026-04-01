@@ -40,13 +40,9 @@ coverage
 out/
 build
 packages/**/dist
-/public/.output
 /public/package.json
-!/public/web/extensions/simple-blog
-/public/web/extensions/*
-/public/web/spa-loading.png
 /public/*
-# !/public/web/
+!/public/web/
 !/public/index.html
 *.tsbuildinfo
 _temp_get_languages.*
