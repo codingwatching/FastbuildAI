@@ -56,7 +56,37 @@ export function resolveExtensionConsoleEntryPath(consoleMenu: unknown): string |
 }
 
 /**
+ * Detects whether current runtime is production build.
+ *
+ * Uses Vite's `import.meta.env.PROD` when available, then falls back to
+ * `process.env.NODE_ENV === "production"` for non-Vite bundlers.
+ */
+function isProdRuntime(): boolean {
+    const viteProd = (import.meta as unknown as { env?: { PROD?: boolean } }).env?.PROD;
+    if (typeof viteProd === "boolean") {
+        return viteProd;
+    }
+    return (
+        (globalThis as unknown as { process?: { env?: { NODE_ENV?: string } } }).process?.env
+            ?.NODE_ENV === "production"
+    );
+}
+
+/**
+ * Returns current page origin when running in a browser.
+ */
+function getBrowserOrigin(): string | null {
+    if (typeof window === "undefined") {
+        return null;
+    }
+    return window.location?.origin || null;
+}
+
+/**
  * Builds the full URL to open a plugin's console at the first menu route.
+ *
+ * In production, it always prefers the current page origin (same-origin), even if callers
+ * accidentally pass a different `baseUrl`.
  *
  * @param baseUrl - Site origin (e.g. `window.location.origin` or dev base URL)
  * @param identifier - Extension package identifier
@@ -67,7 +97,8 @@ export function buildExtensionConsoleManageUrl(
     identifier: string,
     consoleMenu: unknown,
 ): string {
-    const root = `${baseUrl.replace(/\/+$/u, "")}/extension/${identifier}/console`;
+    const effectiveBaseUrl = isProdRuntime() ? (getBrowserOrigin() ?? baseUrl) : baseUrl;
+    const root = `${effectiveBaseUrl.replace(/\/+$/u, "")}/extension/${identifier}/console`;
     const entry = resolveExtensionConsoleEntryPath(consoleMenu);
     if (!entry) {
         return root;

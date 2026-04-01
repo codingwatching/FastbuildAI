@@ -38,7 +38,7 @@
     "scripts": {
         "build": "cross-env NODE_OPTIONS=--max-old-space-size=3072 turbo run build",
         "dev": "turbo run dev",
-        "start": "pnpm i && pnpm sync-env && cd packages/cli && pnpm run start",
+        "start": "node scripts/patch-legacy-extensions.mjs && pnpm i && pnpm sync-env && cd packages/cli && pnpm run start",
         "predeploy": "pnpm i && pnpm sync-env && cd packages/cli && pnpm run predeploy",
         "stop": "node packages/cli/bin/cli.js pm2:stop",
         "restart": "node packages/cli/bin/cli.js pm2:restart",
