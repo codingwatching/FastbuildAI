@@ -277,16 +277,13 @@ export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
 const streamdownPlugins = { cjk, code, math, mermaid };
 
-export const MessageResponse = memo(
-  ({ className, ...props }: MessageResponseProps) => (
-    <Streamdown
-      className={cn("size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0", className)}
-      plugins={streamdownPlugins}
-      {...props}
-    />
-  ),
-  (prevProps, nextProps) => prevProps.children === nextProps.children,
-);
+export const MessageResponse = memo(({ className, ...props }: MessageResponseProps) => (
+  <Streamdown
+    className={cn("size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0", className)}
+    plugins={streamdownPlugins}
+    {...props}
+  />
+));
 
 MessageResponse.displayName = "MessageResponse";
 
