@@ -37,8 +37,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import type { LanguageModel, Tool, UIMessage } from "ai";
 import {
     convertToModelMessages,
-    createIdGenerator,
     createUIMessageStream,
+    generateId,
     pipeUIMessageStreamToResponse,
     stepCountIs,
     ToolLoopAgent,
@@ -207,7 +207,7 @@ export class AgentChatCompletionService {
                     if (conversationId) {
                         writer.write({ type: "data-conversation-id", data: conversationId });
                     }
-                    const assistantMessageId = createIdGenerator() as unknown as string;
+                    const assistantMessageId = generateId();
                     writer.write({
                         type: "start",
                         messageId: assistantMessageId,
@@ -556,7 +556,9 @@ export class AgentChatCompletionService {
                                         } else {
                                             await this.saveMessages({
                                                 finished,
-                                                responseMsg,
+                                                responseMsg: responseMsg
+                                                    ? { ...responseMsg, id: assistantMessageId }
+                                                    : responseMsg,
                                                 params,
                                                 conversationId,
                                                 usage: totalUsage,
@@ -924,7 +926,9 @@ export class AgentChatCompletionService {
         if (params.isRegenerate) {
             userMsgId = params.regenerateParentId;
         } else {
-            const lastUser = finished.findLast((m) => m.role === "user");
+            const lastUser =
+                params.messages.findLast((m) => m.role === "user") ??
+                finished.findLast((m) => m.role === "user");
             if (lastUser) {
                 const saved = await this.agentChatMessageService.createMessage({
                     conversationId,
@@ -1011,7 +1015,7 @@ export class AgentChatCompletionService {
                 if (conversationId) {
                     writer.write({ type: "data-conversation-id", data: conversationId });
                 }
-                const assistantMessageId = createIdGenerator() as unknown as string;
+                const assistantMessageId = generateId();
                 writer.write({
                     type: "start",
                     messageId: assistantMessageId,

@@ -16,8 +16,8 @@ import type { LanguageModel } from "ai";
 import type { UIMessage } from "ai";
 import {
     convertToModelMessages,
-    createIdGenerator,
     createUIMessageStream,
+    generateId,
     generateText,
     pipeUIMessageStreamToResponse,
     stepCountIs,
@@ -129,9 +129,10 @@ export class DatasetsChatCompletionService {
                     if (conversationId) {
                         writer.write({ type: "data-conversation-id", data: conversationId });
                     }
+                    const assistantMessageId = generateId();
                     writer.write({
                         type: "start",
-                        messageId: createIdGenerator() as unknown as string,
+                        messageId: assistantMessageId,
                     });
 
                     const result = await agent.stream({
@@ -172,7 +173,9 @@ export class DatasetsChatCompletionService {
 
                                 if (finished.length > 0) {
                                     await this.saveMessages(
-                                        responseMsg,
+                                        responseMsg
+                                            ? { ...responseMsg, id: assistantMessageId }
+                                            : responseMsg,
                                         finished,
                                         params,
                                         conversationId,
@@ -276,7 +279,9 @@ export class DatasetsChatCompletionService {
     ): Promise<string | undefined> {
         if (params.isRegenerate) return params.regenerateParentId;
 
-        const userMsg = finished.findLast((m) => m.role === "user");
+        const userMsg =
+            params.messages.findLast((m) => m.role === "user") ??
+            finished.findLast((m) => m.role === "user");
         if (!userMsg) return undefined;
 
         if (isUUID(userMsg.id)) {

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 /**
@@ -19,12 +19,11 @@ export default function AppIframePage() {
   const navigate = useNavigate();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isIframeNavigatingRef = useRef(false);
-  const initialSrcRef = useRef("");
-
-  if (!initialSrcRef.current && identifier) {
+  const iframeSrc = useMemo(() => {
+    if (!identifier) return "";
     const subPath = wildcard ? `/${wildcard}` : "";
-    initialSrcRef.current = `${getExtensionBaseUrl()}/extension/${identifier}${subPath}${location.search}${location.hash}`;
-  }
+    return `${getExtensionBaseUrl()}/extension/${identifier}${subPath}${location.search}${location.hash}`;
+  }, [identifier, wildcard, location.search, location.hash]);
 
   // Listen for navigation messages from iframe (iframe → parent sync)
   useEffect(() => {
@@ -68,8 +67,9 @@ export default function AppIframePage() {
 
   return (
     <iframe
+      key={identifier}
       ref={iframeRef}
-      src={initialSrcRef.current}
+      src={iframeSrc}
       className="h-dvh w-full border-0"
       title={identifier}
       allow="clipboard-read; clipboard-write"

@@ -42,8 +42,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import type { LanguageModel, Tool } from "ai";
 import {
     convertToModelMessages,
-    createIdGenerator,
     createUIMessageStream,
+    generateId,
     pipeUIMessageStreamToResponse,
     stepCountIs,
     ToolLoopAgent,
@@ -175,9 +175,10 @@ export class ChatCompletionService {
                     if (conversationId) {
                         writer.write({ type: "data-conversation-id", data: conversationId });
                     }
+                    const assistantMessageId = generateId();
                     writer.write({
                         type: "start",
-                        messageId: createIdGenerator() as unknown as string,
+                        messageId: assistantMessageId,
                     });
 
                     if (params.abortSignal?.aborted) {
@@ -349,8 +350,11 @@ export class ChatCompletionService {
                                     if (isToolApprovalFlow) {
                                         await this.saveApprovalMessages(finished, conversationId);
                                     } else if (finished.length > 0) {
+                                        const responseWithId = response
+                                            ? { ...response, id: assistantMessageId }
+                                            : response;
                                         await this.saveMessages(
-                                            response,
+                                            responseWithId,
                                             finished,
                                             params,
                                             conversationId,
@@ -555,7 +559,9 @@ export class ChatCompletionService {
     ): Promise<string | undefined> {
         if (params.isRegenerate) return params.regenerateParentId;
 
-        const userMsg = finished.findLast((m) => m.role === "user");
+        const userMsg =
+            params.messages.findLast((m) => m.role === "user") ??
+            finished.findLast((m) => m.role === "user");
         if (!userMsg) return undefined;
 
         if (isUUID(userMsg.id)) {
