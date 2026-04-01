@@ -5,6 +5,7 @@ import {
   MembershipPlanDuration,
   useCreateCardBatchMutation,
   useMembershipLevelListQuery,
+  useMembershipPlansConfigQuery,
 } from "@buildingai/services/console";
 import { Button } from "@buildingai/ui/components/ui/button";
 import { Calendar, type Locale } from "@buildingai/ui/components/ui/calendar";
@@ -57,7 +58,7 @@ export function CreateBatchDialog({ open, onOpenChange }: CreateBatchDialogProps
   const dateFnsLocale = DATE_FNS_LOCALE_MAP[currentLocale] ?? zhCN;
 
   const [name, setName] = useState("");
-  const [redeemType, setRedeemType] = useState<CardRedeemType>(CardRedeemType.MEMBERSHIP);
+  const [redeemType, setRedeemType] = useState<CardRedeemType>(CardRedeemType.POINTS);
   const [levelId, setLevelId] = useState<string>("");
   const [membershipDuration, setMembershipDuration] = useState<MembershipPlanDuration>(
     MembershipPlanDuration.MONTH,
@@ -69,13 +70,15 @@ export function CreateBatchDialog({ open, onOpenChange }: CreateBatchDialogProps
   const [totalCount, setTotalCount] = useState("");
   const [remark, setRemark] = useState("");
 
+  const { data: membershipConfigData } = useMembershipPlansConfigQuery();
+  const membershipEnabled = membershipConfigData?.plansStatus ?? false;
   const { data: levelsData } = useMembershipLevelListQuery({ pageSize: 100 });
   const createMutation = useCreateCardBatchMutation();
 
   useEffect(() => {
     if (!open) {
       setName("");
-      setRedeemType(CardRedeemType.MEMBERSHIP);
+      setRedeemType(membershipEnabled ? CardRedeemType.MEMBERSHIP : CardRedeemType.POINTS);
       setLevelId("");
       setMembershipDuration(MembershipPlanDuration.MONTH);
       setCustomValue("");
@@ -85,7 +88,17 @@ export function CreateBatchDialog({ open, onOpenChange }: CreateBatchDialogProps
       setTotalCount("");
       setRemark("");
     }
-  }, [open]);
+  }, [open, membershipEnabled]);
+
+  useEffect(() => {
+    if (!membershipEnabled && redeemType === CardRedeemType.MEMBERSHIP) {
+      setRedeemType(CardRedeemType.POINTS);
+      setLevelId("");
+      setMembershipDuration(MembershipPlanDuration.MONTH);
+      setCustomValue("");
+      setCustomUnit("天");
+    }
+  }, [membershipEnabled, redeemType]);
 
   const handleSubmit = async () => {
     if (!name.trim()) {
@@ -104,6 +117,10 @@ export function CreateBatchDialog({ open, onOpenChange }: CreateBatchDialogProps
     }
 
     if (redeemType === CardRedeemType.MEMBERSHIP) {
+      if (!membershipEnabled) {
+        toast.error("会员功能未开启，无法创建会员卡密");
+        return;
+      }
       if (!levelId) {
         toast.error("请选择会员等级");
         return;
@@ -185,13 +202,15 @@ export function CreateBatchDialog({ open, onOpenChange }: CreateBatchDialogProps
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={String(CardRedeemType.MEMBERSHIP)}>订阅会员</SelectItem>
+                {membershipEnabled && (
+                  <SelectItem value={String(CardRedeemType.MEMBERSHIP)}>订阅会员</SelectItem>
+                )}
                 <SelectItem value={String(CardRedeemType.POINTS)}>积分余额</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {redeemType === CardRedeemType.MEMBERSHIP && (
+          {membershipEnabled && redeemType === CardRedeemType.MEMBERSHIP && (
             <>
               <div className="space-y-2">
                 <Label>
