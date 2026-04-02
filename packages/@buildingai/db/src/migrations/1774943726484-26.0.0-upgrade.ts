@@ -332,6 +332,26 @@ export class Migration1774943726484 implements MigrationInterface {
         await queryRunner.query(
             `ALTER TABLE "ai_chat_message" DROP COLUMN IF EXISTS "mcp_tool_calls"`,
         );
+        // Pre-migrate ai_chat_message: populate new `message` column from old `role`+`content` before dropping them
+        await queryRunner.query(
+            `ALTER TABLE "ai_chat_message" ADD COLUMN IF NOT EXISTS "message" jsonb`,
+        );
+        await queryRunner.query(
+            `DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'ai_chat_message' AND column_name = 'role') THEN UPDATE "ai_chat_message" SET "message" = jsonb_build_object('role', "role", 'parts', COALESCE("content", '[]'::jsonb)) WHERE "message" IS NULL; END IF; END $$`,
+        );
+        // Pre-migrate ai_agent_chat_message: populate new `message` column from old `role`+`content` before dropping them
+        await queryRunner.query(
+            `ALTER TABLE "ai_agent_chat_message" ADD COLUMN IF NOT EXISTS "message" jsonb`,
+        );
+        await queryRunner.query(
+            `DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'ai_agent_chat_message' AND column_name = 'role') THEN UPDATE "ai_agent_chat_message" SET "message" = jsonb_build_object('role', "role"::text, 'parts', COALESCE("content", '[]'::jsonb)) WHERE "message" IS NULL; END IF; END $$`,
+        );
+        await queryRunner.query(
+            `UPDATE "ai_agent_chat_message" SET "message" = '{"role":"user","parts":[]}'::jsonb WHERE "message" IS NULL`,
+        );
+        await queryRunner.query(
+            `ALTER TABLE "ai_agent_chat_message" ALTER COLUMN "message" SET NOT NULL`,
+        );
         await queryRunner.query(`ALTER TABLE "ai_agent_chat_message" DROP COLUMN IF EXISTS "role"`);
         await queryRunner.query(`DROP TYPE IF EXISTS "public"."ai_agent_chat_message_role_enum"`);
         await queryRunner.query(
@@ -594,7 +614,10 @@ export class Migration1774943726484 implements MigrationInterface {
             `COMMENT ON COLUMN "ai_agent_chat_message"."parent_id" IS '父消息ID，用于重新生成版本管理'`,
         );
         await queryRunner.query(
-            `ALTER TABLE "ai_agent_chat_message" ADD COLUMN IF NOT EXISTS "message" jsonb NOT NULL`,
+            `ALTER TABLE "ai_agent_chat_message" ADD COLUMN IF NOT EXISTS "message" jsonb`,
+        );
+        await queryRunner.query(
+            `ALTER TABLE "ai_agent_chat_message" ALTER COLUMN "message" SET NOT NULL`,
         );
         await queryRunner.query(
             `COMMENT ON COLUMN "ai_agent_chat_message"."message" IS '消息内容（ChatUIMessage：含 role、parts、metadata、usage、userConsumedPower）'`,
