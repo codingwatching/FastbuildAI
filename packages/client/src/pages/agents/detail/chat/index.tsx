@@ -21,7 +21,7 @@ import { Skeleton } from "@buildingai/ui/components/ui/skeleton";
 import { Textarea } from "@buildingai/ui/components/ui/textarea";
 import { cn } from "@buildingai/ui/lib/utils";
 import { Bot, ChevronDown, ChevronLeft, ListIndentDecrease, Settings2 } from "lucide-react";
-import { type FormEvent, useCallback, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -291,13 +291,15 @@ function AgentInfoPanel({
                         variant="ghost"
                         size="sm"
                         className={cn(
-                          "hover:bg-muted-foreground/10 w-full justify-start truncate rounded-sm px-2",
-                          currentConversationId === item.id && "bg-muted-foreground/10",
+                          "w-full min-w-0 justify-start rounded-sm px-2",
+                          "hover:bg-muted-foreground/10 dark:hover:bg-muted-foreground/10",
+                          currentConversationId === item.id &&
+                            "bg-muted-foreground/10 dark:bg-muted-foreground/10",
                         )}
                         title={item.title}
                         onClick={() => navigate(`/agents/${agent?.id}/c/${item.id}`)}
                       >
-                        {item.title}
+                        <span className="min-w-0 flex-1 truncate text-left">{item.title}</span>
                       </Button>
                     ))}
                   </div>
@@ -588,6 +590,22 @@ const AgentChatPage = () => {
   const [formPopoverOpen, setFormPopoverOpen] = useState(false);
   const [panelExpanded, setPanelExpanded] = useState(true);
   const hasForm = formFields.length > 0;
+
+  const requiredFields = useMemo(() => formFields.filter((f) => f.required), [formFields]);
+  const requiredFilled = useMemo(
+    () => requiredFields.every((f) => (formValues[f.name] ?? "").trim() !== ""),
+    [requiredFields, formValues],
+  );
+
+  /**
+   * Auto-open the form variables popover when required fields exist and are not yet filled,
+   * so users see the form as soon as the chat page loads.
+   */
+  useEffect(() => {
+    if (requiredFields.length === 0) return;
+    if (requiredFilled) return;
+    setFormPopoverOpen(true);
+  }, [requiredFields.length, requiredFilled]);
 
   return (
     <div

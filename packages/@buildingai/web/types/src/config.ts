@@ -30,7 +30,10 @@ export interface WebsiteConfig {
         displayName: string;
         iconUrl: string;
         url: string;
-    }[];
+        copyrightText: string;
+        copyrightBrand: string;
+        copyrightUrl: string;
+    };
     statistics: {
         appid: string;
     };

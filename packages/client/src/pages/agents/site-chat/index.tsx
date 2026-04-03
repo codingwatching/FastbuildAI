@@ -32,7 +32,7 @@ import { Textarea } from "@buildingai/ui/components/ui/textarea";
 import { cn } from "@buildingai/ui/lib/utils";
 import { Bot, ClipboardPenLine, ListIndentDecrease, PanelLeft } from "lucide-react";
 import type { FormEvent } from "react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { NavigateFunction } from "react-router-dom";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -195,7 +195,8 @@ function SiteChatSidebarPanel({
                       size="sm"
                       aria-current={isSelected ? "true" : undefined}
                       className={cn(
-                        "hover:bg-muted-foreground/10 w-full justify-start truncate rounded-sm px-2",
+                        "w-full min-w-0 justify-start rounded-sm px-2",
+                        "hover:bg-muted-foreground/10 dark:hover:bg-muted-foreground/10",
                         isSelected && "bg-muted-foreground/10 font-medium",
                       )}
                       title={c.title}
@@ -204,7 +205,7 @@ function SiteChatSidebarPanel({
                         onAfterNavigate?.();
                       }}
                     >
-                      {c.title}
+                      <span className="min-w-0 flex-1 truncate text-left">{c.title}</span>
                     </Button>
                   );
                 })}
@@ -300,6 +301,16 @@ export default function PublishChatPage() {
     () => requiredFields.every((f) => (formValues[f.name] ?? "").trim() !== ""),
     [requiredFields, formValues],
   );
+
+  /**
+   * Auto-open the form variables popover when the agent has required fields that are still empty,
+   * so users notice them immediately after the page (or agent detail) loads.
+   */
+  useEffect(() => {
+    if (requiredFields.length === 0) return;
+    if (requiredFilled) return;
+    setFormPopoverOpen(true);
+  }, [requiredFields.length, requiredFilled]);
 
   const handleFormValueChange = useCallback((name: string, value: string) => {
     setFormValues((prev) => ({ ...prev, [name]: value }));

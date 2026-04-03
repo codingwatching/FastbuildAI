@@ -1,3 +1,4 @@
+import { useConfigStore } from "@buildingai/stores";
 import type { PromptInputMessage } from "@buildingai/ui/components/ai-elements/prompt-input";
 import { EditorContentRenderer } from "@buildingai/ui/components/editor";
 import {
@@ -5,6 +6,7 @@ import {
   InfiniteScrollTopScrollButton,
   useInfiniteScrollTopContext,
 } from "@buildingai/ui/components/infinite-scroll-top";
+import { Avatar, AvatarImage } from "@buildingai/ui/components/ui/avatar";
 import { Button } from "@buildingai/ui/components/ui/button";
 import { SidebarTrigger } from "@buildingai/ui/components/ui/sidebar";
 import { cn } from "@buildingai/ui/lib/utils";
@@ -178,6 +180,7 @@ const InputArea = memo(function InputArea({
   hasMessages: boolean;
   footerText?: string;
 }) {
+  const { websiteConfig } = useConfigStore((state) => state.config);
   const { suggestions, status, textareaRef, isLoading, onSend, onStop, selectedModelId } =
     useAssistantContext();
   const { id } = useParams<{ id: string }>();
@@ -227,7 +230,38 @@ const InputArea = memo(function InputArea({
         />
       </div>
       <div className="text-muted-foreground bg-background py-1.5 text-center text-xs">
-        {footerText || "内容由 AI 生成，请仔细甄别"}
+        <span>{footerText || "内容由 AI 生成，请仔细甄别"}</span>
+        <div className="flex items-center justify-center gap-1">
+          <a
+            href={websiteConfig?.copyright.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-primary flex items-center justify-center gap-1 transition-colors"
+          >
+            <Avatar className="size-4">
+              <AvatarImage
+                src={websiteConfig?.copyright.iconUrl}
+                alt={websiteConfig?.copyright.displayName}
+                className="grayscale"
+              />
+            </Avatar>
+            <span>{websiteConfig?.copyright.displayName}</span>
+          </a>
+          {(websiteConfig?.copyright.displayName || websiteConfig?.copyright.iconUrl) &&
+            (websiteConfig?.copyright.copyrightText || websiteConfig?.copyright.copyrightBrand) && (
+              <span>|</span>
+            )}
+          <span className="space-x-1">
+            <span>{websiteConfig?.copyright.copyrightText}</span>
+            <a
+              className="text-primary font-bold"
+              href={websiteConfig?.copyright.copyrightUrl}
+              target="_blank"
+            >
+              {websiteConfig?.copyright.copyrightBrand}
+            </a>
+          </span>
+        </div>
       </div>
     </div>
   );

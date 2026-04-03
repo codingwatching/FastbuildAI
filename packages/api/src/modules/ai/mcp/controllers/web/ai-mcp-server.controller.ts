@@ -69,22 +69,27 @@ export class WebAiMcpServerWebController {
             relations: ["userMcpServer", "tools"],
         });
 
+        const quickMenuId = await this.dictService.get(AI_MCP_IS_QUICK_MENU);
+
         result.items = result.items
+            .filter((item: AiMcpServer) => item.id !== quickMenuId)
+            .filter((item: AiMcpServer) => {
+                if (item.type !== McpServerType.SYSTEM) return true;
+                return !item.isDisabled && item.connectable;
+            })
             .map((item: AiMcpServer) => {
                 if (item.type === McpServerType.SYSTEM) {
-                    if (item.isDisabled || !item.connectable) {
-                        return null;
-                    }
                     const userSetting = item.userMcpServer?.find((ums) => ums.userId === user.id);
                     item.isDisabled = userSetting ? userSetting.isDisabled : true;
                 }
+
                 if (item.type !== McpServerType.USER) {
                     item.url = null;
                     item.headers = null;
                 }
+
                 return item;
-            })
-            .filter((item) => item !== null);
+            });
 
         result.total = result.items.length;
 

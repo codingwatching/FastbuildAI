@@ -31,7 +31,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@buildingai/ui/componen
 import { usePagination } from "@buildingai/ui/hooks/use-pagination";
 import { cn } from "@buildingai/ui/lib/utils";
 import type { UIMessage } from "ai";
-import { AlertTriangle, Loader2, MessageSquare, ThumbsDown, ThumbsUp, Zap } from "lucide-react";
+import {
+  AlertTriangle,
+  Loader2,
+  MessageSquare,
+  ThumbsDown,
+  ThumbsUp,
+  User,
+  Zap,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { type DisplayMessage, MessageItem } from "@/components/ask-assistant-ui";
@@ -387,7 +395,12 @@ export default function Messages({ agentId }: MessagesProps) {
                     className="text-muted-foreground text-sm"
                     title={c.userName ?? c.userId ?? c.id ?? "—"}
                   >
-                    {c.userName != null || c.userAvatar != null ? (
+                    {c.anonymousIdentifier != null ? (
+                      <div className="flex items-center gap-2 truncate">
+                        <User className="size-4 shrink-0" />
+                        <span className="min-w-0 truncate">游客</span>
+                      </div>
+                    ) : c.userName != null || c.userAvatar != null ? (
                       <div className="flex items-center gap-2 truncate">
                         {c.userAvatar ? (
                           <img

@@ -50,7 +50,7 @@ const COMMUNICATION_TYPES: { value: McpCommunicationType; label: string }[] = [
 
 const SERVER_TYPES: { value: McpServerType; label: string }[] = [
   { value: McpServerType.SYSTEM, label: "系统服务" },
-  { value: McpServerType.USER, label: "用户服务" },
+  //   { value: McpServerType.USER, label: "用户服务" },
 ];
 
 const formSchema = z.object({

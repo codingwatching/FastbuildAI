@@ -7,6 +7,7 @@ export type AgentChatRecordItem = {
     title?: string | null;
     agentId: string;
     userId?: string | null;
+    anonymousIdentifier?: string | null;
     userName?: string;
     userAvatar?: string;
     messageCount: number;

@@ -170,11 +170,12 @@ export class AgentsService extends BaseService<Agent> {
         }
 
         const next = {
-            description: dto.description?.trim() || undefined,
+            description:
+                dto.description !== undefined ? (dto.description?.trim() ?? "") : undefined,
             avatar: dto.avatar ?? agent.avatar,
             thirdPartyIntegration: dto.thirdPartyIntegration ?? agent.thirdPartyIntegration ?? {},
             chatAvatar: dto.chatAvatar ?? agent.chatAvatar,
-            rolePrompt: dto.rolePrompt?.trim() || undefined,
+            rolePrompt: dto.rolePrompt !== undefined ? (dto.rolePrompt?.trim() ?? "") : undefined,
             showContext: dto.showContext,
             showReference: dto.showReference,
             enableWebSearch: dto.enableWebSearch,
@@ -182,7 +183,10 @@ export class AgentsService extends BaseService<Agent> {
             chatAvatarEnabled: dto.chatAvatarEnabled,
             memoryConfig: dto.memoryConfig,
             modelConfig: dto.modelConfig,
-            openingStatement: dto.openingStatement?.trim() || undefined,
+            openingStatement:
+                dto.openingStatement !== undefined
+                    ? (dto.openingStatement?.trim() ?? "")
+                    : undefined,
             openingQuestions: dto.openingQuestions,
             quickCommands: dto.quickCommands,
             autoQuestions: dto.autoQuestions,

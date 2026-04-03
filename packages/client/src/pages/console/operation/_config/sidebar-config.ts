@@ -47,7 +47,7 @@ export interface SidebarConfig {
 export const sidebarConfigMap: Record<string, SidebarConfig> = {
   membership: {
     title: "会员订阅",
-    description: "锁定用户，持续提供专属服务与权益",
+    description: "自行设置订阅规则",
     backPath: "/console/operation",
     icon: Crown,
     menuItems: [
@@ -57,7 +57,7 @@ export const sidebarConfigMap: Record<string, SidebarConfig> = {
   },
   recharge: {
     title: "积分充值",
-    description: "提升复购，会员充值可获得奖励",
+    description: "多充多送 增加复购",
     backPath: "/console/operation",
     icon: Wallet,
     menuItems: [
@@ -71,7 +71,7 @@ export const sidebarConfigMap: Record<string, SidebarConfig> = {
   },
   cdk: {
     title: "卡密兑换",
-    description: "激活权益，凭卡密兑换对应权益与服务",
+    description: "批量生成卡密",
     backPath: "/console/operation",
     icon: CreditCard,
     menuItems: [

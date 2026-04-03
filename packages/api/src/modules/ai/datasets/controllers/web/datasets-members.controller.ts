@@ -1,4 +1,5 @@
 import { type UserPlayground } from "@buildingai/db";
+import { BuildFileUrl } from "@buildingai/decorators";
 import { Playground } from "@buildingai/decorators/playground.decorator";
 import { WebController } from "@common/decorators/controller.decorator";
 import { Body, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
@@ -28,6 +29,7 @@ export class DatasetsMembersWebController {
      */
     @Get(":datasetId/members")
     @DatasetPermission({ permission: "canViewAll", datasetIdParam: "datasetId" })
+    @BuildFileUrl(["***.avatar"])
     async listMembers(
         @Param("datasetId") datasetId: string,
         @Query() query: ListMembersDto,
@@ -41,6 +43,7 @@ export class DatasetsMembersWebController {
      */
     @Get(":datasetId/applications")
     @DatasetPermission({ permission: "canViewAll", datasetIdParam: "datasetId" })
+    @BuildFileUrl(["***.avatar"])
     async listApplications(
         @Param("datasetId") datasetId: string,
         @Query() query: ListApplicationsDto,

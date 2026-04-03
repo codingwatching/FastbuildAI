@@ -443,9 +443,9 @@ const ExtensionIndexPage = () => {
 
                 <div className="flex flex-col gap-4">
                   <div className="flex min-h-12 flex-wrap gap-2">
-                    <Badge variant="secondary">v{extension.version}</Badge>
-
                     <StatusBadge active={extension.status === ExtensionStatus.ENABLED} />
+
+                    <Badge variant="secondary">v{extension.version}</Badge>
 
                     {extension.supportTerminal?.map((terminal) => (
                       <Badge key={terminal} variant="secondary">

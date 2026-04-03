@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@buildingai/ui/components/ui/avatar";
 import { Separator } from "@buildingai/ui/components/ui/separator";
 import { Skeleton } from "@buildingai/ui/components/ui/skeleton";
+import { User } from "lucide-react";
 
 import { useDatasetDetailContext } from "../context";
 
@@ -47,7 +48,7 @@ export function DatasetInfo() {
               <Avatar className="size-4">
                 <AvatarImage className="" src={dataset.creator.avatar ?? ""} />
                 <AvatarFallback className="text-sm">
-                  {dataset.creator.nickname?.slice(0, 2).toUpperCase()}
+                  <User />
                 </AvatarFallback>
               </Avatar>
               <p className="text-muted-foreground text-sm">{dataset.creator.nickname} 创建</p>

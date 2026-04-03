@@ -1,39 +1,87 @@
 import { tool } from "ai";
 import { z } from "zod";
 
-function getNominatimUserAgent(): string {
-    const appDomain = (process.env.APP_DOMAIN || "").replace(/\/$/, "");
-    return appDomain ? `@buildingai/ai-toolkit (+${appDomain})` : "@buildingai/ai-toolkit";
+type SupportedLanguage = "zh" | "en" | "ja" | "ko";
+
+function detectCityLanguage(city: string): SupportedLanguage {
+    const normalized = city.trim();
+
+    if (/[\u3040-\u309f\u30a0-\u30ff]/.test(normalized)) {
+        return "ja";
+    }
+
+    if (/[\uac00-\ud7af]/.test(normalized)) {
+        return "ko";
+    }
+
+    if (/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(normalized)) {
+        return "zh";
+    }
+
+    return "en";
+}
+
+async function fetchJsonWithRetry(
+    url: string,
+    options?: RequestInit,
+    retries = 2,
+    timeoutMs = 8000,
+) {
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP_${response.status}`);
+                }
+
+                return await response.json();
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        } catch (error) {
+            lastError = error;
+        }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error("FETCH_FAILED");
 }
 
 async function geocodeCity(
     city: string,
 ): Promise<{ latitude: number; longitude: number; englishName: string } | null> {
     try {
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1&accept-language=en`,
+        const language = detectCityLanguage(city);
+        const data = await fetchJsonWithRetry(
+            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=${language}`,
             {
                 headers: {
-                    "User-Agent": getNominatimUserAgent(),
+                    "User-Agent": "buildingai/1.0 (buildingai@buildingai.com)",
+                    Referer: "https://buildingai.com",
                 },
             },
+            1,
+            6000,
         );
 
-        if (!response.ok) {
+        if (!data?.results || data.results.length === 0) {
             return null;
         }
 
-        const data = await response.json();
-
-        if (!data || data.length === 0) {
-            return null;
-        }
-
-        const result = data[0];
+        const result = data.results[0];
         return {
-            latitude: parseFloat(result.lat),
-            longitude: parseFloat(result.lon),
-            englishName: result.display_name.split(",")[0] || city,
+            latitude: result.latitude,
+            longitude: result.longitude,
+            englishName: result.name || city,
         };
     } catch {
         return null;

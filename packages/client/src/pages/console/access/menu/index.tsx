@@ -431,6 +431,7 @@ const MenuFormDialog = ({
                           field.onChange(item?.code ?? "");
                         }}
                         items={permissionList}
+                        itemToStringLabel={(item) => `${item.code} ${item.name}`}
                         itemToStringValue={(item) => `${item.code} ${item.name}`}
                       >
                         <ComboboxInput
