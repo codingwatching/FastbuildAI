@@ -16,6 +16,7 @@ import { Button } from "@buildingai/ui/components/ui/button";
 import { Input } from "@buildingai/ui/components/ui/input";
 import { Label } from "@buildingai/ui/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@buildingai/ui/components/ui/popover";
+import { ScrollArea } from "@buildingai/ui/components/ui/scroll-area";
 import { Separator } from "@buildingai/ui/components/ui/separator";
 import { Skeleton } from "@buildingai/ui/components/ui/skeleton";
 import { Textarea } from "@buildingai/ui/components/ui/textarea";
@@ -155,8 +156,8 @@ function AgentInfoPanel({
       ? "免费"
       : `${chatModelBillingRule.power} 积分 / ${formatTokenCount(chatModelBillingRule.tokens)} tokens`;
   return (
-    <div className="chat-scroll flex h-full min-h-0 w-80 shrink-0 flex-col">
-      <div className="flex h-full min-h-0 flex-col gap-3 px-6 py-3 pr-3!">
+    <div className="flex h-full min-h-0 w-80 shrink-0 flex-col overflow-hidden">
+      <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden px-6 py-3 pr-3!">
         {isLoading ? (
           <>
             <Skeleton className="h-8 w-48" />
@@ -264,10 +265,10 @@ function AgentInfoPanel({
               <p className="text-muted-foreground text-sm leading-relaxed">{agent.description}</p>
             ) : null}
 
-            <div>
+            <div className="flex min-h-0 flex-1 flex-col">
               <button
                 type="button"
-                className="flex w-full items-center justify-between py-0.5"
+                className="flex w-full shrink-0 items-center justify-between py-0.5"
                 onClick={() => setHistoryCollapsed((prev) => !prev)}
               >
                 <span className="text-foreground text-sm font-medium">历史记录</span>
@@ -277,31 +278,36 @@ function AgentInfoPanel({
               </button>
               {!historyCollapsed &&
                 (isLoadingConversations ? (
-                  <div className="mt-2 space-y-2">
+                  <div className="mt-2 min-h-0 flex-1 space-y-2 overflow-auto pr-1">
                     <Skeleton className="h-8 w-full" />
                     <Skeleton className="h-8 w-full" />
                     <Skeleton className="h-8 w-full" />
                   </div>
                 ) : conversations.length > 0 ? (
-                  <div className="mt-2 space-y-1">
-                    {conversations.map((item) => (
-                      <Button
-                        key={item.id}
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className={cn(
-                          "w-full min-w-0 justify-start rounded-sm px-2",
-                          "hover:bg-muted-foreground/10 dark:hover:bg-muted-foreground/10",
-                          currentConversationId === item.id &&
-                            "bg-muted-foreground/10 dark:bg-muted-foreground/10",
-                        )}
-                        title={item.title}
-                        onClick={() => navigate(`/agents/${agent?.id}/c/${item.id}`)}
-                      >
-                        <span className="min-w-0 flex-1 truncate text-left">{item.title}</span>
-                      </Button>
-                    ))}
+                  <div className="mt-2 min-h-0 flex-1 space-y-1 overflow-auto pr-1">
+                    <ScrollArea
+                      className="h-full min-h-0 w-full min-w-0"
+                      viewportClassName="[&>div]:block!"
+                    >
+                      {conversations.map((item) => (
+                        <Button
+                          key={item.id}
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className={cn(
+                            "w-full min-w-0 justify-start rounded-sm px-2",
+                            "hover:bg-muted-foreground/10 dark:hover:bg-muted-foreground/10",
+                            currentConversationId === item.id &&
+                              "bg-muted-foreground/10 dark:bg-muted-foreground/10",
+                          )}
+                          title={item.title}
+                          onClick={() => navigate(`/agents/${agent?.id}/c/${item.id}`)}
+                        >
+                          <span className="min-w-0 flex-1 truncate text-left">{item.title}</span>
+                        </Button>
+                      ))}
+                    </ScrollArea>
                   </div>
                 ) : (
                   <div className="text-muted-foreground mt-2 text-xs">暂无对话记录</div>
@@ -563,6 +569,7 @@ const AgentChatPage = () => {
     thinkingSupported: Boolean(agent?.modelConfig),
     voiceConfig,
     showConversationContext: false,
+    showReference: agent?.showReference ?? true,
     assistantAvatar,
     conversationId: uuid,
     supportedUploadTypes,

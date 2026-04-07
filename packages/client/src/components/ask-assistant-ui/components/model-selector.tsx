@@ -44,6 +44,22 @@ const MODEL_ROW_HEIGHT = 44;
 const VIRTUAL_LIST_OVERSCAN = 5;
 const CONTAINER_HEIGHT = 288;
 
+const compareProviderGroups = (a: ModelData[], b: ModelData[]): number => {
+  const orderA = a[0]?.providerSortOrder;
+  const orderB = b[0]?.providerSortOrder;
+  if (orderA != null && orderB != null && orderA !== orderB) {
+    return orderB - orderA;
+  }
+  const createdA = a[0]?.providerCreatedAt;
+  const createdB = b[0]?.providerCreatedAt;
+  if (createdA && createdB) {
+    return new Date(createdB).getTime() - new Date(createdA).getTime();
+  }
+  const nameA = a[0]?.chef ?? "";
+  const nameB = b[0]?.chef ?? "";
+  return nameA.localeCompare(nameB, undefined, { sensitivity: "base" });
+};
+
 const FEATURE_ICON_MAP: Record<string, React.ElementType> = {
   [MODEL_FEATURES.VISION]: ScanEye,
   [MODEL_FEATURES.AUDIO]: Activity,
@@ -95,7 +111,9 @@ const ModelRowItem = ({
   membershipLevels,
 }: ModelRowItemProps) => {
   const features = model.features ?? [];
-  const powerText = model.billingRule?.power ? `${model.billingRule.power} 积分` : "免费";
+  const powerText = model.billingRule?.power
+    ? `${model.billingRule.power} 积分 / 1K Tokens`
+    : "免费";
 
   // 获取需要的会员等级名称
   const requiredMembershipNames = model.membershipLevel
@@ -269,8 +287,8 @@ export const ModelSelector = ({
       }
     }
 
-    const sortedChefs = Array.from(byChef.keys()).sort((a, b) =>
-      a.localeCompare(b, undefined, { sensitivity: "base" }),
+    const sortedChefs = Array.from(byChef.keys()).sort((chefA, chefB) =>
+      compareProviderGroups(byChef.get(chefA)!, byChef.get(chefB)!),
     );
 
     const out: Row[] = [];
@@ -355,7 +373,7 @@ export const ModelSelector = ({
                 {selectedModel.name}
                 <Badge variant="secondary" className="text-muted-foreground ml-1.5 text-xs">
                   {selectedModel.billingRule?.power
-                    ? `${selectedModel.billingRule.power} 积分`
+                    ? `${selectedModel.billingRule.power} 积分 / 1K Tokens`
                     : "免费"}
                 </Badge>
               </AIModelSelectorName>

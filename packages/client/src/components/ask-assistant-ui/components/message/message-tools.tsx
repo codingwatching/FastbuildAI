@@ -1,6 +1,7 @@
 import type { UIMessage } from "ai";
 import { memo } from "react";
 
+import { useOptionalAssistantContext } from "../../context";
 import { GenericTool } from "../tools/generic-tool";
 import { ImageGenerationTool } from "../tools/image-generation-tool";
 import { KnowledgeReferences } from "../tools/knowledge-references";
@@ -25,6 +26,8 @@ export const MessageTools = memo(function MessageTools({
   parts,
   addToolApprovalResponse,
 }: MessageToolsProps) {
+  const ctx = useOptionalAssistantContext();
+  const showReference = ctx?.showReference ?? true;
   const toolParts = parts.filter(
     (part) =>
       typeof part.type === "string" &&
@@ -40,6 +43,7 @@ export const MessageTools = memo(function MessageTools({
         const key = toolPart.toolCallId || `tool-${index}`;
 
         if (part.type === "tool-datasetsSearch") {
+          if (!showReference) return null;
           const output = toolPart.output as { found?: boolean; results?: unknown[] } | undefined;
           if (output?.found && Array.isArray(output.results) && output.results.length > 0) {
             return <KnowledgeReferences key={key} toolPart={{ output: output.results }} />;
@@ -48,6 +52,7 @@ export const MessageTools = memo(function MessageTools({
         }
 
         if (part.type === "tool-getInformation") {
+          if (!showReference) return null;
           const output = toolPart.output;
           if (Array.isArray(output) && output.length > 0) {
             return <KnowledgeReferences key={key} toolPart={toolPart} />;

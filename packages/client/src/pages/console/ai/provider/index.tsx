@@ -535,7 +535,9 @@ const AiProviderIndexPage = () => {
                           </Badge>
                           <ModelFeatureBadges features={model.features} />
                           <Badge variant="outline">
-                            {model.billingRule?.power ? `${model.billingRule.power} 积分` : "免费"}
+                            {model.billingRule?.power
+                              ? `${model.billingRule.power} 积分 / 1K Tokens`
+                              : "免费"}
                           </Badge>
                         </div>
                         <PermissionGuard permissions="ai-models:delete">

@@ -535,15 +535,15 @@ const SecretsManageContent = ({ template, onSecretChanged }: SecretsManageConten
         ) : (
           <div className="center text-muted-foreground p-8 text-sm">密钥列表为空</div>
         )}
-        <div className="mt-4 flex justify-end">
-          <PermissionGuard permissions="secret:create">
-            <Button size="sm" variant="outline" onClick={handleAddRow} disabled={!!newRow}>
-              <Plus className="size-4" />
-              添加
-            </Button>
-          </PermissionGuard>
-        </div>
       </ScrollArea>
+      <div className="mt-4 flex justify-end">
+        <PermissionGuard permissions="secret:create">
+          <Button size="sm" variant="outline" onClick={handleAddRow} disabled={!!newRow}>
+            <Plus className="size-4" />
+            添加
+          </Button>
+        </PermissionGuard>
+      </div>
     </>
   );
 };

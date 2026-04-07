@@ -127,7 +127,11 @@ export class DatasetsChatCompletionService {
                 originalMessages: cleaned,
                 execute: async ({ writer }) => {
                     if (conversationId) {
-                        writer.write({ type: "data-conversation-id", data: conversationId });
+                        writer.write({
+                            type: "data-conversation-id",
+                            data: conversationId,
+                            transient: true,
+                        } as any);
                     }
                     const assistantMessageId = generateId();
                     writer.write({

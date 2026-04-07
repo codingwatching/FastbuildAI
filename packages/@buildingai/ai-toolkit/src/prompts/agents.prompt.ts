@@ -9,11 +9,14 @@ export const KNOWLEDGE_BASE_CITATION_INSTRUCTIONS = [
 ].join("\n");
 
 export const KNOWLEDGE_BASE_TOOL_PRIORITY_INSTRUCTIONS = [
-    "## Knowledge base",
-    "Use datasetsSearch only when the question needs info from uploaded docs. Call it before web search or other tools when both apply. Cite with [^N].",
+    "## Knowledge base (HIGHEST PRIORITY)",
+    "A knowledge base is attached to this assistant. You MUST call datasetsSearch FIRST for any factual, informational, or domain-specific question — even if you think web search might also help.",
+    "Only after datasetsSearch returns no relevant results (found=false or low relevance) may you consider other tools like web search.",
+    "NEVER skip datasetsSearch in favor of web search. The user uploaded documents specifically for you to reference.",
 ].join("\n");
 
 export const WEB_SEARCH_LAST_INSTRUCTIONS = [
-    "## Web search",
-    "Use web search only when knowledge base and attached files cannot answer, or when real-time/external info is clearly required.",
+    "## Web search (LAST RESORT)",
+    "Web search is a fallback. NEVER call web search before trying datasetsSearch when a knowledge base is available.",
+    "Only use web search when: (1) datasetsSearch returned no useful results, or (2) the question explicitly requires real-time / live data (e.g. today's news, stock prices, current weather).",
 ].join("\n");

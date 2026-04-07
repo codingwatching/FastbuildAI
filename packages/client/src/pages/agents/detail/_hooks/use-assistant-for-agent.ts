@@ -33,6 +33,7 @@ export interface UseAssistantForAgentOptions {
     tts?: { modelId: string; voiceId?: string; speed?: number };
   } | null;
   showConversationContext?: boolean;
+  showReference?: boolean;
   assistantAvatar?: string;
   conversationId?: string;
   disableAutoNavigate?: boolean;
@@ -117,6 +118,7 @@ export function useAssistantForAgent(
     thinkingSupported = true,
     voiceConfig = null,
     showConversationContext = true,
+    showReference = true,
     assistantAvatar,
     conversationId,
     disableAutoNavigate = false,
@@ -414,6 +416,7 @@ export function useAssistantForAgent(
     onSpeak: voiceConfig?.tts?.modelId ? onSpeak : undefined,
     onVoiceAudio: voiceConfig?.stt?.modelId ? onVoiceAudio : undefined,
     showConversationContext,
+    showReference,
     assistantAvatar,
     historicalSessions: [],
     isLoadingHistory,

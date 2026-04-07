@@ -3,6 +3,7 @@ import {
   type McpServer,
   type QueryAiMcpServerDto,
   useCheckMcpConnectionMutation,
+  useClearDefaultQuickMenuMutation,
   useDeleteMcpServerMutation,
   useMcpServersListQuery,
   useSetDefaultQuickMenuMutation,
@@ -131,8 +132,7 @@ const AiMcpIndexPage = () => {
       refetch();
       setCheckingServerId(null);
     },
-    onError: (error) => {
-      toast.error(`检测失败: ${error.message}`);
+    onError: () => {
       setCheckingServerId(null);
     },
   });
@@ -142,8 +142,12 @@ const AiMcpIndexPage = () => {
       toast.success("快捷菜单设置成功");
       refetch();
     },
-    onError: (error) => {
-      toast.error(`设置失败: ${error.message}`);
+  });
+
+  const clearQuickMenuMutation = useClearDefaultQuickMenuMutation({
+    onSuccess: () => {
+      toast.success("已取消快捷菜单");
+      refetch();
     },
   });
 
@@ -182,6 +186,10 @@ const AiMcpIndexPage = () => {
 
   const handleSetQuickMenu = (server: McpServer) => {
     setQuickMenuMutation.mutate(server.id);
+  };
+
+  const handleClearQuickMenu = () => {
+    clearQuickMenuMutation.mutate();
   };
 
   const handleCreate = () => {
@@ -329,11 +337,19 @@ const AiMcpIndexPage = () => {
                         </PermissionGuard>
                         <PermissionGuard permissions="ai-mcp-servers:quick-menu-set">
                           <DropdownMenuItem
-                            onClick={() => handleSetQuickMenu(server)}
-                            disabled={server.isQuickMenu || setQuickMenuMutation.isPending}
+                            onClick={() =>
+                              server.isQuickMenu
+                                ? handleClearQuickMenu()
+                                : handleSetQuickMenu(server)
+                            }
+                            disabled={
+                              (server.isQuickMenu
+                                ? clearQuickMenuMutation.isPending
+                                : setQuickMenuMutation.isPending) || false
+                            }
                           >
                             <Star />
-                            快捷菜单
+                            {server.isQuickMenu ? "取消快捷菜单" : "设为快捷菜单"}
                           </DropdownMenuItem>
                         </PermissionGuard>
                         <PermissionGuard permissions="ai-mcp-servers:update">

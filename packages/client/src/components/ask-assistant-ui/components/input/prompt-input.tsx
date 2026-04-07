@@ -184,6 +184,24 @@ const PromptInputInner = memo(
       },
     );
 
+    useEffect(() => {
+      if (!shouldLoadMcpServers) return;
+      if (isLoadingMcpServers) return;
+      if (selectedMcpServerIds.length === 0) return;
+
+      const availableIdSet = new Set(mcpServers.map((s) => s.id));
+      const nextSelectedIds = selectedMcpServerIds.filter((id) => availableIdSet.has(id));
+
+      if (nextSelectedIds.length === selectedMcpServerIds.length) return;
+      onSelectMcpServers(nextSelectedIds);
+    }, [
+      shouldLoadMcpServers,
+      isLoadingMcpServers,
+      mcpServers,
+      selectedMcpServerIds,
+      onSelectMcpServers,
+    ]);
+
     const { data: quickMenuMcpServer } = useMcpServerQuickMenuQuery({
       enabled: shouldLoadQuickMenu,
     });

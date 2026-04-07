@@ -20,8 +20,8 @@ export function createDatasetsSearchTool(options: CreateDatasetsSearchToolOption
 
     return tool({
         description: [
-            "Search the datasets for information relevant to the user's question.",
-            "WHEN TO USE: Call this tool whenever the user asks a factual question, requests explanation, or needs information that could exist in uploaded documents.",
+            "Search the knowledge base for information relevant to the user's question. This is the PRIMARY information source and MUST be called BEFORE any web search tool.",
+            "WHEN TO USE: Call this tool FIRST for ANY factual, informational, or domain-specific question. Always try this before web search.",
             "WHEN NOT TO USE: Do NOT call this for greetings, thanks, casual chat, or when the user asks you to summarize/rephrase your previous answer.",
             "QUERY TIPS: Rewrite the query to be self-contained — incorporate context from the conversation history. For complex questions, call this tool multiple times with different focused queries.",
         ].join(" "),

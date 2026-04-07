@@ -140,7 +140,7 @@ export const Message = memo(function Message({
   const resolvedMessageId =
     assistantMessageIdPart && "data" in assistantMessageIdPart && assistantMessageIdPart.data
       ? (assistantMessageIdPart.data as string)
-      : undefined;
+      : message.id;
 
   if (!messageData.versions?.length) return null;
 

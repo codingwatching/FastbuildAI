@@ -49,6 +49,8 @@ export interface Model {
   chef: string;
   chefSlug: string;
   providers: string[];
+  providerSortOrder?: number;
+  providerCreatedAt?: string;
   features?: string[];
   thinking?: boolean;
   enableThinkingParam?: boolean;
@@ -135,6 +137,7 @@ export interface AssistantContextValue {
   ) => void | Promise<void>;
   onVoiceAudio?: (audioBlob: Blob) => Promise<string | void>;
   showConversationContext?: boolean;
+  showReference?: boolean;
   assistantAvatar?: string;
   historicalSessions?: DisplayMessage[][];
   /** Override available upload types (e.g. for third-party agents like Coze/Dify). */

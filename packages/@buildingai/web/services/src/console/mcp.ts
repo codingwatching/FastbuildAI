@@ -270,6 +270,19 @@ export function useSetDefaultQuickMenuMutation(
 }
 
 /**
+ * Clear default quick menu
+ */
+export function useClearDefaultQuickMenuMutation(
+    options?: MutationOptionsUtil<{ message: string }, void>,
+) {
+    return useMutation<{ message: string }, Error, void>({
+        mutationFn: () =>
+            consoleHttpClient.delete<{ message: string }>(`/ai-mcp-servers/quick-menu`),
+        ...options,
+    });
+}
+
+/**
  * Check MCP server connection
  */
 export function useCheckMcpConnectionMutation(

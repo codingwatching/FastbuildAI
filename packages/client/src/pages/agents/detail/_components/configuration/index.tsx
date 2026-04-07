@@ -390,6 +390,16 @@ export default function Configuration() {
   const { data: providers = [] } = useAiProvidersQuery({ supportedModelTypes: "llm" });
   const publishSquareMutation = usePublishAgentToSquareMutation(agentId);
   const unpublishSquareMutation = useUnpublishAgentFromSquareMutation(agentId);
+  const chatModelFeatures = useMemo(() => {
+    const modelId = config.modelConfig?.id;
+    if (modelId == null || modelId === "" || !providers.length) return [];
+    const idStr = String(modelId);
+    for (const p of providers) {
+      const m = p.models?.find((x) => String(x.id) === idStr);
+      if (m) return m.features ?? [];
+    }
+    return [];
+  }, [providers, config.modelConfig?.id]);
   const chatModelThinkingSupported = useMemo(() => {
     const modelId = config.modelConfig?.id;
     if (modelId == null || modelId === "" || !providers.length) return false;
@@ -619,9 +629,11 @@ export default function Configuration() {
                 agentId={agentId}
                 agentName={agent?.name}
                 agentAvatar={agent?.avatar ?? undefined}
+                annotationEnabled={config.annotationConfig?.enabled ?? false}
                 formFields={formFieldsForDebug}
                 voiceConfig={config.voiceConfig ?? null}
                 showConversationContext={config.showContext}
+                showReference={config.showReference}
                 openingStatement={config.openingStatement}
                 openingQuestions={config.openingQuestions}
                 quickCommands={config.quickCommands.map((x) => ({
@@ -631,6 +643,7 @@ export default function Configuration() {
                 chatAvatarEnabled={config.chatAvatarEnabled}
                 chatAvatar={config.chatAvatar || undefined}
                 thinkingSupported={chatModelThinkingSupported}
+                modelFeatures={chatModelFeatures}
                 hiddenTools={config.enableFileUpload ? undefined : ["file"]}
               />
             </div>

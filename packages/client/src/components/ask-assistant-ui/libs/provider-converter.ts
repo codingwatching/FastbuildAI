@@ -30,6 +30,8 @@ export function convertProvidersToModels(providers: AiProvider[]): Model[] {
           chef: provider.name,
           chefSlug: provider.provider,
           providers: [provider.provider],
+          providerSortOrder: provider.sortOrder,
+          providerCreatedAt: provider.createdAt,
           features: model.features,
           thinking: model.thinking,
           enableThinkingParam: model.enableThinkingParam,

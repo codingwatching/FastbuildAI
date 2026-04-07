@@ -272,15 +272,18 @@ interface DebuggingPreviewProps {
   agentId: string;
   agentName?: string;
   agentAvatar?: string;
+  annotationEnabled?: boolean;
   formFields?: FormField[];
   voiceConfig?: VoiceConfig | null;
   showConversationContext?: boolean;
+  showReference?: boolean;
   openingStatement?: string;
   openingQuestions?: string[];
   quickCommands?: QuickCommandItem[];
   chatAvatarEnabled?: boolean;
   chatAvatar?: string;
   thinkingSupported?: boolean;
+  modelFeatures?: string[];
   hiddenTools?: PromptInputHiddenTool[];
 }
 
@@ -290,6 +293,7 @@ function DebugPanelContent({
   onFormValueChange,
   onClear,
   isStreaming,
+  annotationEnabled,
   openingStatement,
   openingQuestions,
   quickCommands = [],
@@ -303,6 +307,7 @@ function DebugPanelContent({
   onFormValueChange: (name: string, value: string) => void;
   onClear: () => void;
   isStreaming: boolean;
+  annotationEnabled?: boolean;
   openingStatement?: string;
   openingQuestions?: string[];
   quickCommands?: QuickCommandItem[];
@@ -481,7 +486,7 @@ function DebugPanelContent({
           )}
           {displayMessages.map((displayMsg) => (
             <MessageItem
-              key={displayMsg.id}
+              key={`${displayMsg.id}-${annotationEnabled ? "ann-on" : "ann-off"}`}
               displayMessage={displayMsg}
               isStreaming={streamingMessageId === displayMsg.id}
               liked={liked[displayMsg.id]}
@@ -493,7 +498,7 @@ function DebugPanelContent({
               onSwitchBranch={onSwitchBranch}
               addToolApprovalResponse={addToolApprovalResponse}
               extraActions={
-                annotationContext ? (
+                annotationContext && annotationEnabled ? (
                   <AnnotationActions messageId={displayMsg.id} message={displayMsg.message} />
                 ) : undefined
               }
@@ -535,15 +540,18 @@ export default function DebuggingPreview({
   agentId,
   agentName,
   agentAvatar,
+  annotationEnabled,
   formFields = [],
   voiceConfig = null,
   showConversationContext = true,
+  showReference = true,
   openingStatement,
   openingQuestions = [],
   quickCommands = [],
   chatAvatarEnabled = false,
   chatAvatar,
   thinkingSupported = false,
+  modelFeatures,
   hiddenTools: hiddenToolsProp = [],
 }: DebuggingPreviewProps) {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
@@ -564,6 +572,7 @@ export default function DebuggingPreview({
   const assistantResult = useAssistantForAgent({
     agentId,
     agentName: agentName ?? "Agent",
+    modelFeatures,
     saveConversation: true,
     isDebug: true,
     loadHistory: false,
@@ -572,6 +581,7 @@ export default function DebuggingPreview({
     thinkingSupported,
     voiceConfig,
     showConversationContext,
+    showReference,
     assistantAvatar: chatAvatarEnabled
       ? chatAvatar?.trim()
         ? chatAvatar
@@ -720,6 +730,7 @@ export default function DebuggingPreview({
             onFormValueChange={handleFormValueChange}
             onClear={clearMessages}
             isStreaming={assistantResult.status === "streaming"}
+            annotationEnabled={annotationEnabled}
             openingStatement={openingStatement}
             openingQuestions={openingQuestions}
             quickCommands={quickCommands}

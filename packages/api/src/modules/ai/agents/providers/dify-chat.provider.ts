@@ -79,7 +79,11 @@ export class DifyChatProvider {
         const stream = createUIMessageStream({
             execute: async ({ writer }) => {
                 if (localConversationId) {
-                    writer.write({ type: "data-conversation-id", data: localConversationId });
+                    writer.write({
+                        type: "data-conversation-id",
+                        data: localConversationId,
+                        transient: true,
+                    } as any);
                 }
 
                 const assistantMessageId = generateId();

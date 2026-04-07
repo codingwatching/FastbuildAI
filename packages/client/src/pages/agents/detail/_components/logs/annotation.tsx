@@ -173,6 +173,11 @@ export default function Annotation({ agentId }: AnnotationProps) {
   const handleAnnotationEnabledChange = useCallback(
     async (checked: boolean) => {
       if (!agentId) return;
+      if (checked && !annotationConfig?.vectorModelId) {
+        toast.info("请先配置向量模型后再开启标注回复");
+        openSettings();
+        return;
+      }
       const next: AnnotationConfig = {
         ...annotationConfig,
         enabled: checked,
@@ -187,7 +192,7 @@ export default function Annotation({ agentId }: AnnotationProps) {
         toast.error("操作失败");
       }
     },
-    [agentId, annotationConfig, queryClient],
+    [agentId, annotationConfig, queryClient, openSettings],
   );
 
   const handleDeleteAll = useCallback(async () => {

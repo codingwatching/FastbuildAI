@@ -173,7 +173,11 @@ export class ChatCompletionService {
                 originalMessages: isToolApprovalFlow ? messages : undefined,
                 execute: async ({ writer }) => {
                     if (conversationId) {
-                        writer.write({ type: "data-conversation-id", data: conversationId });
+                        writer.write({
+                            type: "data-conversation-id",
+                            data: conversationId,
+                            transient: true,
+                        } as any);
                     }
                     const assistantMessageId = generateId();
                     writer.write({
@@ -230,8 +234,14 @@ export class ChatCompletionService {
                             (userPrefs.chatStyle as string) ?? undefined,
                             (userPrefs.customInstruction as string) ?? undefined,
                         );
-                        const modelMsgs = await convertToModelMessages(
-                            stripLocalhostFileParts(processed),
+                        const modelMsgs = (
+                            await convertToModelMessages(stripLocalhostFileParts(processed))
+                        ).filter(
+                            // Drop ghost assistant messages produced when data-only
+                            // parts appear before a step-start boundary
+                            (msg) =>
+                                msg.role !== "assistant" ||
+                                (Array.isArray(msg.content) && msg.content.length > 0),
                         );
                         const finalMessages = systemPrompt
                             ? [{ role: "system" as const, content: systemPrompt }, ...modelMsgs]

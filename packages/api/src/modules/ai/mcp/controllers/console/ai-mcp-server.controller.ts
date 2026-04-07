@@ -135,6 +135,19 @@ export class AiMcpServerConsoleController extends BaseController {
     }
 
     /**
+     * 取消默认快捷菜单
+     */
+    @Delete("quick-menu")
+    @Permissions({
+        code: "quick-menu-set",
+        name: "取消默认快捷菜单",
+    })
+    async clearDefaultQuickMenu() {
+        await this.dictService.deleteByKey(AI_MCP_IS_QUICK_MENU);
+        return { message: "quick menu cleared successfully" };
+    }
+
+    /**
      * 删除MCP服务
      */
     @Delete(":id")

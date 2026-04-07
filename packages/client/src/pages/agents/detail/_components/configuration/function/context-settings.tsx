@@ -13,6 +13,7 @@ import { Switch } from "@buildingai/ui/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@buildingai/ui/components/ui/tooltip";
 import { Settings2 } from "lucide-react";
 import { memo, useCallback, useState } from "react";
+import { toast } from "sonner";
 
 import { ModelSelector } from "@/components/ask-assistant-ui";
 
@@ -71,6 +72,11 @@ export const ContextSettings = memo(
     const annotationEnabled = annotationConfig?.enabled ?? false;
     const handleAnnotationEnabledChange = useCallback(
       (checked: boolean) => {
+        if (checked && !annotationConfig?.vectorModelId) {
+          toast.info("请先配置向量模型后再开启问答标注");
+          openDialog();
+          return;
+        }
         onChange({
           annotationConfig: {
             ...annotationConfig,
@@ -80,7 +86,7 @@ export const ContextSettings = memo(
           },
         });
       },
-      [annotationConfig, onChange],
+      [annotationConfig, onChange, openDialog],
     );
 
     return (
