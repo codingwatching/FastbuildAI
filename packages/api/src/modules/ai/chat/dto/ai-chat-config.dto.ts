@@ -83,4 +83,12 @@ export class UpdateChatConfigDto {
     @IsOptional()
     @IsString()
     titleModelId?: string;
+
+    /**
+     * LLM used to generate up to 3 follow-up question suggestions after each assistant reply.
+     * When omitted, no follow-up suggestions are generated.
+     */
+    @IsOptional()
+    @IsString()
+    followUpModelId?: string;
 }

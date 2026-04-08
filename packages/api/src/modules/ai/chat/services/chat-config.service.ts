@@ -74,6 +74,12 @@ export class ChatConfigService extends BaseService<Dict> {
             "chat_config",
         );
 
+        const followUpModelId = await this.dictService.get<string | null>(
+            "chat_follow_up_model_id",
+            null,
+            "chat_config",
+        );
+
         return {
             suggestions,
             suggestionsEnabled,
@@ -81,6 +87,7 @@ export class ChatConfigService extends BaseService<Dict> {
             attachmentSizeLimit,
             memoryModelId: memoryModelId ?? undefined,
             titleModelId: titleModelId ?? undefined,
+            followUpModelId: followUpModelId ?? undefined,
         };
     }
 
@@ -97,6 +104,7 @@ export class ChatConfigService extends BaseService<Dict> {
             attachmentSizeLimit,
             memoryModelId,
             titleModelId,
+            followUpModelId,
         } = updateChatConfigDto;
 
         try {
@@ -143,6 +151,13 @@ export class ChatConfigService extends BaseService<Dict> {
                 await this.dictService.set("chat_title_model_id", titleModelId || null, {
                     group: "chat_config",
                     description: "标题生成模型ID",
+                });
+            }
+
+            if (followUpModelId !== undefined) {
+                await this.dictService.set("chat_follow_up_model_id", followUpModelId || null, {
+                    group: "chat_config",
+                    description: "对话追问建议模型ID",
                 });
             }
 

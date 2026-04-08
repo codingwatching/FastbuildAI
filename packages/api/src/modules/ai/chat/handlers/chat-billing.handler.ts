@@ -9,6 +9,8 @@ import { Injectable, Logger } from "@nestjs/common";
 const ESTIMATED_TOKENS_PER_ROUND = 500;
 const ESTIMATED_TOKENS_TITLE = 50;
 const ESTIMATED_TOKENS_MEMORY = 300;
+/** Rough estimate for follow-up suggestion generation (aligned with agent billing). */
+const ESTIMATED_TOKENS_FOLLOW_UP = 150;
 
 export interface ChatBillingDeductParams {
     userId: string;
@@ -133,6 +135,40 @@ export class ChatBillingHandler {
         } catch (error) {
             this.logger.warn(
                 `Chat memory billing deduct failed: userId=${userId}, amount=${amount}, error=${error instanceof Error ? error.message : String(error)}`,
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Deduct power for AI-generated follow-up question suggestions after an assistant reply.
+     */
+    async deductForFollowUpSuggestions(
+        userId: string | undefined,
+        conversationId: string | undefined,
+        billingRule: { power: number; tokens: number } | undefined,
+    ): Promise<number> {
+        if (!userId || !conversationId || !billingRule?.tokens) return 0;
+
+        const amount = this.calculateConsumedPower(ESTIMATED_TOKENS_FOLLOW_UP, billingRule);
+        if (amount <= 0) return 0;
+
+        try {
+            await this.appBillingService.deductUserPower({
+                userId,
+                amount,
+                accountType: ACCOUNT_LOG_TYPE.CHAT_DEC,
+                source: {
+                    type: ACCOUNT_LOG_SOURCE.CHAT,
+                    source: "对话追问建议",
+                },
+                remark: "对话追问建议消耗",
+                associationNo: conversationId,
+            });
+            return amount;
+        } catch (error) {
+            this.logger.warn(
+                `Chat follow-up suggestions billing deduct failed: userId=${userId}, amount=${amount}, error=${error instanceof Error ? error.message : String(error)}`,
             );
             throw error;
         }

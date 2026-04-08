@@ -22,6 +22,7 @@ import {
 import { Module } from "@nestjs/common";
 
 import { UserModule } from "../../user/user.module";
+import { FollowUpSuggestionsHandler } from "../agents/handlers/follow-up-suggestions";
 import { AiMcpServerService } from "../mcp/services/ai-mcp-server.service";
 import { AiMcpToolService } from "../mcp/services/ai-mcp-tool.service";
 import { AiMemoryModule } from "../memory/ai-memory.module";
@@ -79,6 +80,7 @@ import { ChatConfigService } from "./services/chat-config.service";
         AiChatFeedbackWebController,
     ],
     providers: [
+        FollowUpSuggestionsHandler,
         ChatBillingHandler,
         ChatTitleHandler,
         ChatConfigService,

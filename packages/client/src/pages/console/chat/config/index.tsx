@@ -51,6 +51,8 @@ const chatConfigFormSchema = z.object({
   suggestions: z.array(suggestionSchema),
   memoryModelId: z.string().optional(),
   titleModelId: z.string().optional(),
+  /** Same role as agent `modelRouting.titleModel`: generates follow-up chips after each reply. */
+  followUpModelId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof chatConfigFormSchema>;
@@ -62,6 +64,7 @@ interface ApiChatConfig {
   suggestions?: Array<{ icon: string; text: string }>;
   memoryModelId?: string;
   titleModelId?: string;
+  followUpModelId?: string;
 }
 
 const defaultFormValues: FormValues = {
@@ -79,6 +82,7 @@ const defaultFormValues: FormValues = {
   ],
   memoryModelId: "",
   titleModelId: "",
+  followUpModelId: "",
 };
 
 const EMPTY_EDITOR_VALUE = [{ type: "p", children: [{ text: "" }] }];
@@ -130,6 +134,7 @@ const ChatConfigForm = ({ apiData }: ChatConfigFormProps) => {
         : defaultFormValues.suggestions,
       memoryModelId: apiData.memoryModelId ?? "",
       titleModelId: apiData.titleModelId ?? "",
+      followUpModelId: apiData.followUpModelId ?? "",
     }),
     [apiData, editorInitialValue],
   );
@@ -167,8 +172,9 @@ const ChatConfigForm = ({ apiData }: ChatConfigFormProps) => {
       attachmentSizeLimit: values.attachmentSizeLimit,
       suggestionsEnabled: values.suggestionsEnabled,
       suggestions: values.suggestions,
-      memoryModelId: values.memoryModelId?.trim() || undefined,
-      titleModelId: values.titleModelId?.trim() || undefined,
+      memoryModelId: values.memoryModelId?.trim() ?? "",
+      titleModelId: values.titleModelId?.trim() ?? "",
+      followUpModelId: values.followUpModelId?.trim() ?? "",
     });
   };
 
@@ -420,7 +426,7 @@ const ChatConfigForm = ({ apiData }: ChatConfigFormProps) => {
                 <div>
                   <h3 className="text-sm font-medium">模型路由</h3>
                   <p className="text-muted-foreground mt-0.5 text-xs">
-                    为记忆提取、标题生成等功能指定模型，不配置则对应功能不启用
+                    为记忆提取、会话标题、追问建议等功能指定模型；不配置则对应功能不启用
                   </p>
                 </div>
                 <div className="space-y-3">
@@ -470,7 +476,7 @@ const ChatConfigForm = ({ apiData }: ChatConfigFormProps) => {
                   <div className="flex items-center justify-between gap-4 rounded-lg px-0 py-2">
                     <div className="flex min-w-0 flex-col">
                       <div className="flex items-center gap-1.5">
-                        <FormLabel className="text-sm font-medium">标题生成模型</FormLabel>
+                        <FormLabel className="text-sm font-medium">会话标题模型</FormLabel>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
@@ -482,17 +488,59 @@ const ChatConfigForm = ({ apiData }: ChatConfigFormProps) => {
                             </button>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="max-w-xs text-xs">
-                            用于根据对话内容自动生成会话标题与追问建议。不配置则不会自动生成。
+                            用于在新会话首次发送后，根据首条用户消息自动生成会话标题。不配置则使用默认标题。
                           </TooltipContent>
                         </Tooltip>
                       </div>
-                      <p className="text-muted-foreground mt-0.5 text-xs">
-                        用于自动生成对话标题与追问建议，可选用低成本模型
-                      </p>
+                      <p className="text-muted-foreground mt-0.5 text-xs">可选用低成本模型</p>
                     </div>
                     <FormField
                       control={form.control}
                       name="titleModelId"
+                      render={({ field }) => (
+                        <FormItem className="mb-0 ml-4 w-56 shrink-0">
+                          <FormControl>
+                            <AIModelSelector
+                              modelType="llm"
+                              value={field.value ?? ""}
+                              onSelect={field.onChange}
+                              triggerVariant="button"
+                              placeholder="不启用"
+                              className="w-full"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-4 rounded-lg px-0 py-2">
+                    <div className="flex min-w-0 flex-col">
+                      <div className="flex items-center gap-1.5">
+                        <FormLabel className="text-sm font-medium">追问建议模型</FormLabel>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex shrink-0 rounded p-0.5 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                              aria-label="说明"
+                            >
+                              <HelpCircle className="text-muted-foreground h-4 w-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs text-xs">
+                            与智能体编排中「追问建议模型」一致：在助手回复后自动生成最多 3
+                            条追问供用户点击。不配置则不生成。
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        回复后生成追问建议，可选用低成本模型
+                      </p>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="followUpModelId"
                       render={({ field }) => (
                         <FormItem className="mb-0 ml-4 w-56 shrink-0">
                           <FormControl>

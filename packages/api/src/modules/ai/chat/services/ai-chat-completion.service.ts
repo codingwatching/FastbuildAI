@@ -52,6 +52,7 @@ import type { ServerResponse } from "http";
 import { In } from "typeorm";
 import { validate as isUUID } from "uuid";
 
+import { FollowUpSuggestionsHandler } from "../../agents/handlers/follow-up-suggestions";
 import { AiMcpServerService } from "../../mcp/services/ai-mcp-server.service";
 import { MemoryService } from "../../memory/services/memory.service";
 import { MemoryExtractionService } from "../../memory/services/memory-extraction.service";
@@ -93,6 +94,7 @@ export class ChatCompletionService {
         private readonly userDictService: UserDictService,
         private readonly chatConfigService: ChatConfigService,
         private readonly userService: UserService,
+        private readonly followUpSuggestionsHandler: FollowUpSuggestionsHandler,
     ) {}
 
     private getErrorMsg(error: unknown): string {
@@ -347,6 +349,64 @@ export class ChatCompletionService {
                                         if (extraPower > 0) {
                                             userConsumedPower += extraPower;
                                         }
+                                    }
+
+                                    let followUpExtraPower = 0;
+                                    if (
+                                        !isToolApprovalFlow &&
+                                        finished.length > 0 &&
+                                        !aborted &&
+                                        fullText?.trim() &&
+                                        chatConfig.followUpModelId &&
+                                        conversationId &&
+                                        params.abortSignal?.aborted !== true
+                                    ) {
+                                        const lastUserText = this.extractLastUserText(messages);
+                                        if (lastUserText.trim()) {
+                                            const followModel =
+                                                await this.getLanguageModelByModelId(
+                                                    chatConfig.followUpModelId,
+                                                );
+                                            if (followModel) {
+                                                try {
+                                                    const suggestions =
+                                                        await this.followUpSuggestionsHandler.generateSuggestions(
+                                                            lastUserText,
+                                                            fullText,
+                                                            followModel.model,
+                                                            followModel.providerId,
+                                                        );
+                                                    if (suggestions.length > 0) {
+                                                        writer.write({
+                                                            type: "data-follow-up-suggestions",
+                                                            data: suggestions,
+                                                        });
+                                                    }
+                                                    if (params.userId && followModel.billingRule) {
+                                                        try {
+                                                            followUpExtraPower =
+                                                                await this.chatBillingHandler.deductForFollowUpSuggestions(
+                                                                    params.userId,
+                                                                    conversationId,
+                                                                    followModel.billingRule,
+                                                                );
+                                                        } catch (err) {
+                                                            this.logger.warn(
+                                                                `Chat follow-up billing failed: ${this.getErrorMsg(err)}`,
+                                                            );
+                                                        }
+                                                    }
+                                                } catch (err) {
+                                                    this.logger.warn(
+                                                        `Follow-up suggestions failed: ${this.getErrorMsg(err)}`,
+                                                    );
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (followUpExtraPower > 0) {
+                                        userConsumedPower += followUpExtraPower;
                                     }
 
                                     writer.write({
@@ -606,11 +666,17 @@ export class ChatCompletionService {
         return `user: ${content}`;
     }
 
+    private extractLastUserText(messages: UIMessage[]): string {
+        const lastUser = messages.findLast((m) => m.role === "user");
+        return lastUser ? extractTextFromParts(lastUser.parts ?? []).fullText : "";
+    }
+
     private async applyPostProcessingUsage(params: {
         needTitle: boolean;
         chatConfig: {
             memoryModelId?: string;
             titleModelId?: string;
+            followUpModelId?: string;
         };
         messages: UIMessage[];
         finished: UIMessage[];
