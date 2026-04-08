@@ -52,6 +52,7 @@ export class AgentChatRecordService extends BaseService<AgentChatRecord> {
         userId?: string;
         anonymousIdentifier?: string;
         title?: string;
+        metadata?: Record<string, any>;
     }): Promise<AgentChatRecord> {
         try {
             const record = this.chatRecordRepository.create({
@@ -64,6 +65,7 @@ export class AgentChatRecordService extends BaseService<AgentChatRecord> {
                 consumedPower: 0,
                 isDeleted: false,
                 feedbackStatus: { like: 0, dislike: 0 },
+                metadata: params.metadata,
             });
             const savedRecord = await this.chatRecordRepository.save(record);
             await this.incrementAgentUserCountOnFirstConversation(params);
@@ -371,6 +373,10 @@ export class AgentChatRecordService extends BaseService<AgentChatRecord> {
             qb.andWhere("r.userId = :userId", { userId });
         } else {
             qb.andWhere("r.userId IS NULL");
+        }
+
+        if (query.includeDebug !== true) {
+            qb.andWhere("(r.metadata ->> 'isDebug') IS DISTINCT FROM 'true'");
         }
 
         if (query.keyword?.trim()) {

@@ -27,6 +27,9 @@ async function handleAuthError(error: unknown): Promise<void> {
     }
     await useAuthStore.getState().authActions.logout();
 
+    if (location.pathname.includes("/login")) {
+        return;
+    }
     location.replace(`/login?redirect=${location.pathname}`);
 }
 

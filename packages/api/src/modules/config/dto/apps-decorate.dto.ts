@@ -69,8 +69,7 @@ export class AppsDecorateDto {
     /**
      * Banner 列表（优先使用此字段）
      */
-    @IsOptional()
-    @ValidateIf((o) => o.banners !== undefined)
+    @ValidateIf((o) => o.enabled === true)
     @IsArray({ message: "banners 必须是数组" })
     @ArrayMinSize(1, { message: "至少需要一个 Banner" })
     @ValidateNested({ each: true })

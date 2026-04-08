@@ -197,6 +197,7 @@ export class AgentChatCompletionService {
                     userId: params.userId,
                     anonymousIdentifier: params.anonymousIdentifier,
                     title: initialTitle,
+                    metadata: params.isDebug ? { isDebug: true } : undefined,
                 });
                 conversationId = record.id;
             }
@@ -1014,7 +1015,9 @@ export class AgentChatCompletionService {
             const record = await this.agentChatRecordService.createConversation({
                 agentId: chatParams.agentId,
                 userId: chatParams.userId,
+                anonymousIdentifier: chatParams.anonymousIdentifier,
                 title: initialTitle,
+                metadata: chatParams.isDebug ? { isDebug: true } : undefined,
             });
             conversationId = record.id;
         }

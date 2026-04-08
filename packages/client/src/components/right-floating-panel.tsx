@@ -1,4 +1,5 @@
 import { Button } from "@buildingai/ui/components/ui/button";
+import { cn } from "@buildingai/ui/lib/utils";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -9,23 +10,34 @@ export function RightFloatingPanel({
   title,
   children,
   footer,
+  container,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** Optional container element for portal rendering. Defaults to document.body. */
+  container?: HTMLElement | null;
 }) {
   if (!open) return null;
-  return createPortal(
+
+  const isInContainer = !!container;
+
+  const content = (
     <>
       <div
-        className="fixed inset-0 z-40 bg-black/20"
+        className={cn("z-40 bg-black/20", isInContainer ? "absolute inset-0" : "fixed inset-0")}
         aria-hidden
         onClick={() => onOpenChange(false)}
       />
       <div
-        className="bg-background border-border fixed top-1/2 right-10 z-50 flex h-full max-h-[85vh] w-[420px] -translate-y-1/2 flex-col rounded-xl border shadow-xl"
+        className={cn(
+          "bg-background border-border z-50 flex h-full max-h-[85vh] w-[420px] flex-col rounded-xl border shadow-xl",
+          isInContainer
+            ? "absolute top-1/2 right-4 -translate-y-1/2"
+            : "fixed top-1/2 right-10 -translate-y-1/2",
+        )}
         role="dialog"
         aria-modal="true"
         aria-labelledby="right-floating-panel-title"
@@ -50,7 +62,8 @@ export function RightFloatingPanel({
         </div>
         {footer ? <div className="bg-muted shrink-0 rounded-b-xl px-4 py-3">{footer}</div> : null}
       </div>
-    </>,
-    document.body,
+    </>
   );
+
+  return createPortal(content, container ?? document.body);
 }

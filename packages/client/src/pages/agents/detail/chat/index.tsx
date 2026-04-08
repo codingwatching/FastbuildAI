@@ -196,6 +196,10 @@ function AgentInfoPanel({
               ) : null}
             </div>
 
+            {agent?.description ? (
+              <p className="text-muted-foreground text-sm leading-relaxed">{agent.description}</p>
+            ) : null}
+
             <div className="flex items-center gap-2">
               <Avatar className="size-6 rounded-full">
                 <AvatarImage src={agent?.creator?.avatar ?? undefined} alt={creatorName} />
@@ -260,10 +264,6 @@ function AgentInfoPanel({
                 </Button>
               </div>
             </div>
-
-            {agent?.description ? (
-              <p className="text-muted-foreground text-sm leading-relaxed">{agent.description}</p>
-            ) : null}
 
             <div className="flex min-h-0 flex-1 flex-col">
               <button
@@ -583,10 +583,15 @@ const AgentChatPage = () => {
   );
   const conversations = useMemo(
     () =>
-      (conversationsData?.items ?? []).map((item) => ({
-        id: item.id,
-        title: item.title?.trim() || "新对话",
-      })),
+      (conversationsData?.items ?? [])
+        .filter((item) => {
+          const meta = (item as any)?.metadata as { isDebug?: boolean } | null | undefined;
+          return meta?.isDebug !== true;
+        })
+        .map((item) => ({
+          id: item.id,
+          title: item.title?.trim() || "新对话",
+        })),
     [conversationsData?.items],
   );
 
@@ -598,21 +603,14 @@ const AgentChatPage = () => {
   const [panelExpanded, setPanelExpanded] = useState(true);
   const hasForm = formFields.length > 0;
 
-  const requiredFields = useMemo(() => formFields.filter((f) => f.required), [formFields]);
-  const requiredFilled = useMemo(
-    () => requiredFields.every((f) => (formValues[f.name] ?? "").trim() !== ""),
-    [requiredFields, formValues],
-  );
-
   /**
-   * Auto-open the form variables popover when required fields exist and are not yet filled,
+   * Auto-open the form variables popover when any form fields exist,
    * so users see the form as soon as the chat page loads.
    */
   useEffect(() => {
-    if (requiredFields.length === 0) return;
-    if (requiredFilled) return;
+    if (formFields.length === 0) return;
     setFormPopoverOpen(true);
-  }, [requiredFields.length, requiredFilled]);
+  }, [formFields.length]);
 
   return (
     <div

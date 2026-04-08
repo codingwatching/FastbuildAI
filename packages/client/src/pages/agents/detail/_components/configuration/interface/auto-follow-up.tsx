@@ -69,6 +69,8 @@ export const AutoFollowUp = memo(
       (enabled: boolean) => {
         if (!enabled) {
           setDialogOpen(false);
+          setDraftModelId("");
+          onTitleModelChange("");
           onChange({ ...autoQuestions, enabled: false });
           return;
         }
@@ -79,7 +81,7 @@ export const AutoFollowUp = memo(
           setDialogOpen(true);
         }
       },
-      [autoQuestions, onChange, titleModelId],
+      [autoQuestions, onChange, onTitleModelChange, titleModelId],
     );
 
     const handleCustomRuleEnabledChange = useCallback(

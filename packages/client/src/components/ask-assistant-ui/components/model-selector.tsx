@@ -129,8 +129,8 @@ const ModelRowItem = ({
       className={cn(isDisabled && "cursor-not-allowed opacity-50")}
     >
       <ProviderIcon provider={model.chefSlug} iconUrl={model.iconUrl} />
-      <AIModelSelectorName>
-        {model.name}
+      <AIModelSelectorName className="flex items-center">
+        <span className="truncate text-left">{model.name}</span>
         <Badge variant="secondary" className="text-muted-foreground ml-1.5 text-xs">
           {powerText}
         </Badge>
@@ -369,8 +369,8 @@ export const ModelSelector = ({
               <ProviderIcon className="size-5" provider={selectedModel.chefSlug} />
             )}
             {selectedModel?.name && (
-              <AIModelSelectorName>
-                {selectedModel.name}
+              <AIModelSelectorName className="flex items-center">
+                <span className="truncate text-left">{selectedModel.name}</span>
                 <Badge variant="secondary" className="text-muted-foreground ml-1.5 text-xs">
                   {selectedModel.billingRule?.power
                     ? `${selectedModel.billingRule.power} 积分 / 1K Tokens`

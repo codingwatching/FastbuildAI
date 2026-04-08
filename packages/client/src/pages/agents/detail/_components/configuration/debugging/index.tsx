@@ -566,8 +566,7 @@ export default function DebuggingPreview({
     () => Object.values(formValues).some((v) => String(v ?? "").trim() !== ""),
     [formValues],
   );
-  const hasRequired = formFields.some((f) => f.required);
-  const [popoverOpen, setPopoverOpen] = useState(hasRequired);
+  const [popoverOpen, setPopoverOpen] = useState(formFields.length > 0);
 
   const assistantResult = useAssistantForAgent({
     agentId,

@@ -1,10 +1,17 @@
 import type { AgentChatMessageItem, AgentChatRecordItem } from "@buildingai/services/web";
 import {
+  useAgentAnnotationDetailQuery,
   useAgentConversationMessagesQuery,
   useAgentConversationsQuery,
+  useAgentDetailQuery,
+  useCreateAgentAnnotationMutation,
+  useDeleteAgentAnnotationMutation,
+  useUpdateAgentAnnotationMutation,
 } from "@buildingai/services/web";
+import { MessageAction as AIMessageAction } from "@buildingai/ui/components/ai-elements/message";
 import { InfiniteScrollTop } from "@buildingai/ui/components/infinite-scroll-top";
 import { Badge } from "@buildingai/ui/components/ui/badge";
+import { Button } from "@buildingai/ui/components/ui/button";
 import {
   Drawer,
   DrawerContent,
@@ -12,6 +19,7 @@ import {
   DrawerTitle,
 } from "@buildingai/ui/components/ui/drawer";
 import { Input } from "@buildingai/ui/components/ui/input";
+import { Label } from "@buildingai/ui/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -27,9 +35,12 @@ import {
   TableHeader,
   TableRow,
 } from "@buildingai/ui/components/ui/table";
+import { Textarea } from "@buildingai/ui/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@buildingai/ui/components/ui/tooltip";
+import { useAlertDialog } from "@buildingai/ui/hooks/use-alert-dialog";
 import { usePagination } from "@buildingai/ui/hooks/use-pagination";
 import { cn } from "@buildingai/ui/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import type { UIMessage } from "ai";
 import {
   AlertTriangle,
@@ -37,16 +48,262 @@ import {
   MessageSquare,
   ThumbsDown,
   ThumbsUp,
+  Trash2,
   User,
   Zap,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FilePlusCorner, PencilLine } from "lucide-react";
+import {
+  createContext,
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { toast } from "sonner";
 
-import { type DisplayMessage, MessageItem } from "@/components/ask-assistant-ui";
+import {
+  convertUIMessageToMessage,
+  type DisplayMessage,
+  MessageItem,
+} from "@/components/ask-assistant-ui";
+import { RightFloatingPanel } from "@/components/right-floating-panel";
 
 type MessagesProps = { agentId: string };
 
 const MESSAGES_PAGE_SIZE = 20;
+
+/**
+ * Extract text content from a UIMessage for annotation purposes.
+ */
+function getMessageContent(message: { message: UIMessage }): string {
+  const m = convertUIMessageToMessage(message.message);
+  const v = m.versions?.[m.activeVersionIndex ?? 0] ?? m.versions?.[0];
+  return v?.content ?? "";
+}
+
+type AnnotationContextValue = {
+  agentId: string;
+  annotationIdOverrides: Record<string, string>;
+  setAnnotationIdOverrides: Dispatch<SetStateAction<Record<string, string>>>;
+  editAnnotationId: string | null;
+  setEditAnnotationId: (id: string | null) => void;
+  addingAnnotationForMessageId: string | null;
+  setAddingAnnotationForMessageId: (id: string | null) => void;
+  createAnnotationMutation: ReturnType<typeof useCreateAgentAnnotationMutation>;
+  onAddAnnotation: (
+    messageId: string,
+    dbMessageId: string,
+    allMessages: AgentChatMessageItem[],
+  ) => void;
+  onEditAnnotation: (annotationId: string) => void;
+};
+
+const AnnotationContext = createContext<AnnotationContextValue | null>(null);
+
+function useAnnotationContext(): AnnotationContextValue | null {
+  return useContext(AnnotationContext);
+}
+
+/**
+ * Annotation action button for adding/editing annotations on messages.
+ */
+function AnnotationActions({
+  messageId,
+  dbMessageId,
+  message,
+  allMessages,
+}: {
+  messageId: string;
+  dbMessageId: string;
+  message: UIMessage;
+  allMessages: AgentChatMessageItem[];
+}) {
+  const ctx = useAnnotationContext();
+  if (!ctx) return null;
+  const isQuickCommandReply = message.parts?.some((p) => p.type === "data-reply-source");
+  if (isQuickCommandReply) return null;
+
+  const metadata = message.metadata && typeof message.metadata === "object" ? message.metadata : {};
+  const annotationId =
+    (metadata as { annotations?: { annotationId?: string } }).annotations?.annotationId ??
+    ctx.annotationIdOverrides[messageId];
+  const isAdding = ctx.addingAnnotationForMessageId === messageId;
+
+  if (annotationId && ctx.onEditAnnotation) {
+    return (
+      <AIMessageAction
+        label="Edit annotation"
+        onClick={() => ctx.onEditAnnotation(annotationId)}
+        tooltip="编辑标注"
+      >
+        <PencilLine className="size-4" />
+      </AIMessageAction>
+    );
+  }
+  if (!annotationId && ctx.onAddAnnotation && dbMessageId) {
+    return (
+      <AIMessageAction
+        label="Add annotation"
+        onClick={() => ctx.onAddAnnotation(messageId, dbMessageId, allMessages)}
+        tooltip="添加标注"
+        loading={isAdding}
+      >
+        {!isAdding && <FilePlusCorner className="size-4" />}
+      </AIMessageAction>
+    );
+  }
+  return null;
+}
+
+/**
+ * Panel for editing an existing annotation.
+ */
+function AnnotationEditDialog({
+  agentId,
+  annotationId,
+  open,
+  onOpenChange,
+  onSaved,
+  container,
+}: {
+  agentId: string;
+  annotationId: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: (deletedAnnotationId?: string) => void;
+  container?: HTMLElement | null;
+}) {
+  const [formQuestion, setFormQuestion] = useState("");
+  const [formAnswer, setFormAnswer] = useState("");
+  const { confirm: alertConfirm } = useAlertDialog();
+  const { data: annotation, isLoading } = useAgentAnnotationDetailQuery(
+    agentId,
+    open && annotationId ? annotationId : undefined,
+  );
+  const updateMutation = useUpdateAgentAnnotationMutation(agentId);
+  const deleteMutation = useDeleteAgentAnnotationMutation(agentId);
+
+  useEffect(() => {
+    if (annotation) {
+      setFormQuestion(annotation.question ?? "");
+      setFormAnswer(annotation.answer ?? "");
+    }
+  }, [annotation]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!annotationId || !formQuestion.trim() || !formAnswer.trim()) return;
+    try {
+      await updateMutation.mutateAsync({
+        annotationId,
+        params: { question: formQuestion.trim(), answer: formAnswer.trim(), enabled: true },
+      });
+      toast.success("已更新");
+      onOpenChange(false);
+      onSaved();
+    } catch {
+      toast.error("更新失败");
+    }
+  }, [annotationId, formQuestion, formAnswer, updateMutation, onOpenChange, onSaved]);
+
+  const handleDelete = useCallback(async () => {
+    if (!annotationId) return;
+    try {
+      await alertConfirm({
+        title: "删除标注",
+        description: "确定要删除此标注吗？",
+        confirmText: "删除",
+        confirmVariant: "destructive",
+      });
+    } catch {
+      return;
+    }
+    onOpenChange(false);
+    try {
+      await deleteMutation.mutateAsync(annotationId);
+      toast.success("已删除");
+      onSaved(annotationId);
+    } catch {
+      toast.error("删除失败");
+    }
+  }, [annotationId, alertConfirm, deleteMutation, onOpenChange, onSaved]);
+
+  return (
+    <RightFloatingPanel
+      open={open}
+      onOpenChange={onOpenChange}
+      title="编辑标注回复"
+      container={container}
+      footer={
+        <div className="flex items-center justify-between gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={handleDelete}
+            disabled={deleteMutation.isPending || !annotationId}
+          >
+            <Trash2 className="size-4" />
+            删除此标注
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              取消
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={
+                updateMutation.isPending || !formQuestion.trim() || !formAnswer.trim() || isLoading
+              }
+              loading={updateMutation.isPending}
+            >
+              保存
+            </Button>
+          </div>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-5 px-4 py-4">
+        {isLoading ? (
+          <div className="text-muted-foreground py-8 text-center text-sm">加载中…</div>
+        ) : (
+          <>
+            <div className="grid gap-2">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <User className="size-4" />
+                提问
+              </Label>
+              <Textarea
+                value={formQuestion}
+                onChange={(e) => setFormQuestion(e.target.value)}
+                placeholder="输入提问"
+                className="bg-muted/30 min-h-[120px] resize-y rounded-lg border"
+                rows={5}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <MessageSquare className="size-4" />
+                回复
+              </Label>
+              <Textarea
+                value={formAnswer}
+                onChange={(e) => setFormAnswer(e.target.value)}
+                placeholder="输入回复"
+                className="bg-muted/30 min-h-[160px] resize-y rounded-lg border"
+                rows={6}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </RightFloatingPanel>
+  );
+}
 const TABLE_PAGE_SIZE = 25;
 const SORT_OPTIONS = [
   { value: "createdAt", label: "创建时间" },
@@ -124,13 +381,25 @@ function toUIMessage(m: {
 function MessageListContent({
   agentId,
   conversationId,
+  annotationEnabled = false,
+  panelContainer,
 }: {
   agentId: string;
   conversationId: string;
+  annotationEnabled?: boolean;
+  panelContainer?: HTMLElement | null;
 }) {
   const [page, setPage] = useState(1);
   const [allMessages, setAllMessages] = useState<AgentChatMessageItem[]>([]);
+  const [annotationIdOverrides, setAnnotationIdOverrides] = useState<Record<string, string>>({});
+  const [editAnnotationId, setEditAnnotationId] = useState<string | null>(null);
+  const [addingAnnotationForMessageId, setAddingAnnotationForMessageId] = useState<string | null>(
+    null,
+  );
   const prevConversationIdRef = useRef<string | null>(null);
+  const queryClient = useQueryClient();
+  const createAnnotationMutation = useCreateAgentAnnotationMutation(agentId);
+
   const { data, isLoading, isFetching } = useAgentConversationMessagesQuery(
     agentId,
     conversationId,
@@ -145,6 +414,7 @@ function MessageListContent({
     ) {
       setPage(1);
       setAllMessages([]);
+      setAnnotationIdOverrides({});
     }
     prevConversationIdRef.current = conversationId;
   }, [conversationId]);
@@ -176,6 +446,98 @@ function MessageListContent({
     setPage((prev) => prev + 1);
   }, [hasMore, isLoading, isLoadingMore]);
 
+  const onAddAnnotation = useCallback(
+    (messageId: string, dbMessageId: string, msgs: AgentChatMessageItem[]) => {
+      if (!dbMessageId) {
+        toast.error("无法获取消息 ID");
+        return;
+      }
+      const idx = msgs.findIndex((m) => m.id === messageId);
+      if (idx <= 0) return;
+      const assistantMsg = msgs[idx];
+      const userMsg = msgs[idx - 1];
+      const assistantUi = toUIMessage(assistantMsg);
+      const userUi = toUIMessage(userMsg);
+      if (userUi.role !== "user" || assistantUi.role !== "assistant") return;
+      const question = getMessageContent({ message: userUi });
+      const answer = getMessageContent({ message: assistantUi });
+      if (!question.trim() || !answer.trim()) {
+        toast.error("问题或回复为空");
+        return;
+      }
+      setAddingAnnotationForMessageId(messageId);
+      createAnnotationMutation
+        .mutateAsync({
+          question: question.trim(),
+          answer: answer.trim(),
+          messageId: dbMessageId,
+          enabled: true,
+        })
+        .then((created) => {
+          setAnnotationIdOverrides((prev) => ({ ...prev, [messageId]: created.id }));
+          toast.success("已添加标注");
+        })
+        .catch(() => {
+          toast.error("添加标注失败");
+        })
+        .finally(() => {
+          setAddingAnnotationForMessageId(null);
+        });
+    },
+    [createAnnotationMutation],
+  );
+
+  const onEditAnnotation = useCallback((annotationId: string) => {
+    setEditAnnotationId(annotationId);
+  }, []);
+
+  const onAnnotationEditSaved = useCallback(
+    (deletedAnnotationId?: string) => {
+      setEditAnnotationId(null);
+      if (deletedAnnotationId) {
+        setAnnotationIdOverrides((prev) => {
+          const next = { ...prev };
+          for (const [msgId, annId] of Object.entries(next)) {
+            if (annId === deletedAnnotationId) {
+              delete next[msgId];
+              break;
+            }
+          }
+          return next;
+        });
+        queryClient.removeQueries({
+          queryKey: ["agents", "annotations", agentId, "detail", deletedAnnotationId],
+        });
+      }
+    },
+    [agentId, queryClient],
+  );
+
+  const annotationContextValue = useMemo<AnnotationContextValue | null>(() => {
+    if (!annotationEnabled) return null;
+    return {
+      agentId,
+      annotationIdOverrides,
+      setAnnotationIdOverrides,
+      editAnnotationId,
+      setEditAnnotationId,
+      addingAnnotationForMessageId,
+      setAddingAnnotationForMessageId,
+      createAnnotationMutation,
+      onAddAnnotation,
+      onEditAnnotation,
+    };
+  }, [
+    annotationEnabled,
+    agentId,
+    annotationIdOverrides,
+    editAnnotationId,
+    addingAnnotationForMessageId,
+    createAnnotationMutation,
+    onAddAnnotation,
+    onEditAnnotation,
+  ]);
+
   if (isLoading && page === 1 && allMessages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center py-12">
@@ -199,49 +561,68 @@ function MessageListContent({
   }
 
   return (
-    <InfiniteScrollTop
-      className="chat-scroll flex h-full min-h-0 flex-col contain-[layout_style_paint]"
-      prependKey={allMessages[0]?.id ?? null}
-      hasMore={hasMore}
-      isLoadingMore={isLoadingMore}
-      onLoadMore={handleLoadMore}
-      hideScrollToBottomButton
-      initial="instant"
-      resize="instant"
-    >
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 pt-4 pb-10">
-        {allMessages.map((m, index) => {
-          const uiMessage = toUIMessage(m);
-          const displayMessage: DisplayMessage = {
-            id: uiMessage.id,
-            message: uiMessage,
-            parentId: null,
-            sequence: index,
-            branchNumber: 0,
-            branchCount: 1,
-            branches: [],
-            isLast: index === allMessages.length - 1,
-          };
-          const rawFeedback = (m.message as { feedback?: AgentMessageFeedback | null } | undefined)
-            ?.feedback;
-          const isAssistant = uiMessage.role === "assistant";
-          return (
-            <MessageItem
-              key={displayMessage.id}
-              displayMessage={displayMessage}
-              isStreaming={false}
-              liked={rawFeedback?.type === "like"}
-              disliked={rawFeedback?.type === "dislike"}
-              extraActions={
-                isAssistant && rawFeedback ? (
-                  <MessageFeedbackBadge feedback={rawFeedback} />
-                ) : undefined
-              }
-            />
-          );
-        })}
-      </div>
-    </InfiniteScrollTop>
+    <AnnotationContext.Provider value={annotationContextValue}>
+      <AnnotationEditDialog
+        agentId={agentId}
+        annotationId={editAnnotationId}
+        open={editAnnotationId !== null}
+        onOpenChange={(open) => !open && setEditAnnotationId(null)}
+        onSaved={onAnnotationEditSaved}
+        container={panelContainer}
+      />
+      <InfiniteScrollTop
+        className="chat-scroll flex h-full min-h-0 flex-col contain-[layout_style_paint]"
+        prependKey={allMessages[0]?.id ?? null}
+        hasMore={hasMore}
+        isLoadingMore={isLoadingMore}
+        onLoadMore={handleLoadMore}
+        hideScrollToBottomButton
+        initial="instant"
+        resize="instant"
+      >
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 pt-4 pb-10">
+          {allMessages.map((m, index) => {
+            const uiMessage = toUIMessage(m);
+            const displayMessage: DisplayMessage = {
+              id: uiMessage.id,
+              message: uiMessage,
+              parentId: null,
+              sequence: index,
+              branchNumber: 0,
+              branchCount: 1,
+              branches: [],
+              isLast: index === allMessages.length - 1,
+            };
+            const rawFeedback = (
+              m.message as { feedback?: AgentMessageFeedback | null } | undefined
+            )?.feedback;
+            const isAssistant = uiMessage.role === "assistant";
+            return (
+              <MessageItem
+                key={`${displayMessage.id}-${annotationEnabled ? "ann-on" : "ann-off"}`}
+                displayMessage={displayMessage}
+                isStreaming={false}
+                liked={rawFeedback?.type === "like"}
+                disliked={rawFeedback?.type === "dislike"}
+                extraActions={
+                  <>
+                    {isAssistant && rawFeedback && <MessageFeedbackBadge feedback={rawFeedback} />}
+                    {annotationContextValue && isAssistant && (
+                      <AnnotationActions
+                        messageId={displayMessage.id}
+                        dbMessageId={m.id}
+                        message={uiMessage}
+                        allMessages={allMessages}
+                      />
+                    )}
+                  </>
+                }
+              />
+            );
+          })}
+        </div>
+      </InfiniteScrollTop>
+    </AnnotationContext.Provider>
   );
 }
 
@@ -289,6 +670,10 @@ export default function Messages({ agentId }: MessagesProps) {
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(1);
+  const [drawerContainer, setDrawerContainer] = useState<HTMLDivElement | null>(null);
+
+  const { data: agent } = useAgentDetailQuery(agentId, { enabled: !!agentId });
+  const annotationEnabled = agent?.annotationConfig?.enabled ?? false;
 
   const queryParams = useMemo(
     () => ({
@@ -296,6 +681,7 @@ export default function Messages({ agentId }: MessagesProps) {
       pageSize: TABLE_PAGE_SIZE,
       keyword: keyword.trim() || undefined,
       sortBy: sortBy as "createdAt" | "updatedAt",
+      includeDebug: true,
     }),
     [page, keyword, sortBy],
   );
@@ -447,7 +833,10 @@ export default function Messages({ agentId }: MessagesProps) {
         )}
       </div>
       <Drawer open={drawerOpen} onOpenChange={handleOpenChange} direction="right">
-        <DrawerContent className="bg-muted flex h-full max-w-2xl! flex-col outline-none! sm:max-w-2xl!">
+        <DrawerContent
+          ref={setDrawerContainer}
+          className="bg-muted flex h-full max-w-2xl! flex-col outline-none! sm:max-w-2xl!"
+        >
           <DrawerHeader className="shrink-0 px-4 py-3">
             <DrawerTitle className="flex items-center justify-between gap-3 text-base">
               <span className="min-w-0 truncate">{selected?.title?.trim() || "无标题"}</span>
@@ -493,6 +882,8 @@ export default function Messages({ agentId }: MessagesProps) {
                   key={selected.id}
                   agentId={agentId}
                   conversationId={selected.id}
+                  annotationEnabled={annotationEnabled}
+                  panelContainer={drawerContainer}
                 />
               ) : null}
             </div>

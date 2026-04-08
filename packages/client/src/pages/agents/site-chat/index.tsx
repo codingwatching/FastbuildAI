@@ -2,10 +2,7 @@ import type { PublishedAgentDetail } from "@buildingai/types";
 import { type FormFieldConfig } from "@buildingai/types/ai/agent-config.interface";
 import type { PromptInputMessage } from "@buildingai/ui/components/ai-elements/prompt-input";
 import { EditorContentRenderer } from "@buildingai/ui/components/editor";
-import {
-  InfiniteScrollTop,
-  InfiniteScrollTopScrollButton,
-} from "@buildingai/ui/components/infinite-scroll-top";
+import { InfiniteScrollTop } from "@buildingai/ui/components/infinite-scroll-top";
 import { Avatar, AvatarFallback, AvatarImage } from "@buildingai/ui/components/ui/avatar";
 import { Button } from "@buildingai/ui/components/ui/button";
 import {
@@ -57,6 +54,13 @@ const HIDDEN_TOOLS: PromptInputHiddenTool[] = [
   "speech",
   "thinking",
 ];
+
+type PublishedAgentDetailWithUploadCapability = PublishedAgentDetail & {
+  enableFileUpload?: boolean;
+  uploadCapability?: {
+    supportedUploadTypes: Array<"image" | "video" | "audio" | "file">;
+  };
+};
 
 function getOrCreateAnonymousId(): string | undefined {
   if (typeof window === "undefined") return undefined;
@@ -274,6 +278,13 @@ export default function PublishChatPage() {
     formVariables,
   });
 
+  const typedAgent = agent as PublishedAgentDetailWithUploadCapability | undefined;
+  const fileUploadEnabled = Boolean(typedAgent?.enableFileUpload);
+  const promptHiddenTools = useMemo<PromptInputHiddenTool[]>(
+    () => (fileUploadEnabled ? HIDDEN_TOOLS.filter((t) => t !== "file") : HIDDEN_TOOLS),
+    [fileUploadEnabled],
+  );
+
   const {
     displayMessages,
     status,
@@ -303,14 +314,13 @@ export default function PublishChatPage() {
   );
 
   /**
-   * Auto-open the form variables popover when the agent has required fields that are still empty,
-   * so users notice them immediately after the page (or agent detail) loads.
+   * Auto-open the form variables popover when any form fields exist,
+   * so users see the form as soon as the page loads.
    */
   useEffect(() => {
-    if (requiredFields.length === 0) return;
-    if (requiredFilled) return;
+    if (formFields.length === 0) return;
     setFormPopoverOpen(true);
-  }, [requiredFields.length, requiredFilled]);
+  }, [formFields.length]);
 
   const handleFormValueChange = useCallback((name: string, value: string) => {
     setFormValues((prev) => ({ ...prev, [name]: value }));
@@ -386,7 +396,12 @@ export default function PublishChatPage() {
         />
       </aside>
 
-      <AssistantProvider {...providerValue}>
+      <AssistantProvider
+        {...providerValue}
+        supportedUploadTypes={
+          fileUploadEnabled ? typedAgent?.uploadCapability?.supportedUploadTypes : []
+        }
+      >
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
             <main
@@ -501,125 +516,125 @@ export default function PublishChatPage() {
                 ) : null}
               </header>
 
-              <InfiniteScrollTop
-                className="chat-scroll relative flex min-h-0 w-full flex-1 flex-col"
-                hideScrollToBottomButton
-                prependKey={displayMessages[0]?.id ?? null}
-                hasMore={hasMoreMessages}
-                isLoadingMore={isLoadingMoreMessages}
-                onLoadMore={onLoadMoreMessages}
-                forceFullHeight={isFirstSession}
-              >
-                <div
-                  className={
-                    isFirstSession
-                      ? "mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-6 px-3 pt-6 pb-3 sm:px-4 sm:pt-8 sm:pb-4"
-                      : "mx-auto flex w-full max-w-3xl flex-col gap-4 px-0 pt-6 pb-3 sm:px-4 sm:pt-8 sm:pb-4"
-                  }
+              <div className="chat-scroll relative flex min-h-0 w-full flex-1 flex-col overflow-hidden">
+                <InfiniteScrollTop
+                  className="relative flex min-h-0 w-full flex-1 flex-col"
+                  prependKey={displayMessages[0]?.id ?? null}
+                  hasMore={hasMoreMessages}
+                  isLoadingMore={isLoadingMoreMessages}
+                  onLoadMore={onLoadMoreMessages}
+                  forceFullHeight={isFirstSession}
                 >
-                  {isFirstSession && !isAgentLoading ? (
-                    <>
-                      {hasOpening ? (
-                        <div className="flex w-full gap-3">
-                          {assistantAvatar ? (
-                            <Avatar className="size-8 shrink-0 rounded-full">
-                              <AvatarImage src={assistantAvatar} alt="" />
-                              <AvatarFallback className="rounded-full">
-                                <Bot className="size-4" />
-                              </AvatarFallback>
-                            </Avatar>
-                          ) : null}
-                          <div className="bg-muted flex min-w-0 flex-col rounded-2xl px-4 py-3">
-                            {hasOpeningContent ? (
-                              <EditorContentRenderer
-                                value={openingStatementValue ?? ""}
-                                className="prose prose-neutral dark:prose-invert prose-pre:bg-primary/15 prose-pre:text-foreground max-w-full text-sm"
-                              />
+                  <div
+                    className={
+                      isFirstSession
+                        ? "mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-6 px-3 pt-6 pb-3 sm:px-4 sm:pt-8 sm:pb-4"
+                        : "mx-auto flex w-full max-w-3xl flex-col gap-4 px-0 pt-6 pb-3 sm:px-4 sm:pt-8 sm:pb-4"
+                    }
+                  >
+                    {isFirstSession && !isAgentLoading ? (
+                      <>
+                        {hasOpening ? (
+                          <div className="flex w-full gap-3">
+                            {assistantAvatar ? (
+                              <Avatar className="size-8 shrink-0 rounded-full">
+                                <AvatarImage src={assistantAvatar} alt="" />
+                                <AvatarFallback className="rounded-full">
+                                  <Bot className="size-4" />
+                                </AvatarFallback>
+                              </Avatar>
                             ) : null}
-                            {openingQuestions.length > 0 ? (
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {openingQuestions.map((q, i) => (
-                                  <Button
-                                    key={i}
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="rounded-full"
-                                    onClick={() => {
-                                      if (!ensureFormReady()) return;
-                                      onSend(q, undefined);
-                                    }}
-                                  >
-                                    {q}
-                                  </Button>
-                                ))}
-                              </div>
-                            ) : null}
+                            <div className="bg-muted flex min-w-0 flex-col rounded-2xl px-4 py-3">
+                              {hasOpeningContent ? (
+                                <EditorContentRenderer
+                                  value={openingStatementValue ?? ""}
+                                  className="prose prose-neutral dark:prose-invert prose-pre:bg-primary/15 prose-pre:text-foreground max-w-full text-sm"
+                                />
+                              ) : null}
+                              {openingQuestions.length > 0 ? (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {openingQuestions.map((q, i) => (
+                                    <Button
+                                      key={i}
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="rounded-full"
+                                      onClick={() => {
+                                        if (!ensureFormReady()) return;
+                                        onSend(q, undefined);
+                                      }}
+                                    >
+                                      {q}
+                                    </Button>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        ) : null}
+                      </>
+                    ) : isLoadingHistory && displayMessages.length === 0 ? (
+                      <div className="flex w-full flex-1 flex-col gap-4">
+                        <div className="flex gap-3">
+                          <Skeleton className="size-8 shrink-0 rounded-lg" />
+                          <div className="flex min-w-0 flex-1 flex-col gap-2">
+                            <Skeleton className="h-4 w-full rounded-md" />
+                            <Skeleton className="h-4 w-[92%] rounded-md" />
+                            <Skeleton className="h-4 w-[78%] rounded-md" />
                           </div>
                         </div>
-                      ) : null}
-                    </>
-                  ) : isLoadingHistory && displayMessages.length === 0 ? (
-                    <div className="flex w-full flex-1 flex-col gap-4">
-                      <div className="flex gap-3">
-                        <Skeleton className="size-8 shrink-0 rounded-lg" />
-                        <div className="flex min-w-0 flex-1 flex-col gap-2">
-                          <Skeleton className="h-4 w-full rounded-md" />
-                          <Skeleton className="h-4 w-[92%] rounded-md" />
-                          <Skeleton className="h-4 w-[78%] rounded-md" />
+                        <div className="flex justify-end">
+                          <Skeleton className="h-11 w-[min(100%,20rem)] rounded-2xl" />
+                        </div>
+                        <div className="flex gap-3">
+                          <Skeleton className="size-8 shrink-0 rounded-lg" />
+                          <div className="flex min-w-0 flex-1 flex-col gap-2">
+                            <Skeleton className="h-4 w-full rounded-md" />
+                            <Skeleton className="h-4 w-[88%] rounded-md" />
+                          </div>
                         </div>
                       </div>
-                      <div className="flex justify-end">
-                        <Skeleton className="h-11 w-[min(100%,20rem)] rounded-2xl" />
+                    ) : (
+                      <div className="flex w-full flex-col gap-4">
+                        {displayMessages.map((dm) => {
+                          const isStreaming = streamingMessageId === dm.id;
+                          return (
+                            <MessageItem
+                              key={dm.id}
+                              displayMessage={dm}
+                              isStreaming={isStreaming}
+                              liked={Boolean(liked[dm.id])}
+                              disliked={Boolean(disliked[dm.id])}
+                              addToolApprovalResponse={addToolApprovalResponse}
+                              onRegenerate={onRegenerate}
+                              onEditMessage={onEditMessage}
+                              onSwitchBranch={canOperateMessage ? onSwitchBranch : undefined}
+                              onLike={canOperateMessage ? onLike : undefined}
+                              onDislike={canOperateMessage ? onDislike : undefined}
+                            />
+                          );
+                        })}
                       </div>
-                      <div className="flex gap-3">
-                        <Skeleton className="size-8 shrink-0 rounded-lg" />
-                        <div className="flex min-w-0 flex-1 flex-col gap-2">
-                          <Skeleton className="h-4 w-full rounded-md" />
-                          <Skeleton className="h-4 w-[88%] rounded-md" />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex w-full flex-col gap-4">
-                      {displayMessages.map((dm) => {
-                        const isStreaming = streamingMessageId === dm.id;
-                        return (
-                          <MessageItem
-                            key={dm.id}
-                            displayMessage={dm}
-                            isStreaming={isStreaming}
-                            liked={Boolean(liked[dm.id])}
-                            disliked={Boolean(disliked[dm.id])}
-                            addToolApprovalResponse={addToolApprovalResponse}
-                            onRegenerate={onRegenerate}
-                            onEditMessage={onEditMessage}
-                            onSwitchBranch={canOperateMessage ? onSwitchBranch : undefined}
-                            onLike={canOperateMessage ? onLike : undefined}
-                            onDislike={canOperateMessage ? onDislike : undefined}
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                </InfiniteScrollTop>
 
-                <div className="bg-background sticky bottom-0 z-10">
-                  <InfiniteScrollTopScrollButton className="-top-12 z-20" />
+                <div className="bg-background relative z-10 shrink-0">
                   <div className="mx-auto w-full max-w-3xl px-0 py-2 sm:px-4 sm:py-3">
                     <PromptInput
                       textareaRef={undefined}
                       status={status}
                       onSubmit={handleSubmit}
                       onStop={stop}
-                      hiddenTools={HIDDEN_TOOLS}
+                      hiddenTools={promptHiddenTools}
                       models={models}
                       selectedModelId={AGENT_MODEL_ID}
                       selectedMcpServerIds={[]}
                     />
                   </div>
                 </div>
-              </InfiniteScrollTop>
+              </div>
             </main>
             <SheetContent
               side="left"
