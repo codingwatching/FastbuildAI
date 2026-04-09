@@ -223,7 +223,7 @@ const AccessRoleIndexPage = () => {
                     <TableCell className="text-muted-foreground">
                       {role.description || "-"}
                     </TableCell>
-                    <TableCell>{role.users?.length || 0}</TableCell>
+                    <TableCell>{role.userCount || 0}</TableCell>
                     <TableCell className="text-muted-foreground">
                       <TimeText value={role.createdAt} format="YYYY/MM/DD HH:mm" />
                     </TableCell>

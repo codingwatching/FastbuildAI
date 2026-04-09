@@ -75,7 +75,9 @@ export class RoleService extends BaseService<Role> {
      */
     async list(queryRoleDto: QueryRoleDto) {
         const { name, description } = queryRoleDto;
-        const queryBuilder = this.repository.createQueryBuilder("role");
+        const queryBuilder = this.repository
+            .createQueryBuilder("role")
+            .loadRelationCountAndMap("role.userCount", "role.users");
         // .orderBy("role.createdAt", "DESC");
         if (name) {
             queryBuilder.andWhere("role.name LIKE :name", {

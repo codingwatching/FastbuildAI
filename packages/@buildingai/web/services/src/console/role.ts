@@ -20,6 +20,7 @@ export interface RoleEntity {
     description?: string;
     isDisabled: boolean;
     users?: User[];
+    userCount: number;
     createdAt: string;
     updatedAt: string;
 }
