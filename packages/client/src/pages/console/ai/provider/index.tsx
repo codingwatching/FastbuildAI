@@ -1,4 +1,9 @@
-import { MODEL_FEATURE_DESCRIPTIONS, MODEL_FEATURES } from "@buildingai/ai-sdk/interfaces";
+import {
+  MODEL_FEATURE_DESCRIPTIONS,
+  MODEL_FEATURES,
+  MODEL_TYPE_DESCRIPTIONS,
+  type ModelType,
+} from "@buildingai/ai-sdk/interfaces";
 import { useDocumentHead } from "@buildingai/hooks";
 import {
   type AiProvider,
@@ -90,6 +95,8 @@ const FEATURE_ICON_MAP: Record<string, React.ElementType> = {
   [MODEL_FEATURES.STRUCTURED_OUTPUT]: Braces,
 };
 
+const MODEL_TYPES = Object.keys(MODEL_TYPE_DESCRIPTIONS) as ModelType[];
+
 type ModelFeatureBadgesProps = {
   features: string[];
   showLabel?: boolean;
@@ -127,6 +134,7 @@ const AiProviderIndexPage = () => {
   const [debouncedKeyword] = useDebounceValue(keyword.trim(), 300);
   const [queryParams, setQueryParams] = useState<QueryAiProviderDto>({});
   const [modelStatus, setModelStatus] = useState<"all" | "active" | "inactive">("all");
+  const [modelType, setModelType] = useState<"all" | ModelType>("all");
   const [modelsDialogOpen, setModelsDialogOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<AiProvider | null>(null);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
@@ -162,6 +170,7 @@ const AiProviderIndexPage = () => {
   const handleManageModels = (provider: AiProvider) => {
     setSelectedProvider(provider);
     setModelStatus("all");
+    setModelType("all");
     setModelsDialogOpen(true);
   };
 
@@ -276,12 +285,19 @@ const AiProviderIndexPage = () => {
     setModelStatus(value);
   };
 
+  const handleModelTypeChange = (value: string) => {
+    setModelType(value as "all" | ModelType);
+  };
+
   const filteredModels = useMemo(() => {
     const models = selectedProvider?.models ?? [];
-    if (modelStatus === "all") return models;
-    const isActive = modelStatus === "active";
-    return models.filter((m) => Boolean(m.isActive) === isActive);
-  }, [modelStatus, selectedProvider?.models]);
+    return models.filter((m) => {
+      const matchedStatus =
+        modelStatus === "all" ? true : Boolean(m.isActive) === (modelStatus === "active");
+      const matchedType = modelType === "all" ? true : m.modelType === modelType;
+      return matchedStatus && matchedType;
+    });
+  }, [modelStatus, modelType, selectedProvider?.models]);
 
   return (
     <PageContainer>
@@ -403,7 +419,13 @@ const AiProviderIndexPage = () => {
                         <PermissionGuard permissions="ai-providers:update">
                           <DropdownMenuItem onClick={() => handleOpenEditDialog(provider)}>
                             <Edit />
-                            编辑
+                            编辑厂商
+                          </DropdownMenuItem>
+                        </PermissionGuard>
+                        <PermissionGuard permissions="ai-providers:update">
+                          <DropdownMenuItem onClick={() => handleManageModels(provider)}>
+                            <Settings />
+                            管理模型
                           </DropdownMenuItem>
                         </PermissionGuard>
 
@@ -472,6 +494,28 @@ const AiProviderIndexPage = () => {
                       <SelectItem value="all">全部状态</SelectItem>
                       <SelectItem value="active">已启用</SelectItem>
                       <SelectItem value="inactive">已禁用</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="p-1 pb-0">
+                  <Select value={modelType} onValueChange={handleModelTypeChange}>
+                    <SelectTrigger className="h-8! min-w-40">
+                      <SelectValue placeholder="模型类型">
+                        {modelType === "all"
+                          ? "全部类型"
+                          : MODEL_TYPE_DESCRIPTIONS[modelType].nameEn}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">全部类型</SelectItem>
+                      {MODEL_TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {MODEL_TYPE_DESCRIPTIONS[type].nameEn}
+                          <span className="text-muted-foreground ml-1 text-xs">
+                            ({MODEL_TYPE_DESCRIPTIONS[type].description})
+                          </span>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

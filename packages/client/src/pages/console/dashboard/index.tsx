@@ -39,6 +39,74 @@ const DashboardIndexPage = () => {
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           <DataCard
+            title="订单统计"
+            description="订单数据概览"
+            contentClassName="flex flex-col gap-1 px-4 md:gap-2"
+            action={
+              <div className="flex flex-col items-center justify-center">
+                {isLoading ? (
+                  <Skeleton className="h-16 w-20" />
+                ) : (
+                  <>
+                    {(data?.order.orderChange ?? 0) >= 0 ? (
+                      <TrendingUp className="size-8 text-green-600" />
+                    ) : (
+                      <TrendingDown className="text-destructive size-8" />
+                    )}
+                    <div className="text-muted-foreground text-xs">
+                      同比昨天
+                      {(data?.order.orderChange ?? 0) >= 0 ? "增长" : "下降"}
+                      <span
+                        className={`mx-1 text-lg font-bold ${(data?.order.orderChange ?? 0) >= 0 ? "text-green-600" : "text-destructive"}`}
+                      >
+                        {Math.abs(data?.order.orderChange ?? 0).toFixed(1)}%
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            }
+          >
+            {isLoading ? (
+              <>
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-full" />
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">订单金额</span>
+                  <span className="text-primary text-xl font-bold">
+                    ¥
+                    <CountUp
+                      direction="up"
+                      duration={0.05}
+                      to={data?.order.todayOrderAmount ?? 0}
+                    />
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">本月收入</span>
+                  <span className="text-primary text-xl font-bold">
+                    ¥
+                    <CountUp
+                      direction="up"
+                      duration={0.05}
+                      to={data?.order.monthOrderAmount ?? 0}
+                    />
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">今日订单</span>
+                  <span className="text-primary text-xl font-bold">
+                    <CountUp direction="up" duration={0.05} to={data?.order.ordersToday ?? 0} />
+                  </span>
+                </div>
+              </>
+            )}
+          </DataCard>
+          <DataCard
             title="用户统计"
             description="用户数据概览"
             contentClassName="flex flex-col gap-1 px-4 md:gap-2"
@@ -158,65 +226,6 @@ const DashboardIndexPage = () => {
                       duration={0.05}
                       to={data?.chat.conversationsToday ?? 0}
                     />
-                  </span>
-                </div>
-              </>
-            )}
-          </DataCard>
-
-          <DataCard
-            title="订单统计"
-            description="订单数据概览"
-            contentClassName="flex flex-col gap-1 px-4 md:gap-2"
-            action={
-              <div className="flex flex-col items-center justify-center">
-                {isLoading ? (
-                  <Skeleton className="h-16 w-20" />
-                ) : (
-                  <>
-                    {(data?.order.orderChange ?? 0) >= 0 ? (
-                      <TrendingUp className="size-8 text-green-600" />
-                    ) : (
-                      <TrendingDown className="text-destructive size-8" />
-                    )}
-                    <div className="text-muted-foreground text-xs">
-                      同比昨天
-                      {(data?.order.orderChange ?? 0) >= 0 ? "增长" : "下降"}
-                      <span
-                        className={`mx-1 text-lg font-bold ${(data?.order.orderChange ?? 0) >= 0 ? "text-green-600" : "text-destructive"}`}
-                      >
-                        {Math.abs(data?.order.orderChange ?? 0).toFixed(1)}%
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
-            }
-          >
-            {isLoading ? (
-              <>
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-full" />
-              </>
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">订单总数</span>
-                  <span className="text-primary text-xl font-bold">
-                    <CountUp direction="up" duration={0.05} to={data?.order.totalOrders ?? 0} />
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">订单总额</span>
-                  <span className="text-primary text-xl font-bold">
-                    ¥<CountUp direction="up" duration={0.05} to={data?.order.totalAmount ?? 0} />
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">今日订单</span>
-                  <span className="text-primary text-xl font-bold">
-                    <CountUp direction="up" duration={0.05} to={data?.order.ordersToday ?? 0} />
                   </span>
                 </div>
               </>

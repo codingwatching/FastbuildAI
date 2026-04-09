@@ -50,6 +50,7 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { useDebounceValue } from "usehooks-ts";
 
+import { ProviderIcon } from "@/components/provider-icons";
 import { TagSelect } from "@/components/tags";
 import { PageContainer } from "@/layouts/console/_components/page-container";
 
@@ -335,6 +336,7 @@ const AgentIndexPage = () => {
               <TableRow>
                 <TableHead>智能体</TableHead>
                 <TableHead>创建人</TableHead>
+                <TableHead>模型</TableHead>
                 <TableHead>标签</TableHead>
                 <TableHead className="text-center">智能体类型</TableHead>
                 <TableHead>状态</TableHead>
@@ -370,7 +372,7 @@ const AgentIndexPage = () => {
                 data.items.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex max-w-60 items-center gap-2">
                         <Avatar className="size-8 rounded-md after:rounded-md">
                           <AvatarImage src={row.avatar || ""} className="rounded-md" />
                           <AvatarFallback className="rounded-md">
@@ -382,8 +384,30 @@ const AgentIndexPage = () => {
                         </div>
                       </div>
                     </TableCell>
+
                     <TableCell className="text-muted-foreground truncate">
                       {row.creatorName}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex max-w-52 items-center gap-2">
+                        <Avatar className="bg-muted size-5 rounded-sm after:rounded-sm">
+                          {row.iconUrl?.trim() ? (
+                            <AvatarImage src={row.iconUrl} className="rounded-sm" />
+                          ) : null}
+                          <AvatarFallback className="rounded-sm">
+                            {row.modelProvider ? (
+                              <ProviderIcon
+                                provider={row.modelProvider}
+                                className="text-primary size-3"
+                                fallback={<Bot className="text-primary size-3" />}
+                              />
+                            ) : (
+                              <Bot className="text-primary size-3" />
+                            )}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="truncate">{row.modelName || "-"}</span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex max-w-[140px] flex-wrap gap-1">

@@ -61,7 +61,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useDebounceValue } from "usehooks-ts";
 
@@ -70,11 +70,15 @@ import { SecretTemplateFormDialog } from "./secret-template-form-dialog";
 type SecretsManageDialogProps = {
   template: SecretTemplate;
   onSecretChanged?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  autoAddOnOpen?: boolean;
 };
 
 type SecretsManageContentProps = {
   template: SecretTemplate;
   onSecretChanged?: () => void;
+  autoAddOnOpen?: boolean;
 };
 
 /**
@@ -92,7 +96,11 @@ type NewSecretRow = {
   fieldValues: Record<string, string>;
 };
 
-const SecretsManageContent = ({ template, onSecretChanged }: SecretsManageContentProps) => {
+const SecretsManageContent = ({
+  template,
+  onSecretChanged,
+  autoAddOnOpen = false,
+}: SecretsManageContentProps) => {
   const { confirm } = useAlertDialog();
   const [editingField, setEditingField] = useState<EditingField | null>(null);
   const [hasError, setHasError] = useState(false);
@@ -152,6 +160,11 @@ const SecretsManageContent = ({ template, onSecretChanged }: SecretsManageConten
     });
     setNewRow({ name: "", fieldValues: initialFieldValues });
   };
+
+  useEffect(() => {
+    if (!autoAddOnOpen || newRow) return;
+    handleAddRow();
+  }, [autoAddOnOpen, newRow, template]);
 
   const handleCancelNewRow = () => {
     setNewRow(null);
@@ -312,6 +325,25 @@ const SecretsManageContent = ({ template, onSecretChanged }: SecretsManageConten
               <span className="text-muted-foreground mb-2 px-2 text-xs">
                 名称<span className="text-destructive">*</span>
               </span>
+              {newRow && (
+                <div
+                  className={`flex h-9 items-center border px-2 ${newRowErrors.has("__name__") ? "border-destructive bg-destructive/10" : "border-transparent"}`}
+                >
+                  <Input
+                    value={newRow.name}
+                    placeholder="请输入密钥名"
+                    className="h-full w-full border-0 border-none bg-transparent! px-0 shadow-none ring-0 focus-within:ring-0 focus-visible:ring-0"
+                    onChange={(e) => {
+                      setNewRow({ ...newRow, name: e.target.value });
+                      if (newRowErrors.has("__name__")) {
+                        const next = new Set(newRowErrors);
+                        next.delete("__name__");
+                        setNewRowErrors(next);
+                      }
+                    }}
+                  />
+                </div>
+              )}
               {secrets?.map((secret) => {
                 const isEditingName =
                   editingField?.secretId === secret.id && editingField?.fieldName === "__name__";
@@ -363,25 +395,6 @@ const SecretsManageContent = ({ template, onSecretChanged }: SecretsManageConten
                   </div>
                 );
               })}
-              {newRow && (
-                <div
-                  className={`flex h-9 items-center border px-2 ${newRowErrors.has("__name__") ? "border-destructive bg-destructive/10" : "border-transparent"}`}
-                >
-                  <Input
-                    value={newRow.name}
-                    placeholder="请输入密钥名"
-                    className="h-full w-full border-0 border-none bg-transparent! px-0 shadow-none ring-0 focus-within:ring-0 focus-visible:ring-0"
-                    onChange={(e) => {
-                      setNewRow({ ...newRow, name: e.target.value });
-                      if (newRowErrors.has("__name__")) {
-                        const next = new Set(newRowErrors);
-                        next.delete("__name__");
-                        setNewRowErrors(next);
-                      }
-                    }}
-                  />
-                </div>
-              )}
             </div>
             <div className="flex flex-1 flex-col">
               <div className="flex w-full justify-between">
@@ -392,6 +405,33 @@ const SecretsManageContent = ({ template, onSecretChanged }: SecretsManageConten
                   </span>
                 ))}
               </div>
+              {newRow && (
+                <div className="flex h-9 w-full justify-between text-sm break-all">
+                  {template.fieldConfig?.map((field) => (
+                    <div
+                      key={field.name}
+                      className={`flex h-full flex-1 items-center border px-2 ${newRowErrors.has(field.name) ? "border-destructive bg-destructive/10" : "border-transparent"}`}
+                    >
+                      <Input
+                        value={newRow.fieldValues[field.name] || ""}
+                        placeholder={field.placeholder}
+                        className="h-full w-full border-0 border-none bg-transparent px-0 shadow-none ring-0 focus-within:ring-0 focus-visible:ring-0"
+                        onChange={(e) => {
+                          setNewRow({
+                            ...newRow,
+                            fieldValues: { ...newRow.fieldValues, [field.name]: e.target.value },
+                          });
+                          if (newRowErrors.has(field.name)) {
+                            const next = new Set(newRowErrors);
+                            next.delete(field.name);
+                            setNewRowErrors(next);
+                          }
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               {secrets?.map((secret) => (
                 <div
                   key={secret.id}
@@ -456,36 +496,10 @@ const SecretsManageContent = ({ template, onSecretChanged }: SecretsManageConten
                   })}
                 </div>
               ))}
-              {newRow && (
-                <div className="flex h-9 w-full justify-between text-sm break-all">
-                  {template.fieldConfig?.map((field) => (
-                    <div
-                      key={field.name}
-                      className={`flex h-full flex-1 items-center border px-2 ${newRowErrors.has(field.name) ? "border-destructive bg-destructive/10" : "border-transparent"}`}
-                    >
-                      <Input
-                        value={newRow.fieldValues[field.name] || ""}
-                        placeholder={field.placeholder}
-                        className="h-full w-full border-0 border-none bg-transparent px-0 shadow-none ring-0 focus-within:ring-0 focus-visible:ring-0"
-                        onChange={(e) => {
-                          setNewRow({
-                            ...newRow,
-                            fieldValues: { ...newRow.fieldValues, [field.name]: e.target.value },
-                          });
-                          if (newRowErrors.has(field.name)) {
-                            const next = new Set(newRowErrors);
-                            next.delete(field.name);
-                            setNewRowErrors(next);
-                          }
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
             <div className="flex w-12 flex-col">
               <span className="text-muted-foreground mb-2 text-xs">状态</span>
+              {newRow && <div className="flex h-9 items-center" />}
               {secrets?.map((secret) => (
                 <div key={secret.id} className="flex h-9 items-center">
                   <PermissionGuard permissions="secret:update-status" blockOnly>
@@ -497,22 +511,9 @@ const SecretsManageContent = ({ template, onSecretChanged }: SecretsManageConten
                   </PermissionGuard>
                 </div>
               ))}
-              {newRow && <div className="flex h-9 items-center" />}
             </div>
             <div className="flex w-16 flex-col">
               <span className="text-muted-foreground end mb-2 text-xs">操作</span>
-              {secrets?.map((secret) => (
-                <div key={secret.id} className="end flex h-9 items-center">
-                  <Button
-                    size="icon-sm"
-                    variant="ghost"
-                    onClick={() => handleDelete(secret)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 />
-                  </Button>
-                </div>
-              ))}
               {newRow && (
                 <div className="end flex h-9 items-center">
                   <PermissionGuard permissions="secret:delete" blockOnly>
@@ -530,6 +531,18 @@ const SecretsManageContent = ({ template, onSecretChanged }: SecretsManageConten
                   </PermissionGuard>
                 </div>
               )}
+              {secrets?.map((secret) => (
+                <div key={secret.id} className="end flex h-9 items-center">
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    onClick={() => handleDelete(secret)}
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+              ))}
             </div>
           </div>
         ) : (
@@ -551,11 +564,26 @@ const SecretsManageContent = ({ template, onSecretChanged }: SecretsManageConten
 /**
  * Dialog trigger component for managing secrets of a template
  */
-const SecretsManageDialog = ({ template, onSecretChanged }: SecretsManageDialogProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+const SecretsManageDialog = ({
+  template,
+  onSecretChanged,
+  open,
+  onOpenChange,
+  autoAddOnOpen = false,
+}: SecretsManageDialogProps) => {
+  const [innerOpen, setInnerOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : innerOpen;
+
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    onOpenChange?.(nextOpen);
+    if (!isControlled) {
+      setInnerOpen(nextOpen);
+    }
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
       <PermissionGuard permissions="secret:list-by-template">
         <DialogTrigger asChild>
           <Button variant="ghost" size="xs" className="text-muted-foreground px-0 hover:px-2">
@@ -566,7 +594,13 @@ const SecretsManageDialog = ({ template, onSecretChanged }: SecretsManageDialogP
         </DialogTrigger>
       </PermissionGuard>
       <DialogContent className="sm:max-w-5xl" onOpenAutoFocus={(e) => e.preventDefault()}>
-        {isOpen && <SecretsManageContent template={template} onSecretChanged={onSecretChanged} />}
+        {isOpen && (
+          <SecretsManageContent
+            template={template}
+            onSecretChanged={onSecretChanged}
+            autoAddOnOpen={autoAddOnOpen}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -581,6 +615,7 @@ const AiSecretTemplateManage = () => {
   const [editingTemplate, setEditingTemplate] = useState<SecretTemplate | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importJson, setImportJson] = useState("");
+  const [quickAddTemplateId, setQuickAddTemplateId] = useState<string | null>(null);
 
   const { data: templates, refetch, isLoading } = useAllSecretTemplatesQuery();
 
@@ -771,10 +806,24 @@ const AiSecretTemplateManage = () => {
                   </Avatar>
                   <div className="flex flex-col overflow-hidden">
                     <span className="line-clamp-1">{template.name}</span>
-                    <SecretsManageDialog template={template} onSecretChanged={refetch} />
+                    <SecretsManageDialog
+                      template={template}
+                      onSecretChanged={refetch}
+                      open={quickAddTemplateId === template.id ? true : undefined}
+                      onOpenChange={(open) => {
+                        if (!open && quickAddTemplateId === template.id) {
+                          setQuickAddTemplateId(null);
+                        }
+                      }}
+                      autoAddOnOpen={quickAddTemplateId === template.id}
+                    />
                   </div>
                   <PermissionGuard
-                    permissions={["secret-templates:update", "secret-templates:delete"]}
+                    permissions={[
+                      "secret-templates:update",
+                      "secret-templates:delete",
+                      "secret:create",
+                    ]}
                     any
                   >
                     <DropdownMenu>
@@ -787,7 +836,13 @@ const AiSecretTemplateManage = () => {
                         <PermissionGuard permissions="secret-templates:update">
                           <DropdownMenuItem onClick={() => handleEdit(template)}>
                             <Edit />
-                            编辑
+                            编辑模板
+                          </DropdownMenuItem>
+                        </PermissionGuard>
+                        <PermissionGuard permissions="secret:create">
+                          <DropdownMenuItem onClick={() => setQuickAddTemplateId(template.id)}>
+                            <KeyRound />
+                            添加密钥
                           </DropdownMenuItem>
                         </PermissionGuard>
                         <DropdownMenuSeparator />

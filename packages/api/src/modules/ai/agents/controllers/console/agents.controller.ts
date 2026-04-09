@@ -1,6 +1,6 @@
 import { type UserPlayground } from "@buildingai/db";
 import { InjectRepository } from "@buildingai/db/@nestjs/typeorm";
-import { SquarePublishStatus, User } from "@buildingai/db/entities";
+import { AiModel, AiProvider, SquarePublishStatus, User } from "@buildingai/db/entities";
 import { In, Repository } from "@buildingai/db/typeorm";
 import { BuildFileUrl } from "@buildingai/decorators";
 import { Playground } from "@buildingai/decorators/playground.decorator";
@@ -26,6 +26,10 @@ export class AgentsConsoleController {
         private readonly userService: UserService,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
+        @InjectRepository(AiModel)
+        private readonly aiModelRepository: Repository<AiModel>,
+        @InjectRepository(AiProvider)
+        private readonly aiProviderRepository: Repository<AiProvider>,
     ) {}
 
     @Get()
@@ -45,19 +49,41 @@ export class AgentsConsoleController {
                       select: ["id", "username", "nickname"],
                   })
                 : [];
+        //获取模型信息
+        const modelIds = [
+            ...new Set(result.items.map((item) => item.modelConfig?.id).filter(Boolean)),
+        ] as string[];
+        const models =
+            modelIds.length > 0
+                ? await this.aiModelRepository.find({
+                      where: { id: In(modelIds) },
+                      select: ["id", "name", "providerId"],
+                  })
+                : [];
+        const providers = await this.aiProviderRepository.find({
+            select: ["id", "name", "provider", "iconUrl"],
+        });
 
         // Create a map for quick lookup
         const userMap = new Map(users.map((user) => [user.id, user]));
-
+        const modelMap = new Map(models.map((model) => [model.id, model]));
+        const providerMap = new Map(providers.map((provider) => [provider.id, provider]));
         return {
             ...result,
             items: result.items.map((item) => {
                 const user = item.createBy ? userMap.get(item.createBy) : null;
+                const modelId = item.modelConfig?.id;
+                const model = modelId ? modelMap.get(modelId) : null;
                 return {
                     id: item.id,
                     name: item.name,
                     description: item.description ?? null,
                     avatar: item.avatar ?? null,
+                    modelName: model?.name ?? null,
+                    modelProvider: model?.providerId
+                        ? (providerMap.get(model.providerId)?.provider ?? null)
+                        : null,
+                    iconUrl: model?.providerId ? providerMap.get(model.providerId)?.iconUrl : null,
                     rolePrompt: item.rolePrompt ?? null,
                     openingStatement: item.openingStatement ?? null,
                     openingQuestions: item.openingQuestions ?? [],

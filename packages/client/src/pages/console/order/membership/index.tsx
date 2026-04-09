@@ -310,7 +310,7 @@ const OrderMembershipIndexPage = () => {
                 <TableRow>
                   <TableHead>订单号</TableHead>
                   <TableHead>用户</TableHead>
-                  <TableHead>会员套餐</TableHead>
+                  <TableHead>会员计划</TableHead>
                   <TableHead>会员等级</TableHead>
                   <TableHead>会员时长</TableHead>
                   <TableHead>实付金额</TableHead>

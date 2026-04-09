@@ -287,7 +287,21 @@ export class DashboardService extends BaseService<any> {
             .select("COALESCE(SUM(order.orderAmount), 0)", "total")
             .getRawOne();
         const totalAmount = Number(totalAmountQuery?.total || 0);
-
+        //本月订单
+        const monthStart = new Date();
+        monthStart.setDate(1);
+        monthStart.setHours(0, 0, 0, 0);
+        const nextMonthStart = new Date(monthStart);
+        nextMonthStart.setMonth(nextMonthStart.getMonth() + 1);
+        const monthOrderAmountQuery = await this.rechargeOrderRepository
+            .createQueryBuilder("order")
+            .where("order.createdAt >= :start AND order.createdAt < :end", {
+                start: monthStart,
+                end: nextMonthStart,
+            })
+            .select("COALESCE(SUM(order.orderAmount), 0)", "total")
+            .getRawOne();
+        const monthOrderAmount = Number(monthOrderAmountQuery?.total || 0);
         // 今日订单数
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -296,6 +310,18 @@ export class DashboardService extends BaseService<any> {
                 createdAt: MoreThanOrEqual(today),
             },
         });
+        //今日订单金额
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const todayOrderAmountQuery = await this.rechargeOrderRepository
+            .createQueryBuilder("order")
+            .where("order.createdAt >= :start AND order.createdAt < :end", {
+                start: today,
+                end: tomorrow,
+            })
+            .select("COALESCE(SUM(order.orderAmount), 0)", "total")
+            .getRawOne();
+        const todayOrderAmount = Number(todayOrderAmountQuery?.total || 0);
 
         // 昨天订单数（用于计算同比变化）
         const yesterday = new Date(today);
@@ -321,6 +347,8 @@ export class DashboardService extends BaseService<any> {
         return {
             totalOrders,
             totalAmount,
+            todayOrderAmount,
+            monthOrderAmount,
             ordersToday,
             orderChange: Math.round(orderChange * 100) / 100,
         };
