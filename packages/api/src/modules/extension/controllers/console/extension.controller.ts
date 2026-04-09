@@ -739,8 +739,7 @@ export class ExtensionConsoleController extends BaseController {
     @Get(":identifier/plugin-layout")
     @Permissions({
         code: "get-plugin-layout",
-        name: "获取插件布局配置",
-        hidden: true,
+        name: "管理应用",
     })
     async getPluginLayout(@Param("identifier") identifier: string) {
         const extension = await this.extensionsService.findByIdentifier(identifier);
