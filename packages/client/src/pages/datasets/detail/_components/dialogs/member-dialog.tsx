@@ -55,6 +55,9 @@ export function MemberDialog({
   });
 
   const applications = applicationsData?.items ?? [];
+  const hasPendingApplications = applications.some(
+    (application) => application.status === "pending",
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -68,8 +71,14 @@ export function MemberDialog({
             <TabsTrigger value="members" className="flex-1 rounded-md">
               成员
             </TabsTrigger>
-            <TabsTrigger value="applications" className="flex-1 rounded-md">
+            <TabsTrigger value="applications" className="relative flex-1 rounded-md">
               申请
+              {hasPendingApplications && (
+                <span
+                  className="bg-destructive absolute top-1 right-19 size-1.5 rounded-full"
+                  aria-label="有待审核加入申请"
+                />
+              )}
             </TabsTrigger>
           </TabsList>
 
