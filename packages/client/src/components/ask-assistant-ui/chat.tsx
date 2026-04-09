@@ -238,13 +238,14 @@ const InputArea = memo(function InputArea({
             rel="noopener noreferrer"
             className="hover:text-primary flex items-center justify-center gap-1 transition-colors"
           >
-            <Avatar className="size-4">
-              <AvatarImage
-                src={websiteConfig?.copyright.iconUrl}
-                alt={websiteConfig?.copyright.displayName}
-                className="grayscale"
-              />
-            </Avatar>
+            {websiteConfig?.copyright.iconUrl && (
+              <Avatar className="size-4">
+                <AvatarImage
+                  src={websiteConfig?.copyright.iconUrl}
+                  alt={websiteConfig?.copyright.displayName}
+                />
+              </Avatar>
+            )}
             <span>{websiteConfig?.copyright.displayName}</span>
           </a>
           {(websiteConfig?.copyright.displayName || websiteConfig?.copyright.iconUrl) &&
