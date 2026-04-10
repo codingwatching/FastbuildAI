@@ -60,6 +60,7 @@ export function PublishDialog({
   const squareStatus = squarePublishStatus ?? "none";
   const isPending = squareStatus === "pending";
   const isRejected = squareStatus === "rejected";
+  const publishSwitchChecked = isPending ? true : publishToSquare;
   const canSubmit = true;
   const canResubmit = true;
 
@@ -105,7 +106,7 @@ export function PublishDialog({
                 </p>
               </div>
               <Switch
-                checked={publishToSquare}
+                checked={publishSwitchChecked}
                 onCheckedChange={setPublishToSquare}
                 className="shrink-0"
                 disabled={isPending}

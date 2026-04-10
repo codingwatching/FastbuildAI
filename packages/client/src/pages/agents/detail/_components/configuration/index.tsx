@@ -485,18 +485,15 @@ export default function Configuration() {
                   )}
                 </div>
               </div>
-              {agent?.squarePublishStatus === "pending" ? (
-                <></>
-              ) : (
-                <Button
-                  variant={agent?.squarePublishStatus === "rejected" ? "destructive" : "default"}
-                  onClick={() => setPublishDialogOpen(true)}
-                  disabled={!agentId}
-                >
-                  <span>{agent?.squarePublishStatus === "rejected" ? "审核失败" : "发布"}</span>
-                  {agent?.squarePublishStatus === "rejected" ? <RefreshCcw /> : <ArrowBigUp />}
-                </Button>
-              )}
+
+              <Button
+                variant={agent?.squarePublishStatus === "rejected" ? "destructive" : "default"}
+                onClick={() => setPublishDialogOpen(true)}
+                disabled={!agentId}
+              >
+                <span>{agent?.squarePublishStatus === "rejected" ? "审核失败" : "发布"}</span>
+                {agent?.squarePublishStatus === "rejected" ? <RefreshCcw /> : <ArrowBigUp />}
+              </Button>
             </div>
           </div>
 
