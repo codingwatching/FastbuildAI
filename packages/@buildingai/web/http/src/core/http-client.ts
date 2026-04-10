@@ -94,6 +94,15 @@ function toHttpError(error: unknown): HttpError {
     });
 }
 
+function isAccessError(error: HttpError): boolean {
+    const responseData =
+        error.details && typeof error.details === "object" && "data" in error.details
+            ? (error.details.data as { code?: unknown } | undefined)
+            : undefined;
+    const businessCode = error.code ?? responseData?.code;
+    return String(businessCode) === "40203";
+}
+
 export class HttpClient {
     private readonly axios: AxiosInstance;
     private readonly options: HttpClientOptions;
@@ -189,7 +198,11 @@ export class HttpClient {
             }
 
             const httpError = toHttpError(error);
-            if (!silent) this.options.hooks?.onError?.(httpError);
+            if (!silent && isAccessError(httpError)) {
+                await this.options.hooks?.onAccessError?.(httpError);
+            } else if (!silent) {
+                this.options.hooks?.onError?.(httpError);
+            }
             throw httpError;
         }
     }
