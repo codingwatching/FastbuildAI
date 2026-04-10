@@ -4,10 +4,10 @@ import { Separator } from "@buildingai/ui/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
+  //   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
+  //   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@buildingai/ui/components/ui/sidebar";
@@ -16,14 +16,14 @@ import { cn } from "@buildingai/ui/lib/utils";
 import {
   Activity,
   ChevronLeft,
-  ExternalLink,
+  //   ExternalLink,
   FileText,
   Send,
   Settings2,
   SlidersHorizontal,
 } from "lucide-react";
 import * as React from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { AgentModal } from "@/pages/agents/_components/agent-modal";
 
@@ -132,7 +132,7 @@ export function OrchestrationSidebar({ ...props }: React.ComponentProps<typeof S
           })}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
+      {/* <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton className="h-9" asChild>
@@ -149,7 +149,7 @@ export function OrchestrationSidebar({ ...props }: React.ComponentProps<typeof S
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+      </SidebarFooter> */}
       <AgentModal
         mode="edit"
         open={editOpen}
