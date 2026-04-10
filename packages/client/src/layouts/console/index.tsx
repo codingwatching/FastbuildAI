@@ -1,7 +1,7 @@
 import {
-  getConsoleMenuPaths,
   getFirstConsoleMenuPath,
   hasConsoleAccess,
+  hasConsoleRouteAccess,
   WEB_HOME_PATH,
 } from "@buildingai/services/shared";
 import { useAuthStore } from "@buildingai/stores";
@@ -275,7 +275,6 @@ function ConsoleRoutes() {
 export default function ConsoleLayout({ children }: { children?: React.ReactNode }) {
   const location = useLocation();
   const { userInfo } = useAuthStore((state) => state.auth);
-  const menuPaths = useMemo(() => getConsoleMenuPaths(userInfo?.menus ?? []), [userInfo?.menus]);
   const firstConsolePath = useMemo(
     () => getFirstConsoleMenuPath(userInfo?.menus ?? []),
     [userInfo?.menus],
@@ -288,11 +287,11 @@ export default function ConsoleLayout({ children }: { children?: React.ReactNode
   }
 
   const currentPath = location.pathname.replace(/\/$/, "") || WEB_HOME_PATH;
-  const shouldRedirectToFirstMenu =
-    currentPath === "/console" ||
-    (menuPaths.length > 0 ? !menuPaths.includes(currentPath) : currentPath !== firstConsolePath);
+  if (currentPath === "/console" && currentPath !== firstConsolePath) {
+    return <Navigate to={firstConsolePath} replace />;
+  }
 
-  if (shouldRedirectToFirstMenu && currentPath !== firstConsolePath) {
+  if (!hasConsoleRouteAccess(userInfo, currentPath) && currentPath !== firstConsolePath) {
     return <Navigate to={firstConsolePath} replace />;
   }
   return (

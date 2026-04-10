@@ -48,3 +48,16 @@ export function getFirstConsoleMenuPath(menus: MenuItem[] = []) {
     const paths = getConsoleMenuPaths(menus);
     return paths.find((path) => path === CONSOLE_HOME_PATH) ?? paths[0] ?? CONSOLE_HOME_PATH;
 }
+
+export function hasConsoleRouteAccess(
+    userInfo: Pick<UserInfo, "menus" | "isRoot"> | null | undefined,
+    pathname: string,
+) {
+    if (!userInfo) return false;
+    if (isEnabled(userInfo.isRoot)) return true;
+
+    const currentPath = normalizePath(pathname);
+    return getConsoleMenuPaths(userInfo.menus ?? []).some(
+        (menuPath) => currentPath === menuPath || currentPath.startsWith(`${menuPath}/`),
+    );
+}
