@@ -34,7 +34,7 @@ import {
   Square,
   X,
 } from "lucide-react";
-import type { ClipboardEvent, FormEvent, ReactNode, RefObject } from "react";
+import type { ClipboardEvent, FocusEventHandler, FormEvent, ReactNode, RefObject } from "react";
 import { memo, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -72,6 +72,7 @@ export interface PromptInputProps {
   onSetFeature?: (key: string, value: boolean) => void;
   hiddenTools?: PromptInputHiddenTool[];
   children?: ReactNode;
+  onTextareaFocus?: FocusEventHandler<HTMLTextAreaElement>;
 }
 
 const StopButton = memo(({ onStop }: { onStop: () => void }) => {
@@ -151,6 +152,7 @@ const PromptInputInner = memo(
     onSetFeature: onSetFeatureProp,
     hiddenTools = [],
     children,
+    onTextareaFocus,
   }: PromptInputProps) => {
     const context = useContext(AssistantContext);
     const models = modelsProp ?? context?.models ?? [];
@@ -338,7 +340,11 @@ const PromptInputInner = memo(
       <AIPromptInput globalDrop={globalDrop} multiple={multiple} onSubmit={handleSubmit}>
         <PromptInputAttachmentsList />
         <AIPromptInputBody>
-          <AIPromptInputTextarea ref={textareaRef} onPaste={handlePaste} />
+          <AIPromptInputTextarea
+            ref={textareaRef}
+            onPaste={handlePaste}
+            onFocus={onTextareaFocus}
+          />
         </AIPromptInputBody>
         <AIPromptInputFooter className="h-13 py-0">
           <AIPromptInputTools>
@@ -482,6 +488,7 @@ export const PromptInput = memo((props: PromptInputProps) => {
     onSetFeature,
     hiddenTools,
     children,
+    onTextareaFocus,
   } = props;
 
   return (
@@ -499,6 +506,7 @@ export const PromptInput = memo((props: PromptInputProps) => {
         onSelectMcpServers={onSelectMcpServers}
         onSetFeature={onSetFeature}
         hiddenTools={hiddenTools}
+        onTextareaFocus={onTextareaFocus}
       >
         {children}
       </PromptInputInner>

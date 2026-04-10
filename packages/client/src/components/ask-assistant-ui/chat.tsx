@@ -1,4 +1,5 @@
 import { useConfigStore } from "@buildingai/stores";
+import { useAuthStore } from "@buildingai/stores";
 import type { PromptInputMessage } from "@buildingai/ui/components/ai-elements/prompt-input";
 import { EditorContentRenderer } from "@buildingai/ui/components/editor";
 import {
@@ -13,7 +14,7 @@ import { cn } from "@buildingai/ui/lib/utils";
 import { ShareIcon } from "lucide-react";
 import type { FormEvent } from "react";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { PromptInput } from "./components/input/prompt-input";
@@ -184,6 +185,9 @@ const InputArea = memo(function InputArea({
   const { suggestions, status, textareaRef, isLoading, onSend, onStop, selectedModelId } =
     useAssistantContext();
   const { id } = useParams<{ id: string }>();
+  const { isLogin } = useAuthStore((state) => state.authActions);
+  const location = useLocation();
+  const navigate = useNavigate();
   const { isAtBottom, scrollToBottom } = useInfiniteScrollTopContext();
 
   const handleSubmit = useCallback(
@@ -213,6 +217,17 @@ const InputArea = memo(function InputArea({
     [isAtBottom, onSend, scrollToBottom],
   );
 
+  const handleInputFocus = useCallback(() => {
+    if (isLogin()) {
+      return;
+    }
+    const redirect = encodeURIComponent(location.pathname + location.search);
+    navigate(`/login?redirect=${redirect}`, {
+      replace: true,
+      state: { redirect: location.pathname },
+    });
+  }, [isLogin, location.pathname, location.search, navigate]);
+
   return (
     <div className={cn("sticky z-10", id ? "bottom-13" : "bottom-0")}>
       <InfiniteScrollTopScrollButton className="-top-12 z-20" />
@@ -225,6 +240,7 @@ const InputArea = memo(function InputArea({
           status={status}
           onSubmit={handleSubmit}
           onStop={onStop}
+          onTextareaFocus={handleInputFocus}
           globalDrop
           multiple
         />
