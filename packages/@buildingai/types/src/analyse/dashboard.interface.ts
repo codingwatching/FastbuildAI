@@ -40,6 +40,10 @@ export interface OrderStats {
     totalOrders: number;
     /** 总订单金额 */
     totalAmount: number;
+    /** 本月金额 */
+    monthOrderAmount: number;
+    /** 今日金额 */
+    todayOrderAmount: number;
     /** 今日订单数 */
     ordersToday: number;
     /** 同比变化（与昨天对比，百分比） */
