@@ -69,6 +69,7 @@ export interface RetryOptions {
 export interface HttpHooks {
     getAccessToken?: () => string | undefined | Promise<string | undefined>;
     onAuthError?: (error: unknown) => void | Promise<void>;
+    onAccessError?: (error: HttpError) => void | Promise<void>;
     /**
      * Called when request received 401 and you want to refresh token.
      * Return true to indicate refresh succeeded and request should be retried.

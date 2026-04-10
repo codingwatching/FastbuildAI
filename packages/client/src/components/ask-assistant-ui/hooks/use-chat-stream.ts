@@ -239,6 +239,14 @@ export function useChatStream(options: UseChatStreamOptions): UseChatStreamRetur
     ) => {
       if (status === "streaming") return;
       if (!content.trim() && (!files || files.length === 0)) return;
+      if (!token) {
+        const redirect = `${location.pathname}${location.search}`;
+        navigate(`/login?redirect=${encodeURIComponent(redirect)}`, {
+          replace: true,
+          state: { redirect },
+        });
+        return;
+      }
       setStatusOverride(null);
       pendingParentIdRef.current = parentId !== undefined ? parentId : lastMessageDbIdRef.current;
 
@@ -257,7 +265,7 @@ export function useChatStream(options: UseChatStreamOptions): UseChatStreamRetur
         ...(fileParts && { files: fileParts }),
       });
     },
-    [sendMessage, status, lastMessageDbIdRef],
+    [sendMessage, status, token, location.pathname, location.search, navigate, lastMessageDbIdRef],
   );
 
   const streamingMessageId =

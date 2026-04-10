@@ -3,6 +3,8 @@ import { useAuthStore } from "@buildingai/stores";
 import type { AxiosError } from "axios";
 import { toast } from "sonner";
 
+import { getFirstConsoleMenuPath, hasConsoleAccess, WEB_HOME_PATH } from "./shared/console-access";
+
 const isDev = import.meta.env.DEV;
 const devBase = import.meta.env.VITE_DEVELOP_APP_BASE_URL;
 const prodBase = import.meta.env.VITE_PRODUCTION_APP_BASE_URL;
@@ -33,6 +35,17 @@ async function handleAuthError(error: unknown): Promise<void> {
     location.replace(`/login?redirect=${location.pathname}`);
 }
 
+async function handleAccessError(): Promise<void> {
+    const userInfo = useAuthStore.getState().auth.userInfo;
+    const target = hasConsoleAccess(userInfo)
+        ? getFirstConsoleMenuPath(userInfo?.menus ?? [])
+        : WEB_HOME_PATH;
+
+    if (location.pathname !== target) {
+        location.replace(target);
+    }
+}
+
 export const apiHttpClient = createHttpClient({
     baseURL: isDev ? devBase : prodBase,
     pathPrefix: import.meta.env.VITE_APP_WEB_API_PREFIX || "/api",
@@ -42,6 +55,7 @@ export const apiHttpClient = createHttpClient({
             return useAuthStore.getState().auth.token || "";
         },
         onAuthError: handleAuthError,
+        onAccessError: handleAccessError,
         onError: handleHttpError,
     },
 });
@@ -55,6 +69,7 @@ export const consoleHttpClient = createHttpClient({
             return useAuthStore.getState().auth.token || "";
         },
         onAuthError: handleAuthError,
+        onAccessError: handleAccessError,
         onError: handleHttpError,
     },
 });
@@ -106,6 +121,7 @@ export function createPluginHttpClients(pluginIdentifier?: string) {
                 return useAuthStore.getState().auth.token || "";
             },
             onAuthError: handlePluginAuthError,
+            onAccessError: handleAccessError,
             onError: handleHttpError,
         },
     });
@@ -119,6 +135,7 @@ export function createPluginHttpClients(pluginIdentifier?: string) {
                 return useAuthStore.getState().auth.token || "";
             },
             onAuthError: handlePluginAuthError,
+            onAccessError: handleAccessError,
             onError: handleHttpError,
         },
     });
