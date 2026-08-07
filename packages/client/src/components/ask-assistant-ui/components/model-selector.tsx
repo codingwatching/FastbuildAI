@@ -366,7 +366,11 @@ export const ModelSelector = ({
         ) : (
           <AIPromptInputButton>
             {selectedModel?.chefSlug && (
-              <ProviderIcon className="size-5" provider={selectedModel.chefSlug} />
+              <ProviderIcon
+                className="size-5"
+                provider={selectedModel.chefSlug}
+                iconUrl={selectedModel.iconUrl}
+              />
             )}
             {selectedModel?.name && (
               <AIModelSelectorName className="flex items-center">

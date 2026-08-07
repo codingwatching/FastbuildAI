@@ -11,7 +11,7 @@ export type CreateAiProviderDto = {
     description?: string;
     bindSecretId: string;
     supportedModelTypes?: ModelType[];
-    iconUrl?: string;
+    iconUrl?: string | null;
     isActive?: boolean;
     sortOrder?: number;
 };

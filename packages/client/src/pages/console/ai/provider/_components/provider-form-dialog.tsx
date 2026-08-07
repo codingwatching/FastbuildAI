@@ -202,7 +202,7 @@ export const AiProviderFormDialog = ({
       supportedModelTypes: (values.supportedModelTypes || []).map((t) =>
         t.toLowerCase(),
       ) as ModelType[],
-      iconUrl: values.iconUrl || undefined,
+      iconUrl: values.iconUrl || null,
       isActive: values.isActive,
       sortOrder: values.sortOrder,
     };
