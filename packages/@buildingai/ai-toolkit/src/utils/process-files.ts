@@ -63,7 +63,6 @@ export async function processFiles<M extends MessageWithParts>(
             if (!msg.parts?.length) return msg;
 
             const isCurrentUserMsg = index === lastUserIdx;
-            if (!isCurrentUserMsg) return msg;
 
             const parts: unknown[] = [];
             const hasFile = (msg.parts as FilePartLike[]).some(
@@ -77,7 +76,7 @@ export async function processFiles<M extends MessageWithParts>(
                 }
                 if (isMediaType(part.mediaType)) {
                     parts.push(part);
-                } else {
+                } else if (isCurrentUserMsg) {
                     const {
                         content,
                         filename: rawName,
@@ -87,6 +86,11 @@ export async function processFiles<M extends MessageWithParts>(
                     usedNames.add(filename);
                     documents.push({ filename, content });
                     parts.push(...progressParts);
+                } else {
+                    parts.push({
+                        type: "text",
+                        text: `[文件: ${part.filename || "未命名文件"}]`,
+                    });
                 }
             }
 
