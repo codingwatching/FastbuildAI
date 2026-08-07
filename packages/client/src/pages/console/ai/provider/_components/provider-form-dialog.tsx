@@ -111,6 +111,7 @@ export const AiProviderFormDialog = ({
           name: secret.name,
           templateId: template.id,
           templateName: template.name,
+          status: secret.status,
         })),
       }))
       .filter((group) => group.secrets.length > 0);
@@ -398,10 +399,22 @@ export const AiProviderFormDialog = ({
                             <span className="min-w-0 truncate">
                               {selectedSecret ? (
                                 <span className="flex min-w-0 items-center gap-2">
-                                  <span className="truncate">{selectedSecret.name}</span>
+                                  <span
+                                    className={cn(
+                                      "truncate",
+                                      selectedSecret.status !== 1 && "text-muted-foreground",
+                                    )}
+                                  >
+                                    {selectedSecret.name}
+                                  </span>
                                   <span className="text-muted-foreground shrink-0 text-xs">
                                     ({selectedSecret.templateName})
                                   </span>
+                                  {selectedSecret.status !== 1 && (
+                                    <span className="text-muted-foreground shrink-0 text-xs">
+                                      (已关闭)
+                                    </span>
+                                  )}
                                 </span>
                               ) : (
                                 "选择密钥配置"
@@ -469,6 +482,7 @@ export const AiProviderFormDialog = ({
                                         ) : (
                                           group.secrets.map((secret) => {
                                             const isSelected = secret.id === field.value;
+                                            const isDisabled = secret.status !== 1;
 
                                             return (
                                               <Button
@@ -476,17 +490,26 @@ export const AiProviderFormDialog = ({
                                                 ref={isSelected ? selectedSecretItemRef : undefined}
                                                 type="button"
                                                 variant="ghost"
+                                                disabled={isDisabled}
                                                 className={cn(
                                                   "h-8 w-full justify-start gap-2 px-2 font-normal",
                                                   isSelected && "bg-muted text-foreground",
+                                                  isDisabled &&
+                                                    "text-muted-foreground cursor-not-allowed",
                                                 )}
                                                 onClick={() => {
+                                                  if (isDisabled) return;
                                                   field.onChange(secret.id);
                                                   setSecretPopoverOpen(false);
                                                 }}
                                               >
                                                 <span className="min-w-0 flex-1 truncate text-left">
                                                   {secret.name}
+                                                  {isDisabled && (
+                                                    <span className="text-muted-foreground ml-1 text-xs">
+                                                      （已关闭）
+                                                    </span>
+                                                  )}
                                                 </span>
                                                 <Check
                                                   data-icon="inline-end"

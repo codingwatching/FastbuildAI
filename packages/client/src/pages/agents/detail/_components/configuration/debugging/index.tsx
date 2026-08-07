@@ -464,7 +464,8 @@ function DebugPanelContent({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="rounded-lg"
+                        className="h-auto max-w-full rounded-lg py-2 text-left"
+                        style={{ wordBreak: "break-word", whiteSpace: "normal" }}
                         onClick={() => {
                           if (hasRequiredMissing) {
                             onOpenPopover();
