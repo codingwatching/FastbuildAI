@@ -581,13 +581,13 @@ const ProfileSetting = () => {
             </div>
           </DialogContent>
         </Dialog>
-        <RootOnly reverse>
+        {/* <RootOnly reverse>
           <SettingItem title="注销账号" description="您的账号数据将会被永久删除，此操作不可逆">
             <SettingItemAction variant="destructive" size="sm">
               注销
             </SettingItemAction>
           </SettingItem>
-        </RootOnly>
+        </RootOnly> */}
       </SettingItemGroup>
 
       <SettingItemGroup label="注册信息">
