@@ -89,7 +89,7 @@ export async function processFiles<M extends MessageWithParts>(
                 } else {
                     parts.push({
                         type: "text",
-                        text: `[文件: ${part.filename || "未命名文件"}]`,
+                        text: `[用户在此前消息中上传过的文件: ${part.filename || "未命名文件"}，已在当时的回复中处理完毕。除非用户本轮消息明确提到该文件名，否则不要将其当作当前问题的指代对象]`,
                     });
                 }
             }
