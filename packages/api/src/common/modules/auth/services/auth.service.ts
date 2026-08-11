@@ -524,7 +524,7 @@ export class AuthService extends BaseService<User> {
         // 验证旧密码
         const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
         if (!isOldPasswordValid) {
-            throw HttpErrorFactory.unauthorized("旧密码不正确", BusinessCode.PASSWORD_INCORRECT);
+            throw HttpErrorFactory.badRequest("旧密码不正确", BusinessCode.PASSWORD_INCORRECT);
         }
 
         // 生成新密码的哈希
@@ -569,6 +569,11 @@ export class AuthService extends BaseService<User> {
 
         if (!user) {
             throw HttpErrorFactory.notFound(`ID为 ${userId} 的用户不存在`);
+        }
+
+        // 已设置过密码的用户不允许通过 set-password 覆盖，应使用 change-password
+        if (user.password) {
+            throw HttpErrorFactory.badRequest("用户已设置密码，请使用修改密码功能");
         }
 
         // 生成新密码的哈希

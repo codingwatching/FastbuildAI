@@ -107,7 +107,10 @@ const ProfileSetting = () => {
   const isPasswordPending = isChangePasswordPending || isSetPasswordPending;
 
   const handlePasswordSubmit = useCallback(() => {
-    if (data?.hasPassword && !oldPassword.trim()) {
+    if (!data) {
+      return;
+    }
+    if (data.hasPassword && !oldPassword.trim()) {
       toast.error("请输入当前密码");
       return;
     }
@@ -139,7 +142,7 @@ const ProfileSetting = () => {
         confirmPassword: confirmPassword.trim(),
       });
     }
-  }, [data?.hasPassword, oldPassword, newPassword, confirmPassword, changePassword, setPassword]);
+  }, [data, oldPassword, newPassword, confirmPassword, changePassword, setPassword]);
 
   const fetchWechatQrCode = useCallback(async () => {
     setWechatLoading(true);
@@ -525,7 +528,7 @@ const ProfileSetting = () => {
                 >
                   取消
                 </Button>
-                <Button onClick={handlePasswordSubmit} loading={isPasswordPending}>
+                <Button type="button" onClick={handlePasswordSubmit} loading={isPasswordPending}>
                   {data?.hasPassword ? "确认修改" : "确认设置"}
                 </Button>
               </div>
