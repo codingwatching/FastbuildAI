@@ -6,6 +6,7 @@ import {
   useBindPhoneMutation,
   useChangePasswordMutation,
   useSendBindPhoneCodeMutation,
+  useSetPasswordMutation,
   useUpdateUserFieldMutation,
 } from "@buildingai/services/web";
 import { useAuthStore } from "@buildingai/stores";
@@ -88,8 +89,27 @@ const ProfileSetting = () => {
     },
   });
 
-  const handleChangePasswordSubmit = useCallback(() => {
-    if (!oldPassword.trim()) {
+  const { mutate: setPassword, isPending: isSetPasswordPending } = useSetPasswordMutation({
+    onSuccess: () => {
+      toast.success("密码设置成功");
+      setPasswordDialogOpen(false);
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
+    },
+    onError: (e) => {
+      toast.error(e.message || "设置密码失败");
+    },
+  });
+
+  const isPasswordPending = isChangePasswordPending || isSetPasswordPending;
+
+  const handlePasswordSubmit = useCallback(() => {
+    if (!data) {
+      return;
+    }
+    if (data.hasPassword && !oldPassword.trim()) {
       toast.error("请输入当前密码");
       return;
     }
@@ -109,12 +129,19 @@ const ProfileSetting = () => {
       toast.error("新密码须同时包含字母和数字");
       return;
     }
-    changePassword({
-      oldPassword: oldPassword.trim(),
-      newPassword: newPassword.trim(),
-      confirmPassword: confirmPassword.trim(),
-    });
-  }, [oldPassword, newPassword, confirmPassword, changePassword]);
+    if (data?.hasPassword) {
+      changePassword({
+        oldPassword: oldPassword.trim(),
+        newPassword: newPassword.trim(),
+        confirmPassword: confirmPassword.trim(),
+      });
+    } else {
+      setPassword({
+        newPassword: newPassword.trim(),
+        confirmPassword: confirmPassword.trim(),
+      });
+    }
+  }, [data, oldPassword, newPassword, confirmPassword, changePassword, setPassword]);
 
   const fetchWechatQrCode = useCallback(async () => {
     setWechatLoading(true);
@@ -435,30 +462,32 @@ const ProfileSetting = () => {
 
       <SettingItemGroup label="安全设置">
         <SettingItem title={data?.hasPassword ? "已设置" : "未设置"} description="密码">
-          {data?.hasPassword && (
-            <SettingItemAction onClick={() => setPasswordDialogOpen(true)}>
-              <PenLine />
-            </SettingItemAction>
-          )}
+          <SettingItemAction onClick={() => setPasswordDialogOpen(true)}>
+            <PenLine />
+          </SettingItemAction>
         </SettingItem>
         <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
           <DialogContent className="sm:max-w-sm">
             <DialogHeader>
-              <DialogTitle>修改密码</DialogTitle>
+              <DialogTitle>{data?.hasPassword ? "修改密码" : "设置密码"}</DialogTitle>
               <DialogDescription>
-                修改成功后将退出登录，请使用新密码重新登录。新密码须至少 6 位且包含字母和数字。
+                {data?.hasPassword
+                  ? "修改成功后将退出登录，请使用新密码重新登录。新密码须至少 6 位且包含字母和数字。"
+                  : "新密码须至少 6 位且包含字母和数字。"}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label className="text-muted-foreground text-sm font-medium">当前密码</label>
-                <PasswordInput
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                  placeholder="请输入当前密码"
-                  autoComplete="current-password"
-                />
-              </div>
+              {data?.hasPassword && (
+                <div className="grid gap-2">
+                  <label className="text-muted-foreground text-sm font-medium">当前密码</label>
+                  <PasswordInput
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    placeholder="请输入当前密码"
+                    autoComplete="current-password"
+                  />
+                </div>
+              )}
               <div className="grid gap-2">
                 <label className="text-muted-foreground text-sm font-medium">新密码</label>
                 <PasswordInput
@@ -481,12 +510,12 @@ const ProfileSetting = () => {
                 <Button
                   variant="outline"
                   onClick={() => setPasswordDialogOpen(false)}
-                  disabled={isChangePasswordPending}
+                  disabled={isPasswordPending}
                 >
                   取消
                 </Button>
-                <Button onClick={handleChangePasswordSubmit} loading={isChangePasswordPending}>
-                  确认修改
+                <Button type="button" onClick={handlePasswordSubmit} loading={isPasswordPending}>
+                  {data?.hasPassword ? "确认修改" : "确认设置"}
                 </Button>
               </div>
             </div>
@@ -581,13 +610,13 @@ const ProfileSetting = () => {
             </div>
           </DialogContent>
         </Dialog>
-        <RootOnly reverse>
+        {/* <RootOnly reverse>
           <SettingItem title="注销账号" description="您的账号数据将会被永久删除，此操作不可逆">
             <SettingItemAction variant="destructive" size="sm">
               注销
             </SettingItemAction>
           </SettingItem>
-        </RootOnly>
+        </RootOnly> */}
       </SettingItemGroup>
 
       <SettingItemGroup label="注册信息">

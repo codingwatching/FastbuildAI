@@ -63,7 +63,6 @@ export async function processFiles<M extends MessageWithParts>(
             if (!msg.parts?.length) return msg;
 
             const isCurrentUserMsg = index === lastUserIdx;
-            if (!isCurrentUserMsg) return msg;
 
             const parts: unknown[] = [];
             const hasFile = (msg.parts as FilePartLike[]).some(
@@ -77,7 +76,7 @@ export async function processFiles<M extends MessageWithParts>(
                 }
                 if (isMediaType(part.mediaType)) {
                     parts.push(part);
-                } else {
+                } else if (isCurrentUserMsg) {
                     const {
                         content,
                         filename: rawName,
@@ -87,6 +86,11 @@ export async function processFiles<M extends MessageWithParts>(
                     usedNames.add(filename);
                     documents.push({ filename, content });
                     parts.push(...progressParts);
+                } else {
+                    parts.push({
+                        type: "text",
+                        text: `[用户在此前消息中上传过的文件: ${part.filename || "未命名文件"}，已在当时的回复中处理完毕。除非用户本轮消息明确提到该文件名，否则不要将其当作当前问题的指代对象]`,
+                    });
                 }
             }
 

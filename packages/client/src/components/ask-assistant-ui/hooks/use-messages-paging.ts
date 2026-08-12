@@ -125,18 +125,38 @@ export function useMessagesPaging({
       setHasMoreMessages(messagesData.page < messagesData.totalPages);
       nextPageRef.current = Math.max(2, messagesData.page + 1);
 
-      const pageMessages = messagesData.items
-        .sort((a, b) => a.sequence - b.sequence)
-        .map((item) => ({
+      const sortedItems = [...messagesData.items].sort((a, b) => a.sequence - b.sequence);
+      let lastAssistantId: string | null = null;
+      let lastUserId: string | null = null;
+
+      const pageMessages = sortedItems.map((item) => {
+        const role = item.message.role === "tool" ? "assistant" : item.message.role;
+        let parentId = item.parentId ?? null;
+
+        if (parentId == null) {
+          if (role === "user") {
+            parentId = lastAssistantId;
+            lastUserId = item.id;
+          } else if (role === "assistant") {
+            parentId = lastUserId;
+            lastAssistantId = item.id;
+          }
+        } else {
+          if (role === "user") lastUserId = item.id;
+          else if (role === "assistant") lastAssistantId = item.id;
+        }
+
+        return {
           ...item.message,
           id: item.id,
           metadata: {
             ...(item.message.metadata ?? {}),
             sequence: item.sequence,
-            parentId: item.parentId ?? null,
+            parentId,
             ...(item.createdAt && { createdAt: item.createdAt }),
           },
-        })) as UIMessage[];
+        };
+      }) as UIMessage[];
 
       setMessages((prev) => {
         const merged = mergeAndSortMessages(prev, pageMessages);
@@ -164,18 +184,38 @@ export function useMessagesPaging({
         setHasMoreMessages(res.page < res.totalPages);
         nextPageRef.current = res.page + 1;
 
-        const incoming = res.items
-          .sort((a, b) => a.sequence - b.sequence)
-          .map((item) => ({
+        const sortedItems = [...res.items].sort((a, b) => a.sequence - b.sequence);
+        let lastAssistantId: string | null = null;
+        let lastUserId: string | null = null;
+
+        const incoming = sortedItems.map((item) => {
+          const role = item.message.role === "tool" ? "assistant" : item.message.role;
+          let parentId = item.parentId ?? null;
+
+          if (parentId == null) {
+            if (role === "user") {
+              parentId = lastAssistantId;
+              lastUserId = item.id;
+            } else if (role === "assistant") {
+              parentId = lastUserId;
+              lastAssistantId = item.id;
+            }
+          } else {
+            if (role === "user") lastUserId = item.id;
+            else if (role === "assistant") lastAssistantId = item.id;
+          }
+
+          return {
             ...item.message,
             id: item.id,
             metadata: {
               ...(item.message.metadata ?? {}),
               sequence: item.sequence,
-              parentId: item.parentId ?? null,
+              parentId,
               ...(item.createdAt && { createdAt: item.createdAt }),
             },
-          })) as UIMessage[];
+          };
+        }) as UIMessage[];
 
         setMessages((prev) => mergeAndSortMessages(prev, incoming));
       })
