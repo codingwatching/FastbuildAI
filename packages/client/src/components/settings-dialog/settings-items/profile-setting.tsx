@@ -90,14 +90,13 @@ const ProfileSetting = () => {
   });
 
   const { mutate: setPassword, isPending: isSetPasswordPending } = useSetPasswordMutation({
-    onSuccess: async () => {
-      toast.success("密码已设置，请重新登录");
+    onSuccess: () => {
+      toast.success("密码设置成功");
       setPasswordDialogOpen(false);
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      await logout();
-      window.location.replace("/login");
+      queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
     },
     onError: (e) => {
       toast.error(e.message || "设置密码失败");
@@ -463,22 +462,9 @@ const ProfileSetting = () => {
 
       <SettingItemGroup label="安全设置">
         <SettingItem title={data?.hasPassword ? "已设置" : "未设置"} description="密码">
-          {data?.hasPassword ? (
-            <SettingItemAction onClick={() => setPasswordDialogOpen(true)}>
-              <PenLine />
-            </SettingItemAction>
-          ) : (
-            <SettingItemAction
-              variant="ghost"
-              size="sm"
-              onClick={() => setPasswordDialogOpen(true)}
-            >
-              <span className="flex items-center gap-0.5">
-                <Link />
-                去设置
-              </span>
-            </SettingItemAction>
-          )}
+          <SettingItemAction onClick={() => setPasswordDialogOpen(true)}>
+            <PenLine />
+          </SettingItemAction>
         </SettingItem>
         <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
           <DialogContent className="sm:max-w-sm">
@@ -487,7 +473,7 @@ const ProfileSetting = () => {
               <DialogDescription>
                 {data?.hasPassword
                   ? "修改成功后将退出登录，请使用新密码重新登录。新密码须至少 6 位且包含字母和数字。"
-                  : "设置成功后将退出登录，请使用新密码重新登录。新密码须至少 6 位且包含字母和数字。"}
+                  : "新密码须至少 6 位且包含字母和数字。"}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
